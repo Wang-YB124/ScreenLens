@@ -38,6 +38,12 @@ const DEFAULTS = {
   launchAtLogin: false,
   historyPaused: false,
   onboarded: false,
+  audio: {
+    source: 'system',
+    language: 'zh',
+    chunkMs: 6000,
+    overlapMs: 1200,
+  },
 };
 
 const TARGET_LANGS = ['zh-CN', 'en', 'ja', 'ko'];
@@ -103,6 +109,11 @@ function sanitize(data) {
   }
   out.launchAtLogin = Boolean(out.launchAtLogin);
   out.historyPaused = Boolean(out.historyPaused);
+  out.audio = isObject(out.audio) ? out.audio : {};
+  out.audio.source = ['system', 'microphone'].includes(out.audio.source) ? out.audio.source : 'system';
+  out.audio.language = ['zh', 'en'].includes(out.audio.language) ? out.audio.language : 'zh';
+  out.audio.chunkMs = Math.round(clamp(out.audio.chunkMs, 2500, 8000, 6000));
+  out.audio.overlapMs = Math.round(clamp(out.audio.overlapMs, 300, 1500, 1200));
   return out;
 }
 

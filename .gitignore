@@ -2,6 +2,7 @@
 vendor/electron/
 vendor/tmp/
 vendor/katex.tgz
+vendor/whisper/
 
 # Build outputs and release archives (upload the zip to GitHub Releases)
 dist/

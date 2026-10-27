@@ -23,6 +23,7 @@ const { HistoryStore } = require('./core/history');
 const { OcrService } = require('./core/ocr');
 const { SessionManager } = require('./core/session');
 const { RealtimeController } = require('./core/realtime');
+const { AudioController } = require('./core/audio');
 const { ResultWindow } = require('./windows/resultWindow');
 const {
   resizeRealtimeWindow,
@@ -40,6 +41,7 @@ const { isAllowedSearchUrl } = require('./core/search');
 
 app.setName('ScreenLens');
 app.setAppUserModelId('com.screenlens.app');
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -60,6 +62,7 @@ let history;
 let ocr;
 let session;
 let realtime;
+let audio;
 let resultWindow;
 let homeWin = null;
 let tray = null;
@@ -67,6 +70,7 @@ let quitting = false;
 let hotkeyStatus = { select: false, realtime: false, messages: [] };
 let ocrState = { status: 'starting', languages: [], error: '' };
 let realtimeState = { active: false };
+let audioState = { active: false };
 let selecting = false;
 
 const showHome = () => {
@@ -103,12 +107,19 @@ function notify(title, body) {
 
 function state() {
   const publicSettings = settings.getPublic();
+  const audioInfo = audio ? audio.modelInfo() : { ready: false, name: 'Whisper', reason: '音频服务未初始化' };
   return {
     settings: publicSettings,
     history: history.list(),
     ocr: ocrState,
     hotkeys: hotkeyStatus,
     realtime: realtimeState,
+    audio: {
+      active: audioState.active,
+      ready: audioInfo.ready,
+      name: audioInfo.name,
+      reason: audioInfo.reason,
+    },
     selecting,
     provider: {
       label: providerLabel(publicSettings.provider),
@@ -215,6 +226,7 @@ function navigate(tab) {
 function updateTrayMenu() {
   if (!tray) return;
   const active = realtimeState.active;
+  const audioOn = audioState.active;
   const hotkeys = settings.get().hotkeys;
   tray.setContextMenu(Menu.buildFromTemplate([
     {
@@ -226,6 +238,10 @@ function updateTrayMenu() {
       label: active ? '停止实时字幕' : '实时字幕',
       accelerator: hotkeys.realtime || undefined,
       click: () => (realtime.isActive() ? realtime.stop() : realtime.start()),
+    },
+    {
+      label: audioOn ? '停止音频字幕' : '音频字幕（系统声音）',
+      click: () => (audio.isActive() ? audio.stop() : audio.start()),
     },
     { type: 'separator' },
     { label: '打开主界面', click: showHome },
@@ -239,7 +255,7 @@ function updateTrayMenu() {
       },
     },
   ]));
-  tray.setToolTip(active ? 'ScreenLens · 实时字幕中' : 'ScreenLens 屏译');
+  tray.setToolTip(active || audioOn ? 'ScreenLens · 字幕运行中' : 'ScreenLens 屏译');
 }
 
 function createTray() {
@@ -337,6 +353,16 @@ function applySettingsPatch(patch) {
   if (before.historyLimit !== next.historyLimit) history.setLimit(next.historyLimit);
   if (JSON.stringify(before.realtime) !== JSON.stringify(next.realtime)) {
     realtime?.refreshSettings();
+    if (audio?.isActive()) audio.refreshSettings();
+  }
+  if (audio?.isActive() && JSON.stringify(before.audio) !== JSON.stringify(next.audio)) {
+    if (
+      before.audio.source !== next.audio.source ||
+      before.audio.chunkMs !== next.audio.chunkMs ||
+      before.audio.overlapMs !== next.audio.overlapMs
+    ) {
+      notify('音频设置已更改', '请停止后重新开启音频字幕，以应用新的音频来源/分块设置');
+    }
   }
   if (
     before.targetLang !== next.targetLang ||
@@ -347,6 +373,11 @@ function applySettingsPatch(patch) {
   session?.refreshCurrent();
   broadcastState();
   return next;
+}
+
+function isSubtitleWindow(win) {
+  if (!win || win.isDestroyed()) return false;
+  return Boolean((realtime && realtime.win === win) || (audio && audio.win === win));
 }
 
 function registerIpc() {
@@ -373,59 +404,72 @@ function registerIpc() {
     }
   });
 
+  ipcMain.on('audio:chunk', (event, data) => {
+    if (!audio || !audio.capture || audio.capture.isDestroyed()) return;
+    if (event.sender.id !== audio.capture.webContents.id) return;
+    audio.pushChunk(data);
+  });
+
+  ipcMain.on('audio:status', (event, payload) => {
+    if (!audio || !audio.capture || audio.capture.isDestroyed()) return;
+    if (event.sender.id !== audio.capture.webContents.id) return;
+    audio.onCaptureStatus(payload);
+  });
+
   ipcMain.on('realtime:resize', (event, height) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) resizeRealtimeWindow(win, height);
+    if (isSubtitleWindow(win)) resizeRealtimeWindow(win, height);
   });
 
   ipcMain.on('realtime:hitzone', (event, zone) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) updateRealtimeHitzone(win, zone);
+    if (isSubtitleWindow(win)) updateRealtimeHitzone(win, zone);
   });
 
   ipcMain.on('realtime:drag-start', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) startRealtimeDrag(win);
+    if (isSubtitleWindow(win)) startRealtimeDrag(win);
   });
 
   ipcMain.on('realtime:drag-move', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) moveRealtimeDrag(win);
+    if (isSubtitleWindow(win)) moveRealtimeDrag(win);
   });
 
   ipcMain.on('realtime:drag-end', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) endRealtimeDrag(win);
+    if (isSubtitleWindow(win)) endRealtimeDrag(win);
   });
 
   ipcMain.on('realtime:resize-start', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) startRealtimeResize(win);
+    if (isSubtitleWindow(win)) startRealtimeResize(win);
   });
 
   ipcMain.on('realtime:resize-move', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) moveRealtimeResize(win);
+    if (isSubtitleWindow(win)) moveRealtimeResize(win);
   });
 
   ipcMain.on('realtime:resize-end', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win && realtime?.win === win) endRealtimeResize(win);
+    if (isSubtitleWindow(win)) endRealtimeResize(win);
   });
 
   ipcMain.handle('realtime:reset-size', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win || !realtime || realtime.win !== win) return { ok: false };
+    if (!win || !isSubtitleWindow(win)) return { ok: false };
+    const controller = realtime?.win === win ? realtime : (audio?.win === win ? audio : null);
     settings.update({ realtime: { boxWidth: 0, boxHeight: 0 } });
     resetRealtimeSize(win);
-    realtime.refreshSettings();
+    controller?.refreshSettings();
     broadcastState();
     return { ok: true };
   });
 
   ipcMain.handle('realtime:settings', (event, patch) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win || !realtime || realtime.win !== win) return { ok: false };
+    if (!win || !isSubtitleWindow(win)) return { ok: false };
     const clean = {};
     for (const key of ['fontSize', 'opacity', 'maxLines', 'engine', 'sourceLang', 'targetLang', 'boxWidth', 'boxHeight']) {
       if (patch && patch[key] !== undefined) clean[key] = patch[key];
@@ -472,6 +516,7 @@ function registerIpc() {
 
   ipcMain.handle('action:select', () => {
     if (selecting) return { ok: false, reason: 'busy' };
+    if (audio.isActive()) audio.stop({ silent: true });
     session.startSelection();
     return { ok: true };
   });
@@ -479,11 +524,25 @@ function registerIpc() {
   ipcMain.handle('action:realtime', () => {
     if (realtime.isActive()) return { ok: true, active: true };
     if (selecting) return { ok: false, reason: 'busy' };
+    if (audio.isActive()) audio.stop({ silent: true });
     realtime.start();
     return { ok: true };
   });
 
+  ipcMain.handle('action:audio', async () => {
+    if (audio.isActive()) {
+      audio.stop();
+      return { ok: true, active: false };
+    }
+    if (realtime.isActive()) {
+      return { ok: false, reason: 'busy', error: '请先停止实时字幕' };
+    }
+    if (selecting) return { ok: false, reason: 'busy' };
+    return audio.start();
+  });
+
   ipcMain.handle('action:stop-realtime', () => {
+    if (audio.isActive()) audio.stop();
     realtime.stop();
     return { ok: true };
   });
@@ -660,6 +719,16 @@ async function bootstrap() {
     },
     restoreResult: () => session.restoreResult(),
   });
+  audio = new AudioController({
+    settings,
+    tempDir,
+    rootDir: ROOT,
+    onStateChange: (patch) => {
+      if ('audioActive' in patch) audioState = { active: patch.audioActive };
+      broadcastState();
+    },
+    notify,
+  });
 
   protocol.handle('shot', async (request) => {
     try {
@@ -718,5 +787,6 @@ app.on('before-quit', () => {
   quitting = true;
   try { globalShortcut.unregisterAll(); } catch {}
   try { realtime?.stop({ silent: true }); } catch {}
+  try { audio?.stop({ silent: true }); } catch {}
   try { ocr?.stop(); } catch {}
 });

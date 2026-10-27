@@ -307,9 +307,12 @@ api.on('realtime:init', (config) => {
   manualHeight = Number(config.boxHeight) > 0;
   sub.classList.toggle('manual-size', manualHeight);
   syncManualUi();
-  if (config.windowTitle) {
-    scope.textContent = '窗口';
-    scope.title = `识别窗口：${config.windowTitle}`;
+  const scopeLabel = config.scope || (config.windowTitle ? '窗口' : '');
+  if (scopeLabel) {
+    scope.textContent = scopeLabel;
+    scope.title = config.windowTitle
+      ? `识别窗口：${config.windowTitle}`
+      : (scopeLabel === '音频' ? '本地 Whisper · 系统声音/麦克风' : '');
     scope.classList.remove('hidden');
   } else {
     scope.classList.add('hidden');
@@ -337,7 +340,11 @@ api.on('realtime:init', (config) => {
 
 function renderUpdate(payload) {
   if (payload.direction) dir.textContent = payload.direction;
-  if (payload.provider) provider.textContent = payload.provider === '免费翻译' ? 'FREE' : 'AI';
+  if (payload.provider) {
+    provider.textContent = payload.provider === '免费翻译'
+      ? 'FREE'
+      : (payload.provider === '原文' ? 'ORIG' : 'AI');
+  }
   if (payload.domain) currentDomain = payload.domain;
   if (payload.original !== undefined) {
     const text = String(payload.original || '').trim();
@@ -385,7 +392,8 @@ function renderUpdate(payload) {
     translated.replaceChildren();
     const dot = document.createElement('span');
     dot.className = 'waiting-dot';
-    translated.append(dot, document.createTextNode('将选区对准字幕或文字区域'));
+    const message = payload.message || '将选区对准字幕或文字区域';
+    translated.append(dot, document.createTextNode(message));
   }
 }
 

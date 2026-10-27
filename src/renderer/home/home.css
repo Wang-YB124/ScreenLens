@@ -1106,8 +1106,9 @@ body {
 .card-hotkeys { order: 2; }
 .card-ai { order: 3; }
 .card-realtime { order: 4; }
-.card-general { order: 5; }
-.card-about { order: 6; }
+.card-audio { order: 5; }
+.card-general { order: 6; }
+.card-about { order: 7; }
 
 .settings-grid {
   display: grid;
@@ -1661,4 +1662,11 @@ input[type="range"]::-webkit-slider-thumb {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+.setting-note {
+  margin: 10px 2px 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--muted);
 }

@@ -55,6 +55,7 @@ function buildRealtimeInit(settings, win) {
     hotkey: settings.hotkeys.realtime,
     below: placement ? placement.below : true,
     windowTitle: (win && win.__screenlensWindowTitle) || '',
+    scope: (win && win.__screenlensScope) || '',
     boxWidth: settings.realtime.boxWidth,
     boxHeight: settings.realtime.boxHeight,
   };
@@ -280,7 +281,7 @@ function resizeRealtimeWindow(win, height) {
   raiseRealtimeWindow(win);
 }
 
-function createRealtimeWindow({ rect, settings, windowTitle = '' }) {
+function createRealtimeWindow({ rect, settings, windowTitle = '', scope = '' }) {
   const bounds = computeBounds(rect, settings);
   const rt = settings.realtime;
   const anchor = rect || { x: 0, y: 0, width: 1, height: 1 };
@@ -333,6 +334,7 @@ function createRealtimeWindow({ rect, settings, windowTitle = '' }) {
   };
   win.__screenlensManualHeight = rt.boxHeight > 0;
   win.__screenlensWindowTitle = String(windowTitle || '');
+  win.__screenlensScope = String(scope || '');
   win.setAlwaysOnTop(true, 'screen-saver');
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   try { win.setContentProtection(true); } catch {}

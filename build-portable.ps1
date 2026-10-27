@@ -34,6 +34,29 @@ Copy-Item -Path (Join-Path $root 'assets') -Destination $appDir -Recurse -Force
 Copy-Item -Path (Join-Path $root 'package.json') -Destination $appDir -Force
 Remove-Item -LiteralPath (Join-Path $appDir 'assets\make-icons.py') -ErrorAction SilentlyContinue
 
+$whisper = Join-Path $root 'vendor\whisper'
+if (Test-Path $whisper) {
+    $target = Join-Path $appDir 'vendor\whisper'
+    New-Item -ItemType Directory -Path $target -Force | Out-Null
+    $srcRuntime = Join-Path $whisper 'runtime'
+    if (Test-Path $srcRuntime) {
+        Copy-Item -LiteralPath $srcRuntime -Destination $target -Recurse -Force
+    }
+    $srcModels = Join-Path $whisper 'models'
+    if (Test-Path $srcModels) {
+        $modelTarget = Join-Path $target 'models'
+        New-Item -ItemType Directory -Path $modelTarget -Force | Out-Null
+        $preferred = Join-Path $srcModels 'ggml-small-q5_1.bin'
+        $fallback = Join-Path $srcModels 'ggml-base-q5_1.bin'
+        if (Test-Path $preferred) {
+            Copy-Item -LiteralPath $preferred -Destination $modelTarget -Force
+        }
+        elseif (Test-Path $fallback) {
+            Copy-Item -LiteralPath $fallback -Destination $modelTarget -Force
+        }
+    }
+}
+
 $licenses = Join-Path $root 'licenses'
 if (Test-Path $licenses) {
     $target = Join-Path $dist 'licenses'

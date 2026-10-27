@@ -51,3 +51,20 @@
 本软件按“现状”提供，不附带任何明示或暗示担保。
 AI 与第三方翻译服务的输出可能不准确；使用者需自行核对并承担使用风险。
 具体责任限制以《许可证.txt》为准。
+
+五、音频字幕（本地 Whisper）
+----------------------------
+1. whisper.cpp
+   - 用途：本地语音识别运行程序（whisper-cli）。
+   - 许可：MIT。
+   - 完整许可：licenses/whisper.cpp-LICENSE.txt。
+2. OpenAI Whisper ggml 模型（base/small q5_1）
+   - 用途：本地中文/英文语音识别模型。
+   - 许可：MIT（模型权重随 OpenAI Whisper 发布）。
+   - 完整许可：licenses/Whisper-model-LICENSE.txt。
+3. OpenCC 繁简转换字表
+   - 用途：把 Whisper 可能输出的繁体字转换为简体。
+   - 许可：Apache-2.0。
+   - 完整许可：licenses/OpenCC-LICENSE.txt。
+
+说明：音频字幕的识别完全在本机运行，音频不会上传；字幕翻译仍使用免费翻译通道或已配置的 AI 模型，识别出的文字会按翻译链路发送。

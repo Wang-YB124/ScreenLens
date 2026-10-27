@@ -25,6 +25,8 @@ let pendingSelect = false;
 let pendingRealtime = false;
 let suppressSelectClick = 0;
 let suppressRealtimeClick = 0;
+let suppressAudioClick = 0;
+let pendingAudio = false;
 let hoverFocusTimer = null;
 let realtimeSawSelecting = false;
 
@@ -159,6 +161,15 @@ function renderStatus() {
   $('btn-realtime').disabled = !realtime.active && pendingRealtime;
   $('stat-realtime').textContent = realtime.active ? '运行中' : '未开启';
   $('quick-realtime').textContent = realtime.active ? '停止 →' : '开启 →';
+
+  const audio = state.audio || {};
+  if (audio.active) pendingAudio = false;
+  $('audio-label').textContent = audio.active ? '停止音频' : (pendingAudio ? '启动中…' : '音频字幕');
+  $('btn-audio').disabled = pendingAudio && !audio.active;
+  $('btn-audio').title = audio.ready
+    ? `${audio.name || '本地 Whisper'} · 系统声音/麦克风`
+    : (audio.reason || '本地 Whisper 模型不可用');
+
   $('hero-hotkey').textContent = formatAccel(settings.hotkeys.select).replace(/ \+ /g, ' ');
   $('realtime-hotkey').textContent = formatAccel(settings.hotkeys.realtime).replace(/ \+ /g, ' ');
 
@@ -386,6 +397,20 @@ function syncSettingsForm(force) {
   $('realtime-opacity-value').textContent = `${Math.round(s.realtime.opacity * 100)}%`;
   setValue('realtime-engine', s.realtime.engine);
   setValue('realtime-lines', String(s.realtime.maxLines));
+  setValue('audio-source', s.audio.source);
+  setValue('audio-language', s.audio.language);
+  const audioInfo = state.audio || {};
+  const audioStatus = $('audio-model-status');
+  if (audioStatus) {
+    audioStatus.textContent = audioInfo.ready ? '已就绪' : '未安装';
+    audioStatus.classList.toggle('mint', Boolean(audioInfo.ready));
+  }
+  const audioDetail = $('audio-model-detail');
+  if (audioDetail) {
+    audioDetail.textContent = audioInfo.ready
+      ? `${audioInfo.name || 'Whisper'} · 约为每 6 秒更新一次`
+      : (audioInfo.reason || '未找到本地 Whisper 模型');
+  }
 
   const launch = $('launch-at-login');
   if (force || document.activeElement !== launch) launch.checked = s.launchAtLogin;
@@ -527,6 +552,46 @@ function toggleRealtime() {
   });
 }
 
+async function toggleAudio() {
+  const audioState = state?.audio || {};
+  if (audioState.active) {
+    api.invoke('action:audio').catch(() => {});
+    return;
+  }
+  if (pendingAudio || state?.selecting || state?.realtime?.active) {
+    showToast('正在准备中', state?.realtime?.active ? '请先停止实时字幕' : '框选窗口即将出现，请勿重复点击', 'warn');
+    return;
+  }
+  if (!audioState.ready) {
+    showToast('音频字幕不可用', audioState.reason || '本地 Whisper 模型未安装', 'error');
+    return;
+  }
+  pendingAudio = true;
+  $('btn-audio').disabled = true;
+  $('audio-label').textContent = '启动中…';
+  try {
+    const res = await api.invoke('action:audio');
+    if (!res || !res.ok) {
+      pendingAudio = false;
+      $('btn-audio').disabled = false;
+      $('audio-label').textContent = state?.audio?.active ? '停止音频' : '音频字幕';
+      showToast('无法启动音频字幕', res?.error || (res?.reason === 'busy' ? '请先停止实时字幕' : '请稍后重试'), 'error');
+      return;
+    }
+    setTimeout(() => {
+      if (!pendingAudio) return;
+      pendingAudio = false;
+      $('btn-audio').disabled = false;
+      $('audio-label').textContent = state?.audio?.active ? '停止音频' : '音频字幕';
+    }, 5000);
+  } catch (err) {
+    pendingAudio = false;
+    $('btn-audio').disabled = false;
+    $('audio-label').textContent = '音频字幕';
+    showToast('无法启动音频字幕', err.message || '请稍后重试', 'error');
+  }
+}
+
 function buildAccel(event) {
   const mods = [];
   if (event.ctrlKey) mods.push('Control');
@@ -635,6 +700,27 @@ function bindEvents() {
   realtimeBtn.addEventListener('click', () => {
     if (Date.now() < suppressRealtimeClick) return;
     toggleRealtime();
+  });
+
+  const audioBtn = $('btn-audio');
+  audioBtn.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    suppressAudioClick = Date.now() + 700;
+    toggleAudio();
+  });
+  audioBtn.addEventListener('click', () => {
+    if (Date.now() < suppressAudioClick) return;
+    toggleAudio();
+  });
+
+  $('audio-source').addEventListener('change', (event) => {
+    saveSettings({ audio: { source: event.target.value } });
+    if (state?.audio?.active) {
+      showToast('音频来源已更改', '请停止后重新开启音频字幕以应用', 'warn');
+    }
+  });
+  $('audio-language').addEventListener('change', (event) => {
+    saveSettings({ audio: { language: event.target.value } });
   });
 
   $('ocr-retry').addEventListener('click', async () => {

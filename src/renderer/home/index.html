@@ -94,6 +94,10 @@
                   <span id="realtime-label">实时字幕</span>
                   <kbd id="realtime-hotkey">Ctrl Alt R</kbd>
                 </button>
+                <button class="btn-ghost hero-btn" id="btn-audio">
+                  <svg viewBox="0 0 24 24" class="ic"><path d="M4 10v4M8 7v10M12 5v14M16 8v8M20 10v4"/></svg>
+                  <span id="audio-label">音频字幕</span>
+                </button>
               </div>
               <div class="hero-meta">
                 <span class="meta-item"><span class="dot" id="hero-ocr-dot"></span>本地识别，截图默认不出本机</span>
@@ -388,6 +392,34 @@
                   <option value="4">4 行</option>
                 </select>
               </div>
+            </section>
+
+            <section class="setting-card card-audio">
+              <header>
+                <div class="card-icon mint">
+                  <svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 5v14M16 8v8M20 10v4"/></svg>
+                </div>
+                <div><h3>音频字幕</h3><p>本地 Whisper 识别系统声音或麦克风</p></div>
+              </header>
+              <div class="row">
+                <div class="row-copy"><strong>音频来源</strong><span>系统声音通过 Windows 回环采集，不上传</span></div>
+                <select class="select compact" id="audio-source">
+                  <option value="system">系统声音（回环）</option>
+                  <option value="microphone">麦克风</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>识别语言</strong><span>切换后对下一个音频分块生效</span></div>
+                <select class="select compact" id="audio-language">
+                  <option value="zh">中文</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>本地模型</strong><span id="audio-model-detail">Whisper base (q5_1) · 约为每 6 秒更新一次</span></div>
+                <span class="chip" id="audio-model-status">检查中</span>
+              </div>
+              <p class="setting-note">识别在本地运行，不上传音频；字幕翻译仍使用免费通道或已配置的 AI 模型。切换音频来源后请重新开启音频字幕。</p>
             </section>
 
             <section class="setting-card card-general">

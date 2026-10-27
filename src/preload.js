@@ -30,6 +30,7 @@ const INVOKE_CHANNELS = new Set([
   'realtime:settings',
   'realtime:reset-size',
   'action:restart-ocr',
+  'action:audio',
 ]);
 
 const SEND_CHANNELS = new Set([
@@ -45,6 +46,8 @@ const SEND_CHANNELS = new Set([
   'realtime:resize-move',
   'realtime:resize-end',
   'window:focus',
+  'audio:chunk',
+  'audio:status',
 ]);
 
 const EVENT_CHANNELS = new Set([
@@ -55,6 +58,8 @@ const EVENT_CHANNELS = new Set([
   'result:delta',
   'realtime:init',
   'realtime:update',
+  'audio:init',
+  'audio:stop',
   'overlay:init',
   'toast',
 ]);
