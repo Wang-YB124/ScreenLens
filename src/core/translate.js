@@ -136,17 +136,28 @@ async function translateFree(text, from, to, { signal } = {}) {
   const results = [];
   for (const chunk of chunks) {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${encodeURIComponent(source)}|${encodeURIComponent(target)}`;
-    const res = await fetch(url, {
-      signal: withTimeout(signal, 25000),
-      headers: { 'User-Agent': 'ScreenLens/1.0' },
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        signal: withTimeout(signal, 25000),
+        headers: { 'User-Agent': 'ScreenLens/1.0' },
+      });
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      throw new Error('无法连接免费翻译服务，请检查网络，或在设置中配置 AI 模型');
+    }
     if (!res.ok) {
       if (res.status === 429) {
         throw new Error('免费翻译已限流，请稍后再试，或在设置中配置 AI 模型');
       }
       throw new Error(`免费翻译服务无响应（${res.status}）`);
     }
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error('免费翻译返回了无法解析的数据，请稍后重试');
+    }
     if (String(data.responseStatus) !== '200') {
       const detail = data.responseDetails || '请求被拒绝';
       if (String(data.responseStatus) === '429' || /too many requests/i.test(String(detail))) {

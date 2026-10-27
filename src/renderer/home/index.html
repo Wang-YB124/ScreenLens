@@ -42,6 +42,7 @@
           <div>
             <strong id="ocr-label">OCR 启动中</strong>
             <span id="ocr-sub">Windows 本地引擎</span>
+            <button type="button" class="link-btn ocr-retry hidden" id="ocr-retry">重试 OCR</button>
           </div>
         </div>
         <div class="status-line">
@@ -85,7 +86,7 @@
               <div class="hero-actions">
                 <button class="btn-primary hero-btn" id="btn-select">
                   <svg viewBox="0 0 24 24" class="ic"><path d="M4 8V5.8C4 4.8 4.8 4 5.8 4H8M16 4h2.2c1 0 1.8.8 1.8 1.8V8M20 16v2.2c0 1-.8 1.8-1.8 1.8H16M8 20H5.8c-1 0-1.8-.8-1.8-1.8V16"/><path d="M8.5 12h7"/></svg>
-                  截屏翻译
+                  <span id="select-label">截屏翻译</span>
                   <kbd class="dark-kbd" id="hero-hotkey">Ctrl Alt Q</kbd>
                 </button>
                 <button class="btn-ghost hero-btn" id="btn-realtime">

@@ -41,6 +41,7 @@ class RealtimeController {
   async start() {
     if (this.active || this.selecting) return;
     this.selecting = true;
+    this.onStateChange({ selecting: true });
     try {
       const hadResult = this.hideResult();
       const windows = await this.ocr.listWindows({ excludePid: process.pid }).catch(() => []);
@@ -93,6 +94,7 @@ class RealtimeController {
       this.notify('实时字幕启动失败', err.message);
     } finally {
       this.selecting = false;
+      this.onStateChange({ selecting: false });
     }
   }
 
@@ -261,7 +263,9 @@ class RealtimeController {
         status: 'error',
         original: text,
         translated: '',
-        message: '翻译服务暂时不可用',
+        message: this.engine === 'free'
+          ? '免费翻译暂时不可用，请稍后重试或配置 AI 模型'
+          : 'AI 服务暂时不可用，请检查模型配置',
         direction: directionLabel,
         domain,
       });

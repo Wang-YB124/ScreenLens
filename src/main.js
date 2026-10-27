@@ -175,8 +175,32 @@ function createHomeWindow() {
   win.on('maximize', () => win.webContents.send('app:maximized', true));
   win.on('unmaximize', () => win.webContents.send('app:maximized', false));
   win.on('closed', () => {
+    if (win.__hoverFocusTimer) clearInterval(win.__hoverFocusTimer);
     if (homeWin === win) homeWin = null;
   });
+  let hoverSince = 0;
+  win.__hoverFocusTimer = setInterval(() => {
+    if (!win || win.isDestroyed() || !win.isVisible() || win.isFocused()) {
+      hoverSince = 0;
+      return;
+    }
+    const cursor = screen.getCursorScreenPoint();
+    const bounds = win.getBounds();
+    const inside = cursor.x >= bounds.x && cursor.x < bounds.x + bounds.width
+      && cursor.y >= bounds.y && cursor.y < bounds.y + bounds.height;
+    if (!inside) {
+      hoverSince = 0;
+      return;
+    }
+    if (!hoverSince) {
+      hoverSince = Date.now();
+      return;
+    }
+    if (Date.now() - hoverSince > 260) {
+      hoverSince = 0;
+      try { win.focus(); } catch {}
+    }
+  }, 80);
   homeWin = win;
   return win;
 }
@@ -326,6 +350,29 @@ function applySettingsPatch(patch) {
 }
 
 function registerIpc() {
+  ipcMain.on('window:focus', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed() || win !== homeWin) return;
+    if (win.isMinimized()) win.restore();
+    if (!win.isVisible()) win.show();
+    win.focus();
+  });
+
+  ipcMain.handle('action:restart-ocr', async () => {
+    try {
+      ocrState = { status: 'starting', languages: [], error: '' };
+      broadcastState();
+      const res = await ocr.restart();
+      ocrState = { status: 'ready', languages: res.languages || [], error: '' };
+      broadcastState();
+      return { ok: true };
+    } catch (err) {
+      ocrState = { status: 'error', languages: [], error: err.message };
+      broadcastState();
+      return { ok: false, error: err.message };
+    }
+  });
+
   ipcMain.on('realtime:resize', (event, height) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win && realtime?.win === win) resizeRealtimeWindow(win, height);
@@ -601,6 +648,7 @@ async function bootstrap() {
     ocr,
     tempDir,
     onStateChange: (patch) => {
+      if ('selecting' in patch) selecting = patch.selecting;
       if ('realtimeActive' in patch) realtimeState = { active: patch.realtimeActive };
       broadcastState();
     },

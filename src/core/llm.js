@@ -79,16 +79,22 @@ async function chat({ provider, messages, signal, maxTokens, temperature, timeou
     'User-Agent': 'ScreenLens/1.0',
   };
   if (provider.apiKey) headers.Authorization = `Bearer ${provider.apiKey}`;
-  const res = await fetch(endpointOf(provider.baseUrl), {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payloadFor(provider, messages, {
-      stream: false,
-      maxTokens,
-      temperature,
-    })),
-    signal: combinedSignal(signal, timeoutMs),
-  });
+  let res;
+  try {
+    res = await fetch(endpointOf(provider.baseUrl), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payloadFor(provider, messages, {
+        stream: false,
+        maxTokens,
+        temperature,
+      })),
+      signal: combinedSignal(signal, timeoutMs),
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    throw new Error('无法连接模型服务，请检查网络或接口地址');
+  }
   if (!res.ok) await errorFromResponse(res);
   const data = await res.json();
   const content = data.choices?.[0]?.message?.content;
@@ -111,16 +117,22 @@ async function streamChat({
     'User-Agent': 'ScreenLens/1.0',
   };
   if (provider.apiKey) headers.Authorization = `Bearer ${provider.apiKey}`;
-  const res = await fetch(endpointOf(provider.baseUrl), {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payloadFor(provider, messages, {
-      stream: true,
-      maxTokens,
-      temperature,
-    })),
-    signal: combinedSignal(signal, timeoutMs),
-  });
+  let res;
+  try {
+    res = await fetch(endpointOf(provider.baseUrl), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payloadFor(provider, messages, {
+        stream: true,
+        maxTokens,
+        temperature,
+      })),
+      signal: combinedSignal(signal, timeoutMs),
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    throw new Error('无法连接模型服务，请检查网络或接口地址');
+  }
   if (!res.ok) await errorFromResponse(res);
   if (!res.body) throw new Error('模型响应为空');
 

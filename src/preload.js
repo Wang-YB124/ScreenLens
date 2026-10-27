@@ -29,6 +29,7 @@ const INVOKE_CHANNELS = new Set([
   'window:hide',
   'realtime:settings',
   'realtime:reset-size',
+  'action:restart-ocr',
 ]);
 
 const SEND_CHANNELS = new Set([
@@ -43,6 +44,7 @@ const SEND_CHANNELS = new Set([
   'realtime:resize-start',
   'realtime:resize-move',
   'realtime:resize-end',
+  'window:focus',
 ]);
 
 const EVENT_CHANNELS = new Set([

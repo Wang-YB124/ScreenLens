@@ -95,10 +95,10 @@ class OcrService extends EventEmitter {
     });
 
     proc.on('error', (err) => {
-      this.handleDeath(err);
+      if (this.proc === proc) this.handleDeath(err);
     });
     proc.on('close', (code) => {
-      this.handleDeath(new Error(`OCR worker exited (${code})`));
+      if (this.proc === proc) this.handleDeath(new Error(`OCR worker exited (${code})`));
     });
   }
 
@@ -302,6 +302,14 @@ class OcrService extends EventEmitter {
       return { ...en, captureMs: res.captureMs, windowRect };
     }
     return { ...first, captureMs: res.captureMs, windowRect };
+  }
+
+  restart() {
+    this.stop();
+    this.starting = null;
+    this.failures = 0;
+    this.available = false;
+    return this.start();
   }
 
   stop() {

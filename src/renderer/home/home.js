@@ -21,6 +21,12 @@ let currentTab = 'home';
 let searchQuery = '';
 let recording = null;
 let keySaveTimer = null;
+let pendingSelect = false;
+let pendingRealtime = false;
+let suppressSelectClick = 0;
+let suppressRealtimeClick = 0;
+let hoverFocusTimer = null;
+let realtimeSawSelecting = false;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -95,8 +101,9 @@ function renderStatus() {
   $('ocr-sub').textContent = ocr.status === 'ready'
     ? (ocr.languages || []).map((l) => (l.startsWith('zh') ? '中文' : l.startsWith('en') ? 'English' : l)).join(' · ')
     : ocr.status === 'error'
-      ? '请查看设置中的提示'
+      ? '点击下方可重试'
       : 'Windows 本地引擎';
+  $('ocr-retry').classList.toggle('hidden', ocr.status !== 'error');
 
   $('hero-ocr-dot').className = `dot ${ocr.status === 'ready' ? '' : ocr.status === 'error' ? 'error' : 'warn'}`;
   $('stat-ocr').textContent = ocr.status === 'error' ? '引擎异常' : 'Windows OCR';
@@ -131,7 +138,25 @@ function renderStatus() {
     : '免费通道已关闭。接入模型后即可恢复翻译，并获得代码、公式与科普解释。';
 
   const realtime = state.realtime;
-  $('realtime-label').textContent = realtime.active ? '停止字幕' : '实时字幕';
+  if (state.selecting) {
+    pendingSelect = false;
+    pendingRealtime = false;
+    realtimeSawSelecting = true;
+  } else if (realtimeSawSelecting && !realtime.active) {
+    realtimeSawSelecting = false;
+  }
+  if (realtime.active) {
+    pendingRealtime = false;
+    realtimeSawSelecting = false;
+  }
+  $('select-label').textContent = state.selecting
+    ? '框选中…'
+    : (pendingSelect ? '准备中…' : '截屏翻译');
+  $('btn-select').disabled = Boolean(state.selecting || pendingSelect);
+  $('realtime-label').textContent = realtime.active
+    ? '停止字幕'
+    : (pendingRealtime ? '启动中…' : '实时字幕');
+  $('btn-realtime').disabled = !realtime.active && pendingRealtime;
   $('stat-realtime').textContent = realtime.active ? '运行中' : '未开启';
   $('quick-realtime').textContent = realtime.active ? '停止 →' : '开启 →';
   $('hero-hotkey').textContent = formatAccel(settings.hotkeys.select).replace(/ \+ /g, ' ');
@@ -439,12 +464,67 @@ function closeOnboarding({ config = false } = {}) {
 }
 
 function triggerSelect() {
-  api.invoke('action:select');
+  if (pendingSelect || state?.selecting) {
+    showToast('正在准备框选', '框选窗口即将出现，请勿重复点击', 'warn');
+    return;
+  }
+  pendingSelect = true;
+  $('btn-select').disabled = true;
+  $('select-label').textContent = '准备中…';
+  api.invoke('action:select').then((res) => {
+    if (!res || !res.ok) {
+      pendingSelect = false;
+      $('btn-select').disabled = Boolean(state?.selecting);
+      $('select-label').textContent = state?.selecting ? '框选中…' : '截屏翻译';
+      showToast('无法开始框选', res?.reason === 'busy' ? '已有框选或实时字幕正在进行' : '请稍后重试', 'error');
+      return;
+    }
+    setTimeout(() => {
+      if (!pendingSelect) return;
+      pendingSelect = false;
+      $('btn-select').disabled = Boolean(state?.selecting);
+      $('select-label').textContent = state?.selecting ? '框选中…' : '截屏翻译';
+    }, 4500);
+  }).catch((err) => {
+    pendingSelect = false;
+    $('btn-select').disabled = Boolean(state?.selecting);
+    $('select-label').textContent = state?.selecting ? '框选中…' : '截屏翻译';
+    showToast('无法开始框选', err.message || '请稍后重试', 'error');
+  });
 }
 
 function toggleRealtime() {
-  if (state?.realtime.active) api.invoke('action:stop-realtime');
-  else api.invoke('action:realtime');
+  if (state?.realtime.active) {
+    api.invoke('action:stop-realtime').catch(() => {});
+    return;
+  }
+  if (pendingRealtime || state?.selecting) {
+    showToast('正在准备中', '框选窗口即将出现，请勿重复点击', 'warn');
+    return;
+  }
+  pendingRealtime = true;
+  $('btn-realtime').disabled = true;
+  $('realtime-label').textContent = '启动中…';
+  api.invoke('action:realtime').then((res) => {
+    if (!res || !res.ok) {
+      pendingRealtime = false;
+      $('btn-realtime').disabled = false;
+      $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
+      showToast('无法启动实时字幕', res?.reason === 'busy' ? '已有框选或实时字幕正在进行' : '请稍后重试', 'error');
+      return;
+    }
+    setTimeout(() => {
+      if (!pendingRealtime) return;
+      pendingRealtime = false;
+      $('btn-realtime').disabled = false;
+      $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
+    }, 6000);
+  }).catch((err) => {
+    pendingRealtime = false;
+    $('btn-realtime').disabled = false;
+    $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
+    showToast('无法启动实时字幕', err.message || '请稍后重试', 'error');
+  });
 }
 
 function buildAccel(event) {
@@ -532,10 +612,61 @@ function bindEvents() {
   $('onboarding-backdrop').addEventListener('click', () => closeOnboarding());
   $('onboarding-config').addEventListener('click', () => closeOnboarding({ config: true }));
 
-  $('btn-select').addEventListener('click', triggerSelect);
   $('history-empty-action').addEventListener('click', triggerSelect);
-  $('btn-realtime').addEventListener('click', toggleRealtime);
   $('quick-realtime').addEventListener('click', toggleRealtime);
+
+  const selectBtn = $('btn-select');
+  selectBtn.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    suppressSelectClick = Date.now() + 700;
+    triggerSelect();
+  });
+  selectBtn.addEventListener('click', () => {
+    if (Date.now() < suppressSelectClick) return;
+    triggerSelect();
+  });
+
+  const realtimeBtn = $('btn-realtime');
+  realtimeBtn.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    suppressRealtimeClick = Date.now() + 700;
+    toggleRealtime();
+  });
+  realtimeBtn.addEventListener('click', () => {
+    if (Date.now() < suppressRealtimeClick) return;
+    toggleRealtime();
+  });
+
+  $('ocr-retry').addEventListener('click', async () => {
+    const btn = $('ocr-retry');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = '正在重启…';
+    try {
+      const res = await api.invoke('action:restart-ocr');
+      showToast(
+        res?.ok ? 'OCR 正在重启' : 'OCR 重启失败',
+        res?.ok ? '稍候即可继续使用' : (res?.error || '请稍后重试'),
+        res?.ok ? 'info' : 'error',
+      );
+    } catch (err) {
+      showToast('OCR 重启失败', err.message || '请稍后重试', 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = '重试 OCR';
+  });
+
+  document.addEventListener('mousemove', () => {
+    if (document.hasFocus() || hoverFocusTimer) return;
+    hoverFocusTimer = setTimeout(() => {
+      hoverFocusTimer = null;
+      if (!document.hasFocus()) api.send('window:focus');
+    }, 120);
+  });
+  document.addEventListener('mouseleave', () => {
+    clearTimeout(hoverFocusTimer);
+    hoverFocusTimer = null;
+  });
   $('hero-config').addEventListener('click', openProviderSettings);
   $('banner-config').addEventListener('click', openProviderSettings);
   $('see-history').addEventListener('click', () => switchTab('history'));

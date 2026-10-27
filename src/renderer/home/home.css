@@ -352,6 +352,26 @@ body {
   color: #333b48;
 }
 
+.ocr-retry {
+  margin-top: 3px;
+  padding: 0;
+  font-size: 10.5px;
+  color: var(--mint);
+  text-align: left;
+  width: fit-content;
+}
+
+.ocr-retry:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn-ghost:disabled {
+  opacity: 0.55;
+  cursor: default;
+  transform: none;
+}
+
 .tny {
   width: 13px;
   height: 13px;
