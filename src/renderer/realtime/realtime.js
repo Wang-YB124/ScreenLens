@@ -8,7 +8,6 @@ const dir = $('dir');
 const provider = $('provider');
 const hint = $('hint');
 const scope = $('scope');
-const grip = $('grip');
 const panel = $('panel');
 const btnSettings = $('btn-settings');
 const btnClose = $('btn-close');
@@ -22,6 +21,7 @@ const targetChips = $('target-chips');
 const previewText = $('preview-text');
 const resizeGrip = $('resize-grip');
 const resetSizeBtn = $('reset-size');
+const btnAutoSize = $('btn-auto-size');
 
 const LANGS = [
   { code: 'zh-CN', label: '中文' },
@@ -79,17 +79,17 @@ let dragFrame = null;
 function sendHitZone() {
   const meta = document.querySelector('.meta');
   const bottom = meta ? meta.getBoundingClientRect().bottom : 36;
-  let grip = null;
+  let gripZone = null;
   if (!panelOpen) {
     const rect = resizeGrip.getBoundingClientRect();
-    grip = {
+    gripZone = {
       x: Math.floor(rect.x - 5),
       y: Math.floor(rect.y - 5),
       width: Math.ceil(rect.width + 10),
       height: Math.ceil(rect.height + 10),
     };
   }
-  api.send('realtime:hitzone', { metaBottom: Math.ceil(bottom + 6), panelOpen, grip });
+  api.send('realtime:hitzone', { metaBottom: Math.ceil(bottom + 6), panelOpen, grip: gripZone });
 }
 
 function updateLineClamp() {
@@ -103,6 +103,10 @@ function updateLineClamp() {
     lines = Math.max(1, Math.min(12, Math.floor(available / lineH)));
   }
   document.documentElement.style.setProperty('--rt-lines', String(lines));
+}
+
+function syncManualUi() {
+  btnAutoSize.classList.toggle('hidden', !manualHeight);
 }
 
 let saveTimer = null;
@@ -302,6 +306,7 @@ api.on('realtime:init', (config) => {
   rt.targetLang = config.targetLang || 'auto';
   manualHeight = Number(config.boxHeight) > 0;
   sub.classList.toggle('manual-size', manualHeight);
+  syncManualUi();
   if (config.windowTitle) {
     scope.textContent = '窗口';
     scope.title = `识别窗口：${config.windowTitle}`;
@@ -389,13 +394,15 @@ api.on('realtime:update', (payload) => {
   scheduleResize();
 });
 
-function endDrag(event) {
+function endMove(event) {
   if (!dragging) return;
   dragging = false;
   dragPointer = null;
   document.body.classList.remove('dragging');
   try {
-    if (event && grip.hasPointerCapture(event.pointerId)) grip.releasePointerCapture(event.pointerId);
+    if (event && sub.hasPointerCapture(event.pointerId)) {
+      sub.releasePointerCapture(event.pointerId);
+    }
   } catch {}
   api.send('realtime:drag-end');
   if (resizePending) {
@@ -404,17 +411,27 @@ function endDrag(event) {
   }
 }
 
-grip.addEventListener('pointerdown', (event) => {
-  if (event.button !== 0 || closing) return;
+function canStartMove(event) {
+  if (event.button !== 0 || closing) return false;
+  const target = event.target;
+  if (!(target instanceof Element)) return false;
+  if (target.closest('button, input, #resize-grip')) return false;
+  const meta = document.querySelector('.meta');
+  const bandBottom = meta ? meta.getBoundingClientRect().bottom + 6 : 44;
+  return event.clientY <= bandBottom;
+}
+
+sub.addEventListener('pointerdown', (event) => {
+  if (!canStartMove(event)) return;
   event.preventDefault();
   dragging = true;
   dragPointer = event.pointerId;
-  try { grip.setPointerCapture(event.pointerId); } catch {}
+  try { sub.setPointerCapture(event.pointerId); } catch {}
   document.body.classList.add('dragging');
   api.send('realtime:drag-start');
 });
 
-grip.addEventListener('pointermove', (event) => {
+sub.addEventListener('pointermove', (event) => {
   if (!dragging || event.pointerId !== dragPointer || dragFrame) return;
   dragFrame = requestAnimationFrame(() => {
     dragFrame = null;
@@ -422,10 +439,10 @@ grip.addEventListener('pointermove', (event) => {
   });
 });
 
-grip.addEventListener('pointerup', endDrag);
-grip.addEventListener('pointercancel', endDrag);
-grip.addEventListener('lostpointercapture', () => {
-  if (dragging) endDrag(null);
+sub.addEventListener('pointerup', endMove);
+sub.addEventListener('pointercancel', endMove);
+sub.addEventListener('lostpointercapture', () => {
+  if (dragging) endMove(null);
 });
 
 btnSettings.addEventListener('click', () => setPanel(!panelOpen));
@@ -497,11 +514,13 @@ function endGripResize(event) {
   if (resizeMoved) {
     manualHeight = true;
     sub.classList.add('manual-size');
+    syncManualUi();
     updateLineClamp();
     api.invoke('realtime:settings', { boxWidth: innerWidth, boxHeight: innerHeight }).catch(() => {});
   } else {
     manualHeight = resizeManualBefore;
     sub.classList.toggle('manual-size', manualHeight);
+    syncManualUi();
     updateLineClamp();
   }
   scheduleResize();
@@ -511,6 +530,7 @@ async function resetSize() {
   try { await api.invoke('realtime:reset-size'); } catch {}
   manualHeight = false;
   sub.classList.remove('manual-size');
+  syncManualUi();
   updateLineClamp();
   scheduleResize();
 }
@@ -524,6 +544,7 @@ resizeGrip.addEventListener('lostpointercapture', () => {
 });
 resizeGrip.addEventListener('dblclick', resetSize);
 resetSizeBtn.addEventListener('click', resetSize);
+btnAutoSize.addEventListener('click', resetSize);
 
 window.addEventListener('resize', () => {
   updateLineClamp();

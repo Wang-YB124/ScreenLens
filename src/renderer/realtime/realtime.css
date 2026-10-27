@@ -30,7 +30,7 @@ body {
   padding: 10px 17px 12px 19px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
   overflow: hidden;
   border-radius: 18px;
@@ -65,6 +65,15 @@ body {
   font-weight: 700;
   letter-spacing: 0.6px;
   flex: none;
+  cursor: grab;
+}
+
+body.dragging .meta {
+  cursor: grabbing;
+}
+
+.meta .rt-btn {
+  cursor: pointer;
 }
 
 .grip {

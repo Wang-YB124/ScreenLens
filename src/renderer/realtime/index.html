@@ -21,6 +21,12 @@
         <span class="provider" id="provider"></span>
         <span class="hint" id="hint">再次按下快捷键停止</span>
         <span class="ctrls">
+          <button type="button" class="rt-btn hidden" id="btn-auto-size" title="恢复自动大小（也可双击右下角缩放把手）">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 8a5 5 0 1 1-1.46-3.54"></path>
+              <path d="M13 2.5V5h-2.5"></path>
+            </svg>
+          </button>
           <button type="button" class="rt-btn" id="btn-settings" title="字幕设置" aria-label="字幕设置">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
@@ -64,7 +70,7 @@
           <span class="preview-text" id="preview-text">字幕效果预览</span>
         </div>
         <div class="panel-foot">
-          <span>拖动左上角把手可移动字幕 · 设置自动保存</span>
+          <span>按住字幕顶部任意位置可移动 · 设置自动保存</span>
           <button type="button" class="panel-reset" id="reset-size">恢复自动大小</button>
         </div>
       </div>
