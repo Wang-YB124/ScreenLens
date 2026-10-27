@@ -23,11 +23,16 @@ function computeBounds(rect, settings) {
     clamp(anchor.x + anchor.width / 2 - width / 2, work.x + 12, work.x + work.width - width - 12),
   );
   let y = anchor.y + anchor.height + 12;
+  let below = true;
   if (y + height > work.y + work.height - 12) {
     y = anchor.y - height - 12;
+    below = false;
+    if (y < work.y + 12) {
+      y = anchor.y + anchor.height - height - 20;
+    }
   }
   y = Math.round(clamp(y, work.y + 12, work.y + work.height - height - 12));
-  return { x, y, width, height, below: y > anchor.y };
+  return { x, y, width, height, below };
 }
 
 function raiseRealtimeWindow(win) {
@@ -35,6 +40,7 @@ function raiseRealtimeWindow(win) {
   try {
     win.setAlwaysOnTop(true, 'screen-saver');
     win.moveTop();
+    win.__screenlensIgnoreApplied = false;
   } catch {}
 }
 
@@ -48,6 +54,7 @@ function buildRealtimeInit(settings, win) {
     targetLang: settings.realtime.targetLang,
     hotkey: settings.hotkeys.realtime,
     below: placement ? placement.below : true,
+    windowTitle: (win && win.__screenlensWindowTitle) || '',
   };
 }
 
@@ -58,8 +65,15 @@ function sendRealtimeInit(win, settings) {
 
 function setRealtimeInteractive(win, interactive) {
   if (!win || win.isDestroyed()) return;
-  win.__screenlensInteractive = Boolean(interactive);
-  win.setIgnoreMouseEvents(!interactive);
+  const next = Boolean(interactive);
+  if (win.__screenlensInteractive === next && win.__screenlensIgnoreApplied) return;
+  try {
+    win.setIgnoreMouseEvents(!next);
+    win.__screenlensInteractive = next;
+    win.__screenlensIgnoreApplied = true;
+  } catch {
+    win.__screenlensIgnoreApplied = false;
+  }
 }
 
 function updateRealtimeHitzone(win, zone) {
@@ -84,13 +98,18 @@ function startRealtimeWatcher(win) {
       return;
     }
     if (win.__screenlensDragging) {
-      if (!win.__screenlensInteractive) setRealtimeInteractive(win, true);
+      if (!win.__screenlensInteractive || !win.__screenlensIgnoreApplied) {
+        setRealtimeInteractive(win, true);
+      }
       return;
     }
     const now = Date.now();
     if (!win.__screenlensRaisedAt || now - win.__screenlensRaisedAt > 700) {
       win.__screenlensRaisedAt = now;
-      try { win.moveTop(); } catch {}
+      try {
+        win.moveTop();
+        win.__screenlensIgnoreApplied = false;
+      } catch {}
     }
     const point = screen.getCursorScreenPoint();
     const bounds = win.getBounds();
@@ -98,7 +117,9 @@ function startRealtimeWatcher(win) {
     const inside = point.x >= bounds.x && point.x < bounds.x + bounds.width
       && point.y >= bounds.y && point.y < bounds.y + bounds.height;
     const hit = inside && (zone.panelOpen || point.y - bounds.y <= zone.metaBottom);
-    if (hit !== win.__screenlensInteractive) setRealtimeInteractive(win, hit);
+    if (hit !== win.__screenlensInteractive || !win.__screenlensIgnoreApplied) {
+      setRealtimeInteractive(win, hit);
+    }
   }, 50);
   win.on('closed', () => {
     if (win.__screenlensWatcher) clearInterval(win.__screenlensWatcher);
@@ -178,7 +199,7 @@ function resizeRealtimeWindow(win, height) {
   raiseRealtimeWindow(win);
 }
 
-function createRealtimeWindow({ rect, settings }) {
+function createRealtimeWindow({ rect, settings, windowTitle = '' }) {
   const bounds = computeBounds(rect, settings);
   const win = new BrowserWindow({
     x: bounds.x,
@@ -205,8 +226,10 @@ function createRealtimeWindow({ rect, settings }) {
     },
   });
   win.__screenlensPlacement = { anchor: rect, below: bounds.below, manual: false, width: bounds.width };
+  win.__screenlensWindowTitle = String(windowTitle || '');
   win.setAlwaysOnTop(true, 'screen-saver');
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  try { win.setContentProtection(true); } catch {}
   win.setIgnoreMouseEvents(true);
   startRealtimeWatcher(win);
   win.loadFile(path.join(__dirname, '..', 'renderer', 'realtime', 'index.html'));

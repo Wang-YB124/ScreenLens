@@ -21,15 +21,21 @@
     <span class="size" id="size">0 × 0</span>
   </div>
 
+  <div class="window-hover hidden" id="window-hover">
+    <span class="window-title" id="window-title"></span>
+    <span class="window-action">单击识别此窗口</span>
+  </div>
+
   <div class="hint" id="hint">
     <div class="hint-icon">
       <svg viewBox="0 0 24 24"><path d="M4 8V5.8C4 4.8 4.8 4 5.8 4H8M16 4h2.2c1 0 1.8.8 1.8 1.8V8M20 16v2.2c0 1-.8 1.8-1.8 1.8H16M8 20H5.8c-1 0-1.8-.8-1.8-1.8V16"/><path d="M8.5 12h7"/></svg>
     </div>
     <div class="hint-copy">
-      <strong>拖拽框选要识别的内容</strong>
-      <span>松开鼠标后自动翻译 · 截图仅在本机处理</span>
+      <strong id="hint-title">拖拽框选要识别的内容</strong>
+      <span id="hint-sub">松开鼠标后自动翻译 · 截图仅在本机处理</span>
     </div>
     <div class="hint-keys">
+      <kbd class="hidden" id="hint-key-window">单击窗口</kbd>
       <kbd>拖拽</kbd>
       <kbd>Esc</kbd>
     </div>

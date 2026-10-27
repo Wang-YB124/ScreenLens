@@ -229,3 +229,69 @@ body.closing .selection {
     0 0 0 3px rgba(139, 243, 208, 0.22),
     0 0 46px rgba(139, 243, 208, 0.28);
 }
+
+.window-hover {
+  position: fixed;
+  z-index: 5;
+  border: 1.5px solid rgba(139, 243, 208, 0.95);
+  border-radius: 4px;
+  background: rgba(139, 243, 208, 0.075);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.25),
+    0 0 44px rgba(139, 243, 208, 0.18);
+  pointer-events: none;
+}
+
+.window-hover.hidden {
+  display: none;
+}
+
+.window-title,
+.window-action {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 7px;
+  background: rgba(8, 12, 18, 0.92);
+  border: 1px solid rgba(139, 243, 208, 0.28);
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 46vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.window-title {
+  left: -1.5px;
+  top: -1.5px;
+  transform: translateY(-100%);
+  margin-top: -6px;
+  color: var(--mint);
+}
+
+.window-title:empty {
+  display: none;
+}
+
+.window-action {
+  right: -1.5px;
+  bottom: -1.5px;
+  transform: translateY(100%);
+  margin-bottom: -6px;
+  color: #052019;
+  background: linear-gradient(135deg, #a4f7db, #7ceac4);
+  border-color: transparent;
+}
+
+body.closing .window-hover {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+body.dragging .window-hover,
+body.window-hovering .crosshair {
+  opacity: 0.25;
+}

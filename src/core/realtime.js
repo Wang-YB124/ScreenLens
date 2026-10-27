@@ -28,6 +28,9 @@ class RealtimeController {
     this.cache = new Map();
     this.lastKey = '';
     this.lastErrorAt = 0;
+    this.lastWindowErrorAt = 0;
+    this.targetWindow = null;
+    this.windowGoneCount = 0;
     this.tmpImage = path.join(tempDir, 'realtime.png');
   }
 
@@ -40,7 +43,8 @@ class RealtimeController {
     this.selecting = true;
     try {
       const hadResult = this.hideResult();
-      const selection = await selectRegion();
+      const windows = await this.ocr.listWindows({ excludePid: process.pid }).catch(() => []);
+      const selection = await selectRegion({ windows });
       if (!selection) {
         if (hadResult) this.restoreResult();
         return;
@@ -57,6 +61,9 @@ class RealtimeController {
       }
       this.selection = selection;
       this.physical = dipToPhysicalRect(selection.rect);
+      this.targetWindow = selection.window || null;
+      this.windowGoneCount = 0;
+      this.lastWindowErrorAt = 0;
       this.ocrLang = null;
       this.lastKey = '';
       this.lastText = '';
@@ -64,16 +71,23 @@ class RealtimeController {
       this.aiFallbackNotified = false;
       this.cache.clear();
       this.active = true;
-      this.win = createRealtimeWindow({ rect: selection.rect, settings });
+      this.win = createRealtimeWindow({
+        rect: selection.rect,
+        settings,
+        windowTitle: this.targetWindow ? this.targetWindow.title : '',
+      });
       this.win.on('closed', () => {
         this.win = null;
       });
       this.onStateChange({ realtimeActive: true });
       this.schedule(60);
+      const windowNote = this.targetWindow
+        ? `正在识别窗口「${String(this.targetWindow.title || '').slice(0, 32)}」；`
+        : '';
       if (this.engine === 'free') {
-        this.notify('实时字幕已开启（免费翻译）', `免费通道延迟较高，配置 AI 模型后字幕会更流畅；再次按 ${settings.hotkeys.realtime} 停止`);
+        this.notify('实时字幕已开启（免费翻译）', `${windowNote}免费通道延迟较高，配置 AI 模型后字幕会更流畅；再次按 ${settings.hotkeys.realtime} 停止`);
       } else {
-        this.notify('实时字幕已开启', `再次按 ${settings.hotkeys.realtime} 即可停止`);
+        this.notify('实时字幕已开启', `${windowNote}再次按 ${settings.hotkeys.realtime} 即可停止`);
       }
     } catch (err) {
       this.notify('实时字幕启动失败', err.message);
@@ -100,12 +114,38 @@ class RealtimeController {
       this.busy = true;
       let res;
       try {
-        res = await this.ocr.recognizeRegion(this.physical, {
-          imagePath: this.tmpImage,
-          lang: this.ocrLang || 'auto',
-        });
+        res = this.targetWindow
+          ? await this.ocr.recognizeWindow(this.targetWindow.id, {
+            imagePath: this.tmpImage,
+            lang: this.ocrLang || 'auto',
+          })
+          : await this.ocr.recognizeRegion(this.physical, {
+            imagePath: this.tmpImage,
+            lang: this.ocrLang || 'auto',
+          });
       } catch (err) {
         if (!this.active) return;
+        const issue = this.windowIssue(err.message);
+        if (issue) {
+          if (String(err.message || '').includes('WINDOW_GONE')) {
+            this.windowGoneCount += 1;
+            if (this.windowGoneCount >= 8) {
+              this.stop({ silent: true });
+              this.notify('实时字幕已停止', '目标窗口已关闭');
+              return;
+            }
+          }
+          if (Date.now() - this.lastWindowErrorAt > 3500) {
+            this.lastWindowErrorAt = Date.now();
+            this.send({
+              status: 'error',
+              original: this.lastText || '',
+              translated: '',
+              message: issue,
+            });
+          }
+          return;
+        }
         if (Date.now() - this.lastErrorAt > 4000) {
           this.lastErrorAt = Date.now();
           this.send({
@@ -118,6 +158,9 @@ class RealtimeController {
         return;
       }
       if (!this.active) return;
+      this.windowGoneCount = 0;
+      this.lastWindowErrorAt = 0;
+      if (res.windowRect) this.physical = res.windowRect;
       if (!this.ocrLang && res.engine) this.ocrLang = res.engine;
       const text = String(res.text || '').trim().slice(0, 1600);
       if (!text) {
@@ -161,6 +204,15 @@ class RealtimeController {
       this.busy = false;
       if (this.active) this.schedule(this.settings.get().realtime.intervalMs);
     }
+  }
+
+  windowIssue(message) {
+    if (!this.targetWindow) return '';
+    const value = String(message || '');
+    if (value.includes('WINDOW_GONE')) return '目标窗口已关闭';
+    if (value.includes('WINDOW_MINIMIZED')) return '目标窗口已最小化，恢复后自动继续';
+    if (value.includes('WINDOW_TOO_SMALL')) return '目标窗口太小，无法识别';
+    return '';
   }
 
   langShort(lang) {
@@ -303,6 +355,9 @@ class RealtimeController {
   stop({ silent = false } = {}) {
     if (!this.active && !this.win) return;
     this.active = false;
+    this.targetWindow = null;
+    this.windowGoneCount = 0;
+    this.lastWindowErrorAt = 0;
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     if (this.abort) {

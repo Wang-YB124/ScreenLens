@@ -25,6 +25,91 @@ public static class DpiAwareness {
 '@
 [DpiAwareness]::Enable()
 
+Add-Type -TypeDefinition @'
+using System;
+using System.Text;
+using System.Runtime.InteropServices;
+public static class ScreenLensWin32 {
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+    [DllImport("user32.dll")] public static extern bool EnumWindows(EnumWindowsProc cb, IntPtr lParam);
+    [DllImport("user32.dll")] public static extern bool IsWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hWnd);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowTextLength(IntPtr hWnd);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int max);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetClassName(IntPtr hWnd, StringBuilder text, int max);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+    [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr hWnd, out RECT rect);
+    [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr hWnd, ref POINT pt);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+    [DllImport("dwmapi.dll", EntryPoint = "DwmGetWindowAttribute")]
+    public static extern int DwmGetWindowAttributeInt(IntPtr hWnd, int attr, out int value, int size);
+    [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X, Y; }
+}
+'@
+
+function Get-WindowClientRect([IntPtr]$Hwnd) {
+    if (-not [ScreenLensWin32]::IsWindow($Hwnd)) { throw 'WINDOW_GONE' }
+    if ([ScreenLensWin32]::IsIconic($Hwnd)) { throw 'WINDOW_MINIMIZED' }
+    $rect = New-Object ScreenLensWin32+RECT
+    if (-not [ScreenLensWin32]::GetClientRect($Hwnd, [ref]$rect)) { throw 'WINDOW_RECT_FAILED' }
+    $pt = New-Object ScreenLensWin32+POINT
+    $pt.X = 0
+    $pt.Y = 0
+    if (-not [ScreenLensWin32]::ClientToScreen($Hwnd, [ref]$pt)) { throw 'WINDOW_RECT_FAILED' }
+    $w = $rect.Right - $rect.Left
+    $h = $rect.Bottom - $rect.Top
+    if ($w -lt 8 -or $h -lt 8) { throw 'WINDOW_TOO_SMALL' }
+    return [ordered]@{ x = $pt.X; y = $pt.Y; w = $w; h = $h }
+}
+
+function Get-OpenWindowList([int]$ExcludePid) {
+    $result = New-Object System.Collections.Generic.List[object]
+    $callback = [ScreenLensWin32+EnumWindowsProc]{
+        param([IntPtr]$hWnd, [IntPtr]$lParam)
+        try {
+            if (-not [ScreenLensWin32]::IsWindowVisible($hWnd)) { return $true }
+            if ([ScreenLensWin32]::IsIconic($hWnd)) { return $true }
+            $titleLength = [ScreenLensWin32]::GetWindowTextLength($hWnd)
+            if ($titleLength -le 0) { return $true }
+            $classBuilder = New-Object System.Text.StringBuilder 256
+            [void][ScreenLensWin32]::GetClassName($hWnd, $classBuilder, $classBuilder.Capacity)
+            $className = $classBuilder.ToString()
+            if ($className -in @('Progman', 'WorkerW', 'Shell_TrayWnd', 'Shell_SecondaryTrayWnd')) { return $true }
+            $ownerPid = [uint32]0
+            [void][ScreenLensWin32]::GetWindowThreadProcessId($hWnd, [ref]$ownerPid)
+            if ($ExcludePid -gt 0 -and [int]$ownerPid -eq $ExcludePid) { return $true }
+            $cloaked = 0
+            try { [void][ScreenLensWin32]::DwmGetWindowAttributeInt($hWnd, 14, [ref]$cloaked, 4) } catch { $cloaked = 0 }
+            if ($cloaked -ne 0) { return $true }
+            $wr = New-Object ScreenLensWin32+RECT
+            if (-not [ScreenLensWin32]::GetWindowRect($hWnd, [ref]$wr)) { return $true }
+            $ww = $wr.Right - $wr.Left
+            $wh = $wr.Bottom - $wr.Top
+            if ($ww -lt 120 -or $wh -lt 80) { return $true }
+            $client = $null
+            try { $client = Get-WindowClientRect $hWnd } catch { return $true }
+            $sb = New-Object System.Text.StringBuilder ($titleLength + 2)
+            [void][ScreenLensWin32]::GetWindowText($hWnd, $sb, $sb.Capacity)
+            $title = $sb.ToString().Trim()
+            if ([string]::IsNullOrWhiteSpace($title)) { return $true }
+            if ($title.Length -gt 120) { $title = $title.Substring(0, 120) }
+            $result.Add([ordered]@{
+                    id     = $hWnd.ToInt64().ToString()
+                    title  = $title
+                    pid    = [int]$ownerPid
+                    rect   = [ordered]@{ x = $wr.Left; y = $wr.Top; w = $ww; h = $wh }
+                    client = $client
+                })
+        }
+        catch {}
+        return $true
+    }
+    [void][ScreenLensWin32]::EnumWindows($callback, [IntPtr]::Zero)
+    return , $result.ToArray()
+}
+
 $script:AsTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
         $_.Name -eq 'AsTask' -and
         $_.GetParameters().Count -eq 1 -and
@@ -171,8 +256,29 @@ while ($true) {
                 maxDim    = [Windows.Media.Ocr.OcrEngine]::MaxImageDimension
             }
         }
+        elseif ($action -eq 'windows') {
+            $exclude = 0
+            if ($req.excludePid) { $exclude = [int]$req.excludePid }
+            $res = [ordered]@{
+                ok      = $true
+                windows = Get-OpenWindowList $exclude
+            }
+        }
         elseif ($action -eq 'capture') {
-            $cap = Invoke-Capture ([int]$req.x) ([int]$req.y) ([int]$req.w) ([int]$req.h) $req.image
+            $windowRect = $null
+            $capX = [int]$req.x
+            $capY = [int]$req.y
+            $capW = [int]$req.w
+            $capH = [int]$req.h
+            if ($req.hwnd) {
+                $handle = [IntPtr]([Int64]([string]$req.hwnd))
+                $windowRect = Get-WindowClientRect $handle
+                $capX = [int]$windowRect.x
+                $capY = [int]$windowRect.y
+                $capW = [int]$windowRect.w
+                $capH = [int]$windowRect.h
+            }
+            $cap = Invoke-Capture $capX $capY $capW $capH $req.image
             if ($req.ocr) {
                 $res = Invoke-Ocr $req.image $req.lang
                 $res['captureMs'] = $cap.captureMs
@@ -182,6 +288,7 @@ while ($true) {
             else {
                 $res = [ordered]@{ ok = $true; capture = $cap }
             }
+            if ($null -ne $windowRect) { $res['windowRect'] = $windowRect }
         }
         else {
             $res = Invoke-Ocr $req.image $req.lang

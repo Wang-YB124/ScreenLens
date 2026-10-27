@@ -211,6 +211,11 @@ class OcrService extends EventEmitter {
     return this.postProcess(res, lang);
   }
 
+  async listWindows({ excludePid = 0 } = {}) {
+    const res = await this.request({ action: 'windows', excludePid }, 15000);
+    return Array.isArray(res.windows) ? res.windows : [];
+  }
+
   postProcess(res, engine) {
     const text = tidyText(res.text || '');
     const lines = (res.lines || []).map((line) => ({
@@ -272,6 +277,31 @@ class OcrService extends EventEmitter {
       return { ...en, captureMs: res.captureMs };
     }
     return { ...first, captureMs: res.captureMs };
+  }
+
+  async recognizeWindow(hwnd, { imagePath, lang = 'auto' } = {}) {
+    const autoLang = this.zhLang || this.enLang;
+    if (lang === 'auto' && !autoLang) {
+      throw new Error('系统没有安装中文或英文 OCR 语言包');
+    }
+    const firstLang = lang === 'auto' ? autoLang : lang;
+    const res = await this.request({
+      action: 'capture',
+      ocr: true,
+      hwnd: String(hwnd),
+      image: imagePath,
+      lang: firstLang,
+    }, 25000);
+    const first = this.postProcess(res, firstLang);
+    const windowRect = res.windowRect || null;
+    if (lang !== 'auto' || first.cjk > 0 || !this.enLang || firstLang === this.enLang) {
+      return { ...first, captureMs: res.captureMs, windowRect };
+    }
+    const en = await this.rawOcr(imagePath, this.enLang).catch(() => null);
+    if (en && latinScore(en.text) >= latinScore(first.text)) {
+      return { ...en, captureMs: res.captureMs, windowRect };
+    }
+    return { ...first, captureMs: res.captureMs, windowRect };
   }
 
   stop() {

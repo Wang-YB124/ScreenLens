@@ -186,6 +186,15 @@ body.dragging .grip {
   font-size: 8px;
 }
 
+.scope {
+  color: var(--mint);
+  background: rgba(139, 243, 208, 0.09);
+  border: 1px solid rgba(139, 243, 208, 0.16);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 8px;
+}
+
 .provider:empty {
   display: none;
 }

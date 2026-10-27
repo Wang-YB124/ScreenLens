@@ -7,6 +7,7 @@ const original = $('original');
 const dir = $('dir');
 const provider = $('provider');
 const hint = $('hint');
+const scope = $('scope');
 const grip = $('grip');
 const panel = $('panel');
 const btnSettings = $('btn-settings');
@@ -261,6 +262,14 @@ api.on('realtime:init', (config) => {
   if (typeof config.maxLines === 'number') rt.maxLines = config.maxLines;
   rt.sourceLang = config.sourceLang || 'auto';
   rt.targetLang = config.targetLang || 'auto';
+  if (config.windowTitle) {
+    scope.textContent = '窗口';
+    scope.title = `识别窗口：${config.windowTitle}`;
+    scope.classList.remove('hidden');
+  } else {
+    scope.classList.add('hidden');
+    scope.title = '';
+  }
   document.documentElement.style.setProperty('--rt-font-size', `${rt.fontSize}px`);
   document.documentElement.style.setProperty('--rt-opacity', String(rt.opacity));
   document.documentElement.style.setProperty('--rt-lines', String(rt.maxLines));

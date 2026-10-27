@@ -22,7 +22,11 @@ function ensureHandlers() {
       height: Math.round(Number(payload.height || 0)),
     };
     if (rect.width < 6 || rect.height < 6) return;
-    session.finish({ rect, displayShot });
+    const windowId = String(payload.windowId || '').replace(/\D/g, '').slice(0, 20);
+    const windowInfo = windowId
+      ? { id: windowId, title: String(payload.windowTitle || '').slice(0, 120) }
+      : null;
+    session.finish({ rect, displayShot, window: windowInfo });
   });
   ipcMain.on('overlay:cancel', (event) => {
     const session = activeSession;
@@ -44,7 +48,63 @@ function ensureHandlers() {
   });
 }
 
-function createOverlayWindow(displayShot, init, isFocus, session) {
+function intersects(a, b) {
+  return a.x < b.x + b.width
+    && a.x + a.width > b.x
+    && a.y < b.y + b.height
+    && a.y + a.height > b.y;
+}
+
+function physicalRectToDip(rect) {
+  const value = rect || {};
+  const x = Number(value.x) || 0;
+  const y = Number(value.y) || 0;
+  const width = Math.max(1, Number(value.w) || 0);
+  const height = Math.max(1, Number(value.h) || 0);
+  try {
+    const topLeft = screen.screenToDipPoint({ x, y });
+    const bottomRight = screen.screenToDipPoint({ x: x + width, y: y + height });
+    return {
+      x: Math.round(topLeft.x),
+      y: Math.round(topLeft.y),
+      width: Math.round(bottomRight.x - topLeft.x),
+      height: Math.round(bottomRight.y - topLeft.y),
+    };
+  } catch {
+    const display = screen.getDisplayNearestPoint({ x: x + width / 2, y: y + height / 2 });
+    const scale = display.scaleFactor || 1;
+    return {
+      x: Math.round(x / scale),
+      y: Math.round(y / scale),
+      width: Math.round(width / scale),
+      height: Math.round(height / scale),
+    };
+  }
+}
+
+function windowsForDisplay(windows, display) {
+  return windows
+    .filter((item) => intersects(item.rect, display.bounds))
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      rect: {
+        x: item.rect.x - display.bounds.x,
+        y: item.rect.y - display.bounds.y,
+        width: item.rect.width,
+        height: item.rect.height,
+      },
+      client: {
+        x: item.client.x - display.bounds.x,
+        y: item.client.y - display.bounds.y,
+        width: item.client.width,
+        height: item.client.height,
+      },
+    }))
+    .filter((item) => item.client.width >= 40 && item.client.height >= 30);
+}
+
+function createOverlayWindow(displayShot, windows, isFocus, session) {
   const { display, image } = displayShot;
   const win = new BrowserWindow({
     x: display.bounds.x,
@@ -83,6 +143,7 @@ function createOverlayWindow(displayShot, init, isFocus, session) {
       primary: display.id === screen.getPrimaryDisplay().id,
       isFocus,
       sessionId: session.id,
+      windows: windowsForDisplay(windows, display),
     });
   });
   win.on('closed', () => {
@@ -95,9 +156,18 @@ function createOverlayWindow(displayShot, init, isFocus, session) {
   return win;
 }
 
-async function selectRegion() {
+async function selectRegion(options = {}) {
   ensureHandlers();
   if (activeSession) return null;
+  const rawWindows = Array.isArray(options.windows) ? options.windows : [];
+  const windows = rawWindows
+    .map((item) => ({
+      id: String(item.id || ''),
+      title: String(item.title || '').slice(0, 120),
+      rect: physicalRectToDip(item.rect),
+      client: physicalRectToDip(item.client || item.rect),
+    }))
+    .filter((item) => item.id && item.rect.width >= 80 && item.rect.height >= 60);
   const shots = await captureDisplays();
   if (!shots.length) throw new Error('没有检测到显示器');
   const cursor = screen.getCursorScreenPoint();
@@ -131,7 +201,7 @@ async function selectRegion() {
     try {
       for (const shot of shots) {
         const isFocus = shot.display.id === focusDisplay;
-        const win = createOverlayWindow(shot, null, isFocus, session);
+        const win = createOverlayWindow(shot, windows, isFocus, session);
         session.windows.push(win);
         if (isFocus) session.focusWin = win;
       }
