@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #10151c;
+      color: #f2f7ff;
+      font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+    .bar {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: #6d7a8a;
+    }
+    .bar i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #8bf3d0;
+    }
+    .text {
+      padding: 30px 40px;
+      font-size: 30px;
+      line-height: 1.5;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      color: #f4f8ff;
+    }
+    .caption {
+      padding: 0 40px;
+      font-size: 15px;
+      color: #8fa0b4;
+    }
+  </style>
+</head>
+<body>
+  <div class="bar"><i></i>SCREENLENS · LIVE CAPTION TEST</div>
+  <div class="text" id="text">Real-time translation turns any video into your language.</div>
+  <div class="caption" id="caption">第 1 句 · 每 2.5 秒切换</div>
+  <script>
+    const sentences = [
+      ['Real-time translation turns any video into your language.', '第 1 句 · 每 2.5 秒切换'],
+      ['Select a region, and ScreenLens keeps reading it for you.', '第 2 句 · 每 2.5 秒切换'],
+      ['The subtitle stays on top of the video while you watch.', '第 3 句 · 每 2.5 秒切换'],
+    ];
+    let index = 0;
+    setInterval(() => {
+      index = (index + 1) % sentences.length;
+      document.getElementById('text').textContent = sentences[index][0];
+      document.getElementById('caption').textContent = sentences[index][1];
+    }, 2500);
+  </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+# Electron runtime (fetch with scripts/fetch-electron.ps1)
+vendor/electron/
+vendor/tmp/
+vendor/katex.tgz
+
+# Build outputs and release archives (upload the zip to GitHub Releases)
+dist/
+*.zip
+*.sha256.txt
+
+# Local QA runs and generated artifacts
+test/runtime/
+test/tmp/
+test/shots/
+test/*.log
+test/*.json
+
+# Secrets and local configuration
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.p12
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

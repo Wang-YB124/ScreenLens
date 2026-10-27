@@ -1,0 +1,53 @@
+屏译 ScreenLens 1.1.0 第三方组件与服务声明
+==========================================
+
+一、运行时与界面组件
+--------------------
+1. Electron / Chromium
+   - 用途：桌面应用运行时与界面渲染。
+   - 许可：Electron MIT；Chromium 及其依赖的许可证。
+   - 完整许可见程序目录的 LICENSE 与 LICENSES.chromium.html。
+
+2. KaTeX 0.19.1
+   - 用途：数学公式 LaTeX 渲染。
+   - 许可：MIT。
+   - 完整许可：licenses/katex-LICENSE.txt。
+   - 字体文件随 KaTeX 分发，许可同上。
+
+3. highlight.js 11.11.1
+   - 用途：代码块语法高亮。
+   - 许可：BSD-3-Clause。
+   - 完整许可：licenses/highlightjs-LICENSE.txt。
+
+4. 图标与界面
+   - 由 ScreenLens 项目制作。
+   - 未使用第三方商业图标库。
+
+二、服务
+--------
+1. MyMemory（免费翻译）
+   - 由第三方提供，按需发送选中文字。
+   - 受其额度与服务条款约束；商业发布前请自行评估。
+   - https://mymemory.translated.net/
+
+2. Windows OCR
+   - 由 Microsoft Windows 在本机提供，不需要上传截图。
+   - 可用语言取决于系统安装的 OCR 语言包。
+
+3. AI 服务商（用户自行配置）
+   - 包括但不限于 DeepSeek、阿里云通义千问、Moonshot、智谱、SiliconFlow、OpenAI、Ollama。
+   - 由用户提供服务地址、模型与 API Key。
+   - 数据发送、计费与隐私规则由对应服务商决定。
+
+三、其他
+--------
+- 本程序不包含 Youdao 或其他未授权词典接口。
+- 本程序不包含统计埋点、广告 SDK 或遥测组件。
+- 若再分发本发布包，请保留本声明、LICENSE、licenses 目录与
+  Electron 的许可证文件。
+
+四、免责声明
+------------
+本软件按“现状”提供，不附带任何明示或暗示担保。
+AI 与第三方翻译服务的输出可能不准确；使用者需自行核对并承担使用风险。
+具体责任限制以《许可证.txt》为准。

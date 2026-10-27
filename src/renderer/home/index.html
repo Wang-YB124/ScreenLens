@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: file: shot:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:;" />
+  <title>ScreenLens 屏译</title>
+  <link rel="stylesheet" href="../common/base.css" />
+  <link rel="stylesheet" href="./home.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <img class="brand-logo" src="../../../assets/icon-256.png" alt="" />
+        <div class="brand-text">
+          <strong>屏译</strong>
+          <span>ScreenLens</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-tab="home">
+          <svg viewBox="0 0 24 24"><path d="M4 11.2 12 4l8 7.2V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1v-8.8Z"/></svg>
+          <span>首页</span>
+        </button>
+        <button class="nav-item" data-tab="history">
+          <svg viewBox="0 0 24 24"><path d="M4 5v5h5"/><path d="M4.6 10a8 8 0 1 0 1.2-4.3"/><path d="M12 8v4.4l3 1.8"/></svg>
+          <span>历史</span>
+          <em class="nav-count hidden" id="history-count">0</em>
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>
+          <span>设置</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-status">
+        <div class="status-line">
+          <span class="dot off" id="ocr-dot"></span>
+          <div>
+            <strong id="ocr-label">OCR 启动中</strong>
+            <span id="ocr-sub">Windows 本地引擎</span>
+          </div>
+        </div>
+        <div class="status-line">
+          <span class="dot off" id="model-dot"></span>
+          <div>
+            <strong id="model-label">免费翻译</strong>
+            <span id="model-sub">配置模型可解释内容</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-foot">
+        <span>本地识别 · 隐私优先</span>
+        <span id="version">v1.0.0</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="titlebar drag">
+        <div class="titlebar-label" id="titlebar-label">首页</div>
+        <div class="window-controls">
+          <button class="win-btn" id="win-min" title="最小化" aria-label="最小化">
+            <svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg>
+          </button>
+          <button class="win-btn" id="win-max" title="最大化" aria-label="最大化">
+            <svg viewBox="0 0 12 12"><rect x="2.3" y="2.3" width="7.4" height="7.4" rx="1"/></svg>
+          </button>
+          <button class="win-btn close" id="win-close" title="隐藏到托盘" aria-label="关闭">
+            <svg viewBox="0 0 12 12"><path d="m3 3 6 6M9 3 3 9"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="page-scroll" id="page-scroll">
+        <section class="page active" id="page-home">
+          <div class="hero">
+            <div class="hero-copy">
+              <div class="eyebrow"><i class="eyebrow-dot"></i>屏幕理解智能体</div>
+              <h1>框选屏幕，<br /><span class="grad-text">立即读懂</span>任何内容</h1>
+              <p class="lede">本地识别屏幕文字，AI 翻译并解释语境。网页、视频字幕、代码、图表，一次框选就够。</p>
+              <div class="hero-actions">
+                <button class="btn-primary hero-btn" id="btn-select">
+                  <svg viewBox="0 0 24 24" class="ic"><path d="M4 8V5.8C4 4.8 4.8 4 5.8 4H8M16 4h2.2c1 0 1.8.8 1.8 1.8V8M20 16v2.2c0 1-.8 1.8-1.8 1.8H16M8 20H5.8c-1 0-1.8-.8-1.8-1.8V16"/><path d="M8.5 12h7"/></svg>
+                  截屏翻译
+                  <kbd class="dark-kbd" id="hero-hotkey">Ctrl Alt Q</kbd>
+                </button>
+                <button class="btn-ghost hero-btn" id="btn-realtime">
+                  <svg viewBox="0 0 24 24" class="ic"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/><path d="M8 20.5h8"/></svg>
+                  <span id="realtime-label">实时字幕</span>
+                  <kbd id="realtime-hotkey">Ctrl Alt R</kbd>
+                </button>
+              </div>
+              <div class="hero-meta">
+                <span class="meta-item"><span class="dot" id="hero-ocr-dot"></span>本地识别，截图默认不出本机</span>
+                <span class="meta-sep">·</span>
+                <span class="meta-item" id="hero-provider">免费翻译通道</span>
+                <button class="link-btn" id="hero-config">配置 AI 解释<svg viewBox="0 0 16 16" class="tny"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
+              </div>
+            </div>
+
+            <div class="hero-art" aria-hidden="true">
+              <div class="art-glow"></div>
+              <div class="mock-window">
+                <div class="mock-bar">
+                  <i></i><i></i><i></i>
+                  <span class="mock-url">semantics-notes.md</span>
+                </div>
+                <div class="mock-body">
+                  <div class="mock-heading"></div>
+                  <div class="mock-line w92"></div>
+                  <div class="mock-line w76"></div>
+                  <div class="mock-select">
+                    <span class="handle tl"></span><span class="handle tr"></span>
+                    <span class="handle bl"></span><span class="handle br"></span>
+                    <div class="mock-line w88 lit"></div>
+                    <div class="mock-line w64 lit"></div>
+                  </div>
+                  <div class="mock-line w82"></div>
+                  <div class="mock-line w46"></div>
+                </div>
+                <div class="mock-card">
+                  <span class="mock-tag">译文</span>
+                  <p>把屏幕上的文字，变成你读得懂的语言。</p>
+                  <div class="mock-card-meta"><span>EN → 中文</span><span class="mock-time">0.4s</span></div>
+                </div>
+                <div class="mock-subtitle">
+                  <span class="live-dot"></span>
+                  <div>
+                    <span class="mock-sub-en">Real-time understanding</span>
+                    <span class="mock-sub-zh">实时理解画面中的每一句话</span>
+                  </div>
+                </div>
+              </div>
+              <div class="art-badge">
+                <svg viewBox="0 0 16 16" class="spark"><path d="M8 1.5 9.2 6.8 14.5 8 9.2 9.2 8 14.5 6.8 9.2 1.5 8 6.8 6.8Z"/></svg>
+                Windows OCR · 离线可用
+              </div>
+            </div>
+          </div>
+
+          <div class="status-band">
+            <div class="stat">
+              <label>识别引擎</label>
+              <strong id="stat-ocr">Windows OCR</strong>
+              <span class="stat-sub" id="stat-ocr-sub">正在启动…</span>
+            </div>
+            <div class="stat">
+              <label>目标语言</label>
+              <select class="bare-select" id="quick-target">
+                <option value="zh-CN">简体中文</option>
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+              </select>
+              <span class="stat-sub">智能互译已开启</span>
+            </div>
+            <div class="stat">
+              <label>翻译引擎</label>
+              <strong id="stat-provider">免费通道</strong>
+              <span class="stat-sub" id="stat-provider-sub">可在设置中接入大模型</span>
+            </div>
+            <div class="stat">
+              <label>实时字幕</label>
+              <strong id="stat-realtime">未开启</strong>
+              <button class="link-btn stat-link" id="quick-realtime">开启 →</button>
+            </div>
+          </div>
+
+          <div class="section-head">
+            <div>
+              <h2>最近翻译</h2>
+              <p>本机保存，随时回看</p>
+            </div>
+            <button class="link-btn" id="see-history">查看全部<svg viewBox="0 0 16 16" class="tny"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
+          </div>
+          <div class="recent-grid" id="recent-grid"></div>
+
+          <div class="provider-banner" id="provider-banner">
+            <div class="banner-glow"></div>
+            <div class="banner-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 3.5 13.9 10 20.5 12 13.9 14 12 20.5 10.1 14 3.5 12 10.1 10Z"/></svg>
+            </div>
+            <div class="banner-copy">
+              <strong id="provider-banner-title">解锁语境解释</strong>
+              <p id="provider-banner-text">接入 DeepSeek、通义千问等模型，解释代码、公式与科普内容。翻译可先用免费通道。</p>
+            </div>
+            <button class="btn-small accent" id="banner-config">配置模型</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-history">
+          <header class="page-head">
+            <div>
+              <h1>历史记录</h1>
+              <p id="history-sub">最近识别与翻译的内容</p>
+            </div>
+            <div class="page-actions">
+              <div class="search-box">
+                <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.4 3.4"/></svg>
+                <input class="input" id="history-search" placeholder="搜索原文或译文" />
+              </div>
+              <button class="btn-small danger" id="history-clear">清空</button>
+            </div>
+          </header>
+          <div class="history-list" id="history-list"></div>
+          <div class="empty-state hidden" id="history-empty">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24"><path d="M4 8V5.8C4 4.8 4.8 4 5.8 4H8M16 4h2.2c1 0 1.8.8 1.8 1.8V8M20 16v2.2c0 1-.8 1.8-1.8 1.8H16M8 20H5.8c-1 0-1.8-.8-1.8-1.8V16"/><path d="M9 12h6"/></svg>
+            </div>
+            <h3 id="history-empty-title">还没有翻译记录</h3>
+            <p id="history-empty-text">按下快捷键框选屏幕上的任意文字，结果会自动保存到这里。</p>
+            <button class="btn-primary" id="history-empty-action">开始框选</button>
+          </div>
+        </section>
+
+        <section class="page" id="page-settings">
+          <header class="page-head">
+            <div>
+              <h1>设置</h1>
+              <p>更改会自动保存。快捷键与模型配置立即生效。</p>
+            </div>
+          </header>
+
+          <div class="settings-grid">
+            <section class="setting-card card-translation">
+              <header>
+                <div class="card-icon mint">
+                  <svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="7" cy="17" r="2.2"/></svg>
+                </div>
+                <div><h3>翻译</h3><p>目标语言与翻译引擎</p></div>
+              </header>
+              <div class="row">
+                <div class="row-copy"><strong>目标语言</strong><span>内容已是目标语言时自动互译</span></div>
+                <select class="select compact" id="setting-target">
+                  <option value="zh-CN">简体中文</option>
+                  <option value="en">English</option>
+                  <option value="ja">日本語</option>
+                  <option value="ko">한국어</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>智能互译</strong><span>中文↔英文等方向自动切换</span></div>
+                <label class="switch"><input type="checkbox" id="setting-smart-swap" /><span></span></label>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>内容类型</strong><span>AI 按代码、数学或科普优化提示词</span></div>
+                <select class="select compact" id="setting-domain">
+                  <option value="auto">自动识别</option>
+                  <option value="general">通用</option>
+                  <option value="code">代码</option>
+                  <option value="math">数学</option>
+                  <option value="science">科普</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>翻译引擎</strong><span id="engine-hint">未配置模型时自动使用免费通道</span></div>
+                <select class="select compact" id="setting-engine">
+                  <option value="auto">自动</option>
+                  <option value="free">免费翻译</option>
+                  <option value="ai">AI 翻译</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>免费翻译通道</strong><span>MyMemory 第三方服务，受额度与条款约束</span></div>
+                <label class="switch"><input type="checkbox" id="free-translation" /><span></span></label>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>解释语言</strong><span>AI 解释结果使用的语言</span></div>
+                <select class="select compact" id="setting-explain-lang">
+                  <option value="zh-CN">简体中文</option>
+                  <option value="en">English</option>
+                  <option value="ja">日本語</option>
+                  <option value="ko">한국어</option>
+                </select>
+              </div>
+            </section>
+
+            <section class="setting-card span-2 card-ai">
+              <header>
+                <div class="card-icon iris">
+                  <svg viewBox="0 0 24 24"><path d="M12 3.5 13.9 10 20.5 12 13.9 14 12 20.5 10.1 14 3.5 12 10.1 10Z"/></svg>
+                </div>
+                <div><h3>AI 模型</h3><p>用于翻译润色、内容解释与实时字幕</p></div>
+                <span class="chip" id="provider-state">未配置</span>
+              </header>
+              <div class="form-grid">
+                <div class="field">
+                  <label>服务商预设</label>
+                  <select class="select" id="provider-preset">
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="qwen">通义千问</option>
+                    <option value="qwen-vl">通义千问 VL（视觉）</option>
+                    <option value="kimi">Kimi (Moonshot)</option>
+                    <option value="zhipu">智谱 GLM</option>
+                    <option value="siliconflow">SiliconFlow</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="ollama">Ollama 本地</option>
+                    <option value="custom">自定义</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>模型名称</label>
+                  <input class="input" id="provider-model" placeholder="deepseek-chat" spellcheck="false" />
+                </div>
+                <div class="field span-2">
+                  <label>接口地址</label>
+                  <input class="input" id="provider-base" placeholder="https://api.deepseek.com/v1" spellcheck="false" />
+                </div>
+                <div class="field span-2">
+                  <label>API Key</label>
+                  <div class="key-row">
+                    <input class="input" id="provider-key" type="password" placeholder="粘贴 API Key，仅保存在本机" spellcheck="false" />
+                    <button class="icon-btn" id="key-eye" title="显示/隐藏">
+                      <svg viewBox="0 0 20 20"><path d="M2.5 10s2.8-5 7.5-5 7.5 5 7.5 5-2.8 5-7.5 5-7.5-5-7.5-5Z"/><circle cx="10" cy="10" r="2.2"/></svg>
+                    </button>
+                    <button class="btn-small" id="key-clear">清除</button>
+                  </div>
+                  <span class="field-hint">使用 Windows 凭据加密存储。截图与画面默认不会上传，只有选中的文字会发送给翻译/模型服务。</span>
+                </div>
+              </div>
+              <div class="row vision-row">
+                <div class="row-copy"><strong>多模态读图</strong><span>把选区截图发给视觉模型，公式、图表与代码更准确</span></div>
+                <label class="switch"><input type="checkbox" id="vision-enabled" /><span></span></label>
+              </div>
+              <div class="field-hint warning" id="vision-hint">开启后，选区截图会离开本机发送给模型服务。需视觉模型（如 qwen-vl-max、gpt-4o、glm-4v）；不支持时会自动回退文本模式，实时字幕不使用读图。</div>
+              <div class="card-actions">
+                <button class="btn-small" id="provider-test">测试连接</button>
+                <span class="test-result" id="provider-test-result"></span>
+              </div>
+            </section>
+
+            <section class="setting-card card-hotkeys">
+              <header>
+                <div class="card-icon amber">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>
+                </div>
+                <div><h3>快捷键</h3><p>点击输入框后按下组合键</p></div>
+              </header>
+              <div class="field">
+                <label>框选翻译</label>
+                <input class="input hotkey-input" id="hotkey-select" readonly value="Control+Alt+Q" />
+              </div>
+              <div class="field">
+                <label>实时字幕</label>
+                <input class="input hotkey-input" id="hotkey-realtime" readonly value="Control+Alt+R" />
+              </div>
+              <div class="hotkey-status" id="hotkey-status"></div>
+            </section>
+
+            <section class="setting-card card-realtime">
+              <header>
+                <div class="card-icon mint">
+                  <svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></svg>
+                </div>
+                <div><h3>实时字幕</h3><p>持续识别选区并显示译文</p></div>
+              </header>
+              <div class="row">
+                <div class="row-copy"><strong>翻译引擎</strong><span>AI 更自然，免费更快</span></div>
+                <select class="select compact" id="realtime-engine">
+                  <option value="auto">自动（有模型用 AI）</option>
+                  <option value="ai">AI 模型</option>
+                  <option value="free">免费翻译</option>
+                </select>
+              </div>
+              <div class="field slider-field">
+                <div class="slider-head"><label>刷新间隔</label><span id="realtime-interval-value">0.9 秒</span></div>
+                <input type="range" id="realtime-interval" min="600" max="2000" step="100" />
+              </div>
+              <div class="field slider-field">
+                <div class="slider-head"><label>字号</label><span id="realtime-font-value">20 px</span></div>
+                <input type="range" id="realtime-font" min="14" max="34" step="1" />
+              </div>
+              <div class="field slider-field">
+                <div class="slider-head"><label>背景不透明度</label><span id="realtime-opacity-value">92%</span></div>
+                <input type="range" id="realtime-opacity" min="35" max="100" step="1" />
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>译文行数</strong><span>超出后自动省略</span></div>
+                <select class="select compact" id="realtime-lines">
+                  <option value="1">1 行</option>
+                  <option value="2">2 行</option>
+                  <option value="3">3 行</option>
+                  <option value="4">4 行</option>
+                </select>
+              </div>
+            </section>
+
+            <section class="setting-card card-general">
+              <header>
+                <div class="card-icon">
+                  <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h5"/></svg>
+                </div>
+                <div><h3>通用</h3><p>启动、存储与隐私</p></div>
+              </header>
+              <div class="row">
+                <div class="row-copy"><strong>开机自动启动</strong><span>登录 Windows 后静默启动到托盘</span></div>
+                <label class="switch"><input type="checkbox" id="launch-at-login" /><span></span></label>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>暂停记录历史</strong><span>不在本机保存截图与翻译</span></div>
+                <label class="switch"><input type="checkbox" id="history-paused" /><span></span></label>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>历史保存条数</strong><span>超出后自动清理最早记录</span></div>
+                <select class="select compact" id="history-limit">
+                  <option value="20">20 条</option>
+                  <option value="60">60 条</option>
+                  <option value="120">120 条</option>
+                  <option value="300">300 条</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="row-copy"><strong>本地数据</strong><span id="data-dir">截图、设置与历史保存在本机</span></div>
+                <div class="row-actions">
+                  <button class="btn-small" id="open-data">打开目录</button>
+                  <button class="btn-small danger" id="clear-history">清空历史</button>
+                </div>
+              </div>
+              <div class="about-line">
+                <span>ScreenLens 屏译 <em id="about-version">v1.1.0</em></span>
+                <span>本地 OCR · 截图默认不出本机</span>
+              </div>
+            </section>
+
+            <section class="setting-card span-2 card-about">
+              <header>
+                <div class="card-icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 3.5 13.9 10 20.5 12 13.9 14 12 20.5 10.1 14 3.5 12 10.1 10Z"/></svg>
+                </div>
+                <div><h3>关于与隐私</h3><p>数据处理、版本与第三方声明</p></div>
+                <span class="chip" id="about-version-chip">v1.1.0</span>
+              </header>
+              <div class="about-grid">
+                <div class="about-block">
+                  <h4>数据如何流动</h4>
+                  <p>截图与 OCR 在本机完成，默认不离开电脑。只有你选中的文字会发送给翻译/模型服务；开启「多模态读图」后，选区截图也会发送给你配置的视觉模型。</p>
+                  <p>历史截图、设置与 API Key 保存在本机；Key 使用 Windows 凭据加密。关闭免费通道且未配置模型时，翻译不可用。</p>
+                </div>
+                <div class="about-block">
+                  <h4>第三方与许可</h4>
+                  <p>Windows OCR · MyMemory 免费翻译 · 你配置的 AI 服务 · Electron · KaTeX · highlight.js</p>
+                  <div class="about-actions">
+                    <button class="btn-small" id="replay-onboarding">查看新手引导</button>
+                    <button class="btn-small" id="open-licenses">许可与声明</button>
+                  </div>
+                </div>
+              </div>
+              <details class="about-details" id="about-details">
+                <summary>第三方服务与隐私说明</summary>
+                <div>
+                  <p>免费翻译由 MyMemory 提供，受其额度与服务条款约束；商业发布前请自行评估。AI 翻译与解释由你配置的服务商处理，请查看对应服务商的隐私政策与计费规则。</p>
+                  <p>OCR 使用 Windows 本地识别。截图默认不上传；只有开启多模态读图时，选区截图才会发送给视觉模型。API Key 使用 Windows 凭据加密保存在本机，不会显示在界面上。</p>
+                  <p>Electron（MIT）、KaTeX（MIT）、highlight.js（BSD-3-Clause）等第三方组件及其许可证随发布包提供。AI 输出可能不准确，请在重要场景自行核对。</p>
+                </div>
+              </details>
+            </section>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="onboarding hidden" id="onboarding" role="dialog" aria-modal="true" aria-label="欢迎使用屏译">
+    <div class="onboarding-backdrop" id="onboarding-backdrop"></div>
+    <div class="onboarding-card">
+      <button class="onboarding-close" id="onboarding-close" aria-label="关闭">×</button>
+      <div class="onboarding-brand">
+        <img src="../../../assets/icon-256.png" alt="" />
+        <span>屏译 ScreenLens</span>
+      </div>
+      <h2>框选屏幕，<span class="grad-text">AI 帮你读懂</span></h2>
+      <p class="onboarding-lede">代码、数学公式、科普长文和视频字幕，一次框选就能翻译与解释。</p>
+      <div class="onboarding-steps">
+        <div class="ob-step">
+          <span class="ob-num">01</span>
+          <div><strong>框选翻译</strong><p>选择屏幕上的任意内容</p></div>
+          <kbd>Ctrl Alt Q</kbd>
+        </div>
+        <div class="ob-step">
+          <span class="ob-num">02</span>
+          <div><strong>实时字幕</strong><p>持续识别选区并翻译</p></div>
+          <kbd>Ctrl Alt R</kbd>
+        </div>
+        <div class="ob-step">
+          <span class="ob-num">03</span>
+          <div><strong>AI 解释与领域优化</strong><p>代码、公式、科普内容，需配置模型</p></div>
+          <span class="chip mint">免费翻译开箱即用</span>
+        </div>
+      </div>
+      <div class="onboarding-note">
+        <span class="dot"></span>
+        OCR 在本机完成，截图默认不出本机。只有选中的文字会发送给翻译/模型服务；开启多模态读图后，选区截图也会发送给视觉模型。
+      </div>
+      <div class="onboarding-actions">
+        <button class="btn-primary" id="onboarding-start">开始使用</button>
+        <button class="btn-ghost" id="onboarding-config">配置 AI 模型</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast-root" id="toast-root"></div>
+  <script src="./home.js"></script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #05070b;
+  cursor: crosshair;
+}
+
+.scene {
+  position: fixed;
+  inset: 0;
+  background-color: #05070b;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 12, 0.56);
+  pointer-events: none;
+}
+
+.selection {
+  position: fixed;
+  border: 1.5px solid var(--mint);
+  border-radius: 3px;
+  background-repeat: no-repeat;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 0 34px rgba(139, 243, 208, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.corner {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-color: #ddfff4;
+  border-style: solid;
+  filter: drop-shadow(0 0 4px rgba(139, 243, 208, 0.8));
+}
+
+.corner.tl {
+  left: -1.5px;
+  top: -1.5px;
+  border-width: 2px 0 0 2px;
+  border-top-left-radius: 3px;
+}
+
+.corner.tr {
+  right: -1.5px;
+  top: -1.5px;
+  border-width: 2px 2px 0 0;
+  border-top-right-radius: 3px;
+}
+
+.corner.bl {
+  left: -1.5px;
+  bottom: -1.5px;
+  border-width: 0 0 2px 2px;
+  border-bottom-left-radius: 3px;
+}
+
+.corner.br {
+  right: -1.5px;
+  bottom: -1.5px;
+  border-width: 0 2px 2px 0;
+  border-bottom-right-radius: 3px;
+}
+
+.size {
+  position: absolute;
+  right: -1px;
+  bottom: -30px;
+  height: 22px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  background: rgba(8, 12, 18, 0.9);
+  border: 1px solid rgba(139, 243, 208, 0.25);
+  color: var(--mint);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.crosshair {
+  position: fixed;
+  background: rgba(139, 243, 208, 0.22);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.crosshair.horizontal {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.crosshair.vertical {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.hint {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 14px 11px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 14, 21, 0.9);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(22px);
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  animation: hint-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15) 0.06s forwards;
+}
+
+@keyframes hint-in {
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.hint.hidden {
+  display: none;
+}
+
+.hint-icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mint);
+  background: rgba(139, 243, 208, 0.08);
+  border: 1px solid rgba(139, 243, 208, 0.18);
+}
+
+.hint-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hint-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hint-copy strong {
+  font-size: 13px;
+  letter-spacing: 0.1px;
+}
+
+.hint-copy span {
+  font-size: 10.5px;
+  color: #8a95a5;
+}
+
+.hint-keys {
+  display: flex;
+  gap: 6px;
+  margin-left: 12px;
+  padding-left: 13px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tip {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: rgba(8, 12, 18, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #74808f;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  pointer-events: none;
+  opacity: 0;
+  animation: hint-in 0.4s ease 0.5s forwards;
+  z-index: 10;
+}
+
+.tip.hidden {
+  display: none;
+}
+
+body.dragging .tip,
+body.dragging .crosshair,
+body.dragging .hint {
+  display: none;
+}
+
+body.closing .scene,
+body.closing .dim,
+body.closing .selection {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.selection.confirm {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 0 0 3px rgba(139, 243, 208, 0.22),
+    0 0 46px rgba(139, 243, 208, 0.28);
+}

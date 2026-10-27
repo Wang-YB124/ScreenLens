@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: file:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:;" />
+  <title>ScreenLens 译文</title>
+  <link rel="stylesheet" href="../common/base.css" />
+  <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
+  <link rel="stylesheet" href="./result.css" />
+</head>
+<body>
+  <div class="shell">
+    <div class="card enter" id="card">
+      <header class="topbar drag">
+        <div class="brand">
+          <img src="../../../assets/icon-256.png" alt="" />
+          <strong id="brand-title">译文</strong>
+        </div>
+        <span class="dir-chip" id="dir-chip">识别中…</span>
+        <div class="top-actions">
+          <button class="icon-btn pinned" id="pin-btn" title="取消置顶">
+            <svg viewBox="0 0 24 24"><path d="M9 4h6l-1 6 4 4H6l4-4-1-6Z"/><path d="M12 14v6"/></svg>
+          </button>
+          <button class="icon-btn" id="close-btn" title="关闭 (Esc)">
+            <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="progress hidden" id="progress"><span></span></div>
+
+      <section class="source hidden" id="source-block">
+        <div class="source-head">
+          <span class="source-label">原文</span>
+          <span class="source-meta" id="source-meta"></span>
+          <button class="source-toggle hidden" id="source-toggle">展开</button>
+        </div>
+        <div class="source-text clamped" id="source-text"></div>
+      </section>
+
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-pane="translation">译文</button>
+        <button class="tab" data-pane="explanation">
+          解释
+          <span class="ai-badge"><svg viewBox="0 0 16 16"><path d="M8 1.5 9.2 6.8 14.5 8 9.2 9.2 8 14.5 6.8 9.2 1.5 8 6.8 6.8Z"/></svg>AI</span>
+        </button>
+        <button class="tab" data-pane="related">相关</button>
+        <select class="domain-select" id="domain-select" title="选择内容类型，提示词会随之调整">
+          <option value="auto">自动</option>
+          <option value="general">通用</option>
+          <option value="code">代码</option>
+          <option value="math">数学</option>
+          <option value="science">科普</option>
+        </select>
+      </div>
+
+      <div class="content-scroll" id="content-scroll">
+        <div class="pane" id="pane-translation"></div>
+        <div class="pane hidden" id="pane-explanation"></div>
+        <div class="pane hidden" id="pane-related"></div>
+      </div>
+
+      <footer class="footbar">
+        <div class="foot-meta">
+          <span class="dot off" id="foot-dot"></span>
+          <span id="foot-provider">免费翻译</span>
+          <span class="foot-vision hidden" id="foot-vision">AI 读图</span>
+          <span class="foot-time" id="foot-time"></span>
+        </div>
+        <div class="foot-actions">
+          <button class="foot-btn" id="copy-btn">
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M6 15H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1"/></svg>
+            复制
+          </button>
+          <button class="foot-btn" id="retry-btn">
+            <svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2.3 7"/><path d="M4 5v5h5"/></svg>
+            重译
+          </button>
+        </div>
+      </footer>
+
+      <div class="card-toast" id="card-toast"></div>
+    </div>
+  </div>
+  <script src="../vendor/katex/katex.min.js"></script>
+  <script src="../vendor/highlight.min.js"></script>
+  <script src="./result.js"></script>
+</body>
+</html>

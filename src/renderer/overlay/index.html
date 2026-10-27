@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: file:; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <title>ScreenLens 框选</title>
+  <link rel="stylesheet" href="../common/base.css" />
+  <link rel="stylesheet" href="./overlay.css" />
+</head>
+<body>
+  <div class="scene" id="scene"></div>
+  <div class="dim" id="dim"></div>
+  <div class="crosshair horizontal" id="cross-h"></div>
+  <div class="crosshair vertical" id="cross-v"></div>
+
+  <div class="selection hidden" id="selection">
+    <span class="corner tl"></span>
+    <span class="corner tr"></span>
+    <span class="corner bl"></span>
+    <span class="corner br"></span>
+    <span class="size" id="size">0 × 0</span>
+  </div>
+
+  <div class="hint" id="hint">
+    <div class="hint-icon">
+      <svg viewBox="0 0 24 24"><path d="M4 8V5.8C4 4.8 4.8 4 5.8 4H8M16 4h2.2c1 0 1.8.8 1.8 1.8V8M20 16v2.2c0 1-.8 1.8-1.8 1.8H16M8 20H5.8c-1 0-1.8-.8-1.8-1.8V16"/><path d="M8.5 12h7"/></svg>
+    </div>
+    <div class="hint-copy">
+      <strong>拖拽框选要识别的内容</strong>
+      <span>松开鼠标后自动翻译 · 截图仅在本机处理</span>
+    </div>
+    <div class="hint-keys">
+      <kbd>拖拽</kbd>
+      <kbd>Esc</kbd>
+    </div>
+  </div>
+
+  <div class="tip" id="tip">按 Esc 取消 · 右键退出</div>
+  <script src="./overlay.js"></script>
+</body>
+</html>

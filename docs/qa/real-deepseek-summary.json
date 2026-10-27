@@ -1,0 +1,1298 @@
+{
+  "generatedAt": "2026-10-27T07:43:58.514Z",
+  "passCount": 10,
+  "total": 10,
+  "rounds": [
+    {
+      "round": 1,
+      "label": "English science",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "science",
+      "expectedTopic": "",
+      "expectedKeywords": [
+        "photosynthesis",
+        "chloroplast",
+        "oxygen"
+      ],
+      "expectedSites": [
+        "scholar",
+        "wikipedia"
+      ],
+      "source": "Photosynthesis converts light energy into chemical energy in chloroplasts and releases oxygen.",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "science",
+      "detected": "science",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "光合作用在叶绿体中把光能转化为化学能，并释放氧气。",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一句关于光合作用的基础定义，概括了该过程发生的场所、能量转换和副产物。\n\n**核心含义**\n- **场所**：叶绿体（chloroplast）是真核生物（植物、藻类）进行光合作用的细胞器。\n- **能量转换**：光能 → 化学能，储存在糖类等有机物中。\n- **副产物**：释放氧气（O₂）。\n\n**关键背景**\n- 光合作用总反应可简写为：6CO₂ + 6H₂O + 光能 → C₆H₁₂O₆ + 6O₂。\n- 氧气来自**水的光解**（光反应阶段），而非二氧化碳——这是同位素示踪实验确立的结论。\n- 过程分两阶段：光反应（类囊体膜上，产 ATP、NADPH 和 O₂）与卡尔文循环（基质中，固定 CO₂ 合成糖）。\n\n**需要注意的表述边界**\n- 该句是**教科书层面的概括**，成立但简化：原核光合生物（如蓝细菌）没有叶绿体，却在细胞质中进行光合作用。\n- “化学能”具体指 ATP/NADPH 的暂存能量，最终转入有机物中的稳定化学键。\n\n**判断**：属于准确、常规的科普性定义句，无明显错误。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "Photosynthesis",
+          "chloroplasts",
+          "light energy",
+          "chemical energy",
+          "oxygen"
+        ],
+        "links": [
+          {
+            "key": "scholar",
+            "site": "Google Scholar",
+            "description": "学术论文与引用",
+            "host": "scholar.google.com",
+            "query": "Photosynthesis chloroplasts light energy",
+            "url": "https://scholar.google.com/scholar?q=Photosynthesis%20chloroplasts%20light%20energy"
+          },
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "Photosynthesis chloroplasts light energy",
+            "url": "https://en.wikipedia.org/w/index.php?search=Photosynthesis%20chloroplasts%20light%20energy"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": ""
+      },
+      "shots": {
+        "translation": {
+          "file": "round-1-translation.png",
+          "bytes": 213296,
+          "sha256": "9dc9777268764801"
+        },
+        "related": {
+          "file": "related-1-related.png",
+          "bytes": 242536,
+          "sha256": "417dc474404e739a"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "光合作用在叶绿体中把光能转化为化学能，并释放氧气。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 科普",
+        "sourceMeta": "EN · 94 字符 · 科普 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 5,
+        "cards": 2,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一句关于光合作用的基础定义，概括了该过程发生的场所、能量转换和副产物。\n\n核心含义\n\n场所：叶绿体（chloroplast）是真核生物（植物、藻类）进行光合作用的细胞器。\n能量转换：光能 → 化学能，储存在糖类等有机物中。\n副产物：释放氧气（O₂）。\n\n关键背景\n\n光合作用总反应可简写为：6CO₂ + 6H₂O + 光能 → C₆H₁₂O₆ + 6O₂。\n氧气来自水的光解（光反应阶段），而非二氧化碳——这是同位素示踪实验确立的结论。\n过程分两阶段：光反应（类囊体膜上，产 ATP、NADPH 和 O₂）与卡尔文循环（基质中，固定 CO₂ 合成糖）。\n\n需要注意的表述边界\n\n该句是教科书层面的概括，成立但简化：原核光合生物（如蓝细菌）没有叶绿体，却在细胞质中进行光合作用。\n“化学能”具体指 ATP/NADPH 的暂存能量，最终转入有机物中的稳定化学键。\n\n判断：属于准确、常规的科普性定义句，无明显错误。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 2,
+      "label": "Chinese tech note",
+      "mode": "free",
+      "realProvider": true,
+      "expectedDomain": "general",
+      "expectedTopic": "",
+      "expectedKeywords": [
+        "实时字幕",
+        "自动刷新"
+      ],
+      "expectedSites": [
+        "wikipedia",
+        "bing",
+        "baidu"
+      ],
+      "source": "实时字幕会持续截取屏幕上的文字，并在内容变化时自动刷新翻译结果。",
+      "sourceLang": "zh-CN",
+      "targetLang": "en",
+      "domain": "general",
+      "detected": "general",
+      "domainMode": "auto",
+      "provider": "免费翻译",
+      "translationStatus": "done",
+      "translation": "Live captions continuously capture the text on the screen and automatically refresh the translation as the content changes.",
+      "translationNotice": "",
+      "explanationStatus": "unavailable",
+      "explanation": "",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "实时字幕",
+          "自动刷新",
+          "翻译结果",
+          "内容变化"
+        ],
+        "links": [
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "zh.wikipedia.org",
+            "query": "实时字幕 自动刷新 翻译结果",
+            "url": "https://zh.wikipedia.org/w/index.php?search=%E5%AE%9E%E6%97%B6%E5%AD%97%E5%B9%95%20%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0%20%E7%BF%BB%E8%AF%91%E7%BB%93%E6%9E%9C"
+          },
+          {
+            "key": "bing",
+            "site": "必应",
+            "description": "网页搜索",
+            "host": "www.bing.com",
+            "query": "实时字幕 自动刷新 翻译结果",
+            "url": "https://www.bing.com/search?q=%E5%AE%9E%E6%97%B6%E5%AD%97%E5%B9%95%20%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0%20%E7%BF%BB%E8%AF%91%E7%BB%93%E6%9E%9C"
+          },
+          {
+            "key": "baidu",
+            "site": "百度",
+            "description": "中文网页搜索",
+            "host": "www.baidu.com",
+            "query": "实时字幕 自动刷新 翻译结果",
+            "url": "https://www.baidu.com/s?wd=%E5%AE%9E%E6%97%B6%E5%AD%97%E5%B9%95%20%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0%20%E7%BF%BB%E8%AF%91%E7%BB%93%E6%9E%9C"
+          }
+        ],
+        "source": "rules",
+        "notice": "",
+        "topic": ""
+      },
+      "shots": {
+        "translation": {
+          "file": "round-2-translation.png",
+          "bytes": 214513,
+          "sha256": "d63ded809a11c90e"
+        },
+        "related": {
+          "file": "related-2-related.png",
+          "bytes": 241127,
+          "sha256": "76296bffa28e92f9"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "Live captions continuously capture the text on the screen and automatically refresh the translation as the content changes.",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 通用",
+        "sourceMeta": "中文 · 32 字符 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "本地提取",
+        "chips": 4,
+        "cards": 3,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "解释由 AI 生成\n\n解释由 AI 生成。请先在设置中接入 DeepSeek、通义千问等模型，或使用本地 Ollama。\n\n配置 AI 模型\n重新检查",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "解释由 AI 生成\n\n解释由 AI 生成。请先在设置中接入 DeepSeek、通义千问等模型，或使用本地 Ollama。\n\n配置 AI 模型\n重新检查",
+        "error": ""
+      }
+    },
+    {
+      "round": 3,
+      "label": "Python",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "code",
+      "expectedTopic": "",
+      "expectedKeywords": [
+        "python",
+        "total",
+        "generator"
+      ],
+      "expectedSites": [
+        "stackoverflow",
+        "github"
+      ],
+      "source": "def total(prices) ：return sumCp 手 or p in prices if p > 0 ）keep only positive prices",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "code",
+      "detected": "code",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "```python\ndef total(prices):\n    return sum(p for p in prices if p > 0)  # 只保留正数价格\n```",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一段 Python 函数，用于对价格列表中的正数求和。\n\n**作用与逻辑**\n- `total(prices)` 接收一个可迭代对象 `prices`（如列表），返回其中所有大于 0 的元素之和。\n- 内部用生成器表达式 `(p for p in prices if p > 0)` 过滤掉 0 和负数，再交给 `sum()` 累加。\n\n**关键点**\n- 输入：数值序列；输出：单个数值（若无正数则为 `0`）。\n- 过滤条件 `p > 0` 会排除零值和负值（如退款、折扣），符合\"只统计有效正价格\"的语义。\n- 时间复杂度 O(n)，空间上生成器惰性求值，不额外建列表。\n\n**注意**\n- OCR 原文 `sumCp 手 or p in prices if p > 0 ）` 明显是识别错误，屏幕翻译给出的版本才是正确代码。\n- 若 `prices` 中含非数值（如字符串），比较 `p > 0` 会抛 `TypeError`，调用方需保证数据干净。\n- 若需要保留零值或处理负值，应调整条件，当前实现会静默丢弃它们。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "Python",
+          "generator expression",
+          "sum",
+          "positive prices"
+        ],
+        "links": [
+          {
+            "key": "stackoverflow",
+            "site": "Stack Overflow",
+            "description": "代码问答",
+            "host": "stackoverflow.com",
+            "query": "Python generator expression sum",
+            "url": "https://stackoverflow.com/search?q=Python%20generator%20expression%20sum"
+          },
+          {
+            "key": "github",
+            "site": "GitHub",
+            "description": "仓库与代码搜索",
+            "host": "github.com",
+            "query": "Python generator expression sum",
+            "url": "https://github.com/search?q=Python%20generator%20expression%20sum&type=repositories"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": ""
+      },
+      "shots": {
+        "translation": {
+          "file": "round-3-translation.png",
+          "bytes": 206215,
+          "sha256": "ee111bc3553dd0a6"
+        },
+        "related": {
+          "file": "related-3-related.png",
+          "bytes": 243589,
+          "sha256": "32520d9b2e580b01"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "识别可能不完整\n公式/代码建议让 AI 读图；截图会发送给模型。\n开启读图\n×\nPYTHON\n复制\ndef total(prices):\n    return sum(p for p in prices if p > 0)  # 只保留正数价格",
+        "katex": 0,
+        "codeBlocks": 1,
+        "hljs": 7,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 代码",
+        "sourceMeta": "EN · 84 字符 · 代码 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 4,
+        "cards": 2,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一段 Python 函数，用于对价格列表中的正数求和。\n\n作用与逻辑\n\ntotal(prices) 接收一个可迭代对象 prices（如列表），返回其中所有大于 0 的元素之和。\n内部用生成器表达式 (p for p in prices if p > 0) 过滤掉 0 和负数，再交给 sum() 累加。\n\n关键点\n\n输入：数值序列；输出：单个数值（若无正数则为 0）。\n过滤条件 p > 0 会排除零值和负值（如退款、折扣），符合\"只统计有效正价格\"的语义。\n时间复杂度 O(n)，空间上生成器惰性求值，不额外建列表。\n\n注意\n\nOCR 原文 sumCp 手 or p in prices if p > 0 ） 明显是识别错误，屏幕翻译给出的版本才是正确代码。\n若 prices 中含非数值（如字符串），比较 p > 0 会抛 TypeError，调用方需保证数据干净。\n若需要保留零值或处理负值，应调整条件，当前实现会静默丢弃它们。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 4,
+      "label": "Calculus",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "math",
+      "expectedTopic": "",
+      "expectedKeywords": [
+        "derivative",
+        "integral"
+      ],
+      "expectedSites": [
+        "scholar",
+        "wikipedia",
+        "wolfram"
+      ],
+      "source": "Derivative: f'(x) = 3x2 - 4x + 1\nIntegral from 0 to 1:\nf (3x2 - 4x + 1) dx = 0",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "math",
+      "detected": "math",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "导数：$f'(x) = 3x^2 - 4x + 1$\n从 $0$ 到 $1$ 的积分：\n$$ \\int_0^1 (3x^2 - 4x + 1)\\,dx = 0 $$",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一段微积分内容：给出导函数 $f'(x)=3x^2-4x+1$，并计算它在 $[0,1]$ 上的定积分，结果为 $0$。\n\n**符号与含义**\n- $f'(x)$：函数 $f$ 的导数，即 $f$ 的瞬时变化率。\n- $\\int_0^1 \\cdots dx$：从 $x=0$ 到 $x=1$ 的定积分，表示曲线下带符号的面积。\n- OCR 中 `3x2` 应为 $3x^2$（上标丢失）；`f (3x2 ...) dx` 中的 `f` 是积分号 $\\int$ 的误识别。\n\n**推导逻辑**\n用幂函数积分公式 $\\int x^n\\,dx=\\frac{x^{n+1}}{n+1}$，逐项求原函数：\n\n$$\\int (3x^2-4x+1)\\,dx = x^3 - 2x^2 + x + C$$\n\n代入上下限（牛顿–莱布尼茨公式）：\n\n$$\\left[x^3-2x^2+x\\right]_0^1 = (1-2+1)-(0)=0$$\n\n**直觉**\n$3x^2-4x+1=(3x-1)(x-1)$，在 $(0,\\tfrac13)$ 上为正、$(\\tfrac13,1)$ 上为负；正负面积恰好抵消，故积分为零。这也可理解为 $f(1)-f(0)=0$，即 $f$ 在两端取值相同。\n\n**不确定处**\n原式只给了 $f'$，未给出 $f$ 本身；若题目要求 $f$，还需一个初值条件。OCR 中积分号被识别为 `f`，其余符号基本可辨。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "Derivative",
+          "f'(x) = 3x^2 - 4x + 1",
+          "definite integral",
+          "polynomial"
+        ],
+        "links": [
+          {
+            "key": "scholar",
+            "site": "Google Scholar",
+            "description": "学术论文与引用",
+            "host": "scholar.google.com",
+            "query": "Derivative f'(x) = 3x^2 - 4x + 1 definite integral",
+            "url": "https://scholar.google.com/scholar?q=Derivative%20f'(x)%20%3D%203x%5E2%20-%204x%20%2B%201%20definite%20integral"
+          },
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "Derivative f'(x) = 3x^2 - 4x + 1 definite integral",
+            "url": "https://en.wikipedia.org/w/index.php?search=Derivative%20f'(x)%20%3D%203x%5E2%20-%204x%20%2B%201%20definite%20integral"
+          },
+          {
+            "key": "wolfram",
+            "site": "Wolfram Alpha",
+            "description": "计算与公式",
+            "host": "www.wolframalpha.com",
+            "query": "Derivative f'(x) = 3x^2 - 4x + 1 definite integral",
+            "url": "https://www.wolframalpha.com/input?i=Derivative%20f'(x)%20%3D%203x%5E2%20-%204x%20%2B%201%20definite%20integral"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": ""
+      },
+      "shots": {
+        "translation": {
+          "file": "round-4-translation.png",
+          "bytes": 220833,
+          "sha256": "4b5a87973dd9343d"
+        },
+        "related": {
+          "file": "related-4-related.png",
+          "bytes": 235102,
+          "sha256": "3e6cd8ccdda438ad"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "识别可能不完整\n公式/代码建议让 AI 读图；截图会发送给模型。\n开启读图\n×\n导数：f\n′\n(x)=3x\n2\n−4x+1\n从 0 到 1 的积分：\n\n∫\n0\n1\n\t​\n\n(3x\n2\n−4x+1)dx=0",
+        "katex": 4,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 数学",
+        "sourceMeta": "EN · 78 字符 · 数学 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 4,
+        "cards": 3,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一段微积分内容：给出导函数 f\n′\n(x)=3x\n2\n−4x+1，并计算它在 [0,1] 上的定积分，结果为 0。\n\n符号与含义\n\nf\n′\n(x)：函数 f 的导数，即 f 的瞬时变化率。\n∫\n0\n1\n\t​\n\n⋯dx：从 x=0 到 x=1 的定积分，表示曲线下带符号的面积。\nOCR 中 3x2 应为 3x\n2\n（上标丢失）；f (3x2 ...) dx 中的 f 是积分号 ∫ 的误识别。\n\n推导逻辑\n用幂函数积分公式 ∫x\nn\ndx=\nn+1\nx\nn+1\n\t​\n\n，逐项求原函数：\n\n∫(3x\n2\n−4x+1)dx=x\n3\n−2x\n2\n+x+C\n\n代入上下限（牛顿–莱布尼茨公式）：\n\n[x\n3\n−2x\n2\n+x]\n0\n1\n\t​\n\n=(1−2+1)−(0)=0\n\n直觉\n3x\n2\n−4x+1=(3x−1)(x−1)，在 (0,\n3\n1\n\t​\n\n) 上为正、(\n3\n1\n\t​\n\n,1) 上为负；正负面积恰好抵消，故积分为零。这也可理解为 f(1)−f(0)=0，即 f 在两端取值相同。\n\n不确定处\n原式只给了 f\n′\n，未给出 f 本身；若题目要求 f，还需一个初值条件。OCR 中积分号被识别为 f，其余符号基本可辨。",
+        "katex": 22,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 5,
+      "label": "Physics",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "science",
+      "expectedTopic": "",
+      "expectedKeywords": [
+        "newton",
+        "acceleration",
+        "force"
+      ],
+      "expectedSites": [
+        "scholar",
+        "wikipedia"
+      ],
+      "source": "Newtonls second law: F = ma.\nA 1 2 N n et force on a 3 kg mass\n2\nproduces a n acceleration Of 4 m/S",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "science",
+      "detected": "science",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "牛顿第二定律：F = ma。\n对 3 kg 质量施加 12 N 的合力\n2\n产生的加速度为 4 m/s",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一道用牛顿第二定律做的数值验算题（OCR 有错字，如 \"Newtonls\"→Newton's、\"n et\"→net、\"a n\"→an）。\n\n**核心关系**\n- 牛顿第二定律 **F = ma**：合力 F（单位 N）等于质量 m（kg）乘以加速度 a（m/s²）。\n- 这是经典力学的**基本定律**（在惯性参考系、低速宏观条件下成立），不是假说。\n\n**代入计算**\n- m = 3 kg，F = 12 N\n- a = F/m = 12 ÷ 3 = **4 m/s²**\n\n**结论**\n- 题目给出的 \"4 m/s²\" 与计算一致，属于自洽的示例。\n- 注意单位：加速度是 m/s²（OCR 里 \"m/S 2\" 是上标被拆开），不是 m/s。\n\n**可能的疑点**\n- 原文 \"A 1 2 N\" 应为 \"A 12 N\"（\"1 2\" 被空格拆开）。\n- 若屏幕内容不完整（例如还有后续小题），以上仅针对这一句。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "Newton's second law",
+          "F = ma",
+          "net force",
+          "acceleration",
+          "mass"
+        ],
+        "links": [
+          {
+            "key": "scholar",
+            "site": "Google Scholar",
+            "description": "学术论文与引用",
+            "host": "scholar.google.com",
+            "query": "Newton's second law F = ma net force",
+            "url": "https://scholar.google.com/scholar?q=Newton's%20second%20law%20F%20%3D%20ma%20net%20force"
+          },
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "Newton's second law F = ma net force",
+            "url": "https://en.wikipedia.org/w/index.php?search=Newton's%20second%20law%20F%20%3D%20ma%20net%20force"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": ""
+      },
+      "shots": {
+        "translation": {
+          "file": "round-5-translation.png",
+          "bytes": 212808,
+          "sha256": "71c0c047a9aa47c3"
+        },
+        "related": {
+          "file": "related-5-related.png",
+          "bytes": 236057,
+          "sha256": "d807aa3146ace85d"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "牛顿第二定律：F = ma。\n对 3 kg 质量施加 12 N 的合力\n2\n产生的加速度为 4 m/s",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 科普",
+        "sourceMeta": "EN · 99 字符 · 科普 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 5,
+        "cards": 2,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一道用牛顿第二定律做的数值验算题（OCR 有错字，如 \"Newtonls\"→Newton's、\"n et\"→net、\"a n\"→an）。\n\n核心关系\n\n牛顿第二定律 F = ma：合力 F（单位 N）等于质量 m（kg）乘以加速度 a（m/s²）。\n这是经典力学的基本定律（在惯性参考系、低速宏观条件下成立），不是假说。\n\n代入计算\n\nm = 3 kg，F = 12 N\na = F/m = 12 ÷ 3 = 4 m/s²\n\n结论\n\n题目给出的 \"4 m/s²\" 与计算一致，属于自洽的示例。\n注意单位：加速度是 m/s²（OCR 里 \"m/S 2\" 是上标被拆开），不是 m/s。\n\n可能的疑点\n\n原文 \"A 1 2 N\" 应为 \"A 12 N\"（\"1 2\" 被空格拆开）。\n若屏幕内容不完整（例如还有后续小题），以上仅针对这一句。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 6,
+      "label": "History figure",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "science",
+      "expectedTopic": "history",
+      "expectedKeywords": [
+        "einstein",
+        "relativity",
+        "physicist"
+      ],
+      "expectedSites": [
+        "wikipedia",
+        "bing"
+      ],
+      "source": "Albert Einstein was a German-born theoretical physicist, widely known for the theory of relativity. He\nreceived the Nobel Prize in Physics in 1921.",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "science",
+      "detected": "science",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "阿尔伯特·爱因斯坦是一位出生于德国的理论物理学家，因相对论而广为人知。他于1921年获得诺贝尔物理学奖。",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一段关于阿尔伯特·爱因斯坦的英文科普简介，内容基本准确，但有一处需要澄清。\n\n**核心信息**\n- 爱因斯坦是出生于德国的理论物理学家，以相对论闻名。\n- 他获得了1921年诺贝尔物理学奖。\n\n**需要澄清的一点**\n- 诺贝尔奖**并非因相对论而授予**。1921年物理学奖的授奖理由是“对理论物理学的贡献，尤其是发现光电效应定律”。相对论当时仍有争议，未获诺奖委员会认可。\n- 简介把“因相对论闻名”和“获诺奖”并列，容易让人误以为诺奖是表彰相对论，这是常见误解。\n\n**背景补充**\n- 爱因斯坦1879年生于德国乌尔姆，1933年移居美国，1940年入美国籍，1955年去世。\n- 狭义相对论（1905）与广义相对论（1915）是其最著名成果；光电效应论文同样发表于1905年“奇迹年”。\n- 1921年诺奖实际于1922年补颁（该年未颁奖）。\n\n**说明**\n- 原文只有两句话，属于极简介绍，未涉及上述细节；以上澄清基于史实，非原文内容。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "Albert Einstein",
+          "theory of relativity",
+          "Nobel Prize in Physics",
+          "theoretical physicist"
+        ],
+        "links": [
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "Albert Einstein theory of relativity Nobel Prize in Physics",
+            "url": "https://en.wikipedia.org/w/index.php?search=Albert%20Einstein%20theory%20of%20relativity%20Nobel%20Prize%20in%20Physics"
+          },
+          {
+            "key": "bing",
+            "site": "必应",
+            "description": "网页搜索",
+            "host": "www.bing.com",
+            "query": "Albert Einstein theory of relativity Nobel Prize in Physics",
+            "url": "https://www.bing.com/search?q=Albert%20Einstein%20theory%20of%20relativity%20Nobel%20Prize%20in%20Physics"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": "history"
+      },
+      "shots": {
+        "translation": {
+          "file": "round-6-translation.png",
+          "bytes": 227719,
+          "sha256": "22823107a6d853fa"
+        },
+        "related": {
+          "file": "related-6-related.png",
+          "bytes": 243753,
+          "sha256": "0d2dbe5e323176a5"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "阿尔伯特·爱因斯坦是一位出生于德国的理论物理学家，因相对论而广为人知。他于1921年获得诺贝尔物理学奖。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 科普",
+        "sourceMeta": "EN · 147 字符 · 科普 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 4,
+        "cards": 2,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一段关于阿尔伯特·爱因斯坦的英文科普简介，内容基本准确，但有一处需要澄清。\n\n核心信息\n\n爱因斯坦是出生于德国的理论物理学家，以相对论闻名。\n他获得了1921年诺贝尔物理学奖。\n\n需要澄清的一点\n\n诺贝尔奖并非因相对论而授予。1921年物理学奖的授奖理由是“对理论物理学的贡献，尤其是发现光电效应定律”。相对论当时仍有争议，未获诺奖委员会认可。\n简介把“因相对论闻名”和“获诺奖”并列，容易让人误以为诺奖是表彰相对论，这是常见误解。\n\n背景补充\n\n爱因斯坦1879年生于德国乌尔姆，1933年移居美国，1940年入美国籍，1955年去世。\n狭义相对论（1905）与广义相对论（1915）是其最著名成果；光电效应论文同样发表于1905年“奇迹年”。\n1921年诺奖实际于1922年补颁（该年未颁奖）。\n\n说明\n\n原文只有两句话，属于极简介绍，未涉及上述细节；以上澄清基于史实，非原文内容。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 7,
+      "label": "Medical law",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "general",
+      "expectedTopic": "medical",
+      "expectedKeywords": [
+        "medical law",
+        "informed consent",
+        "treatment"
+      ],
+      "expectedSites": [
+        "pubmed",
+        "wikipedia",
+        "bing"
+      ],
+      "source": "Under medical law, informed consent is required before treatment. Patients must understand the risks,\nbenefits, and alternatives before signing the consent form.",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "general",
+      "detected": "general",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "根据医疗法，治疗前必须取得知情同意。患者在签署同意书之前必须了解风险、益处和替代方案。",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一段关于**医疗知情同意（informed consent）**的英文法律/医学说明。\n\n**核心含义**\n- 依据医疗法，医生在实施治疗前必须先取得患者的知情同意。\n- 患者需在签署同意书前，理解三方面信息：风险（risks）、益处（benefits）、替代方案（alternatives）。\n\n**关键术语**\n- **Informed consent**：知情同意，指患者在充分了解信息后自愿作出的同意，而非单纯签字。\n- **Alternatives**：替代治疗方案，例如其他疗法或不治疗的选择。\n\n**背景**\n这是英美医疗法与医学伦理中的基本原则，强调患者的自主决定权；仅有签字而无充分告知，通常不构成有效同意。\n\n内容完整、表述清晰，未见识别导致的明显缺漏。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "medical law",
+          "informed consent",
+          "consent form",
+          "risks and benefits",
+          "alternatives"
+        ],
+        "links": [
+          {
+            "key": "pubmed",
+            "site": "PubMed",
+            "description": "医学文献",
+            "host": "pubmed.ncbi.nlm.nih.gov",
+            "query": "medical law informed consent consent form",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/?term=medical%20law%20informed%20consent%20consent%20form"
+          },
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "medical law informed consent consent form",
+            "url": "https://en.wikipedia.org/w/index.php?search=medical%20law%20informed%20consent%20consent%20form"
+          },
+          {
+            "key": "bing",
+            "site": "必应",
+            "description": "网页搜索",
+            "host": "www.bing.com",
+            "query": "medical law informed consent consent form",
+            "url": "https://www.bing.com/search?q=medical%20law%20informed%20consent%20consent%20form"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": "medical"
+      },
+      "shots": {
+        "translation": {
+          "file": "round-7-translation.png",
+          "bytes": 224790,
+          "sha256": "0ff389ad3309afe3"
+        },
+        "related": {
+          "file": "related-7-related.png",
+          "bytes": 239478,
+          "sha256": "d9faac9d5d42712d"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "根据医疗法，治疗前必须取得知情同意。患者在签署同意书之前必须了解风险、益处和替代方案。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 通用",
+        "sourceMeta": "EN · 161 字符 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 5,
+        "cards": 3,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一段关于医疗知情同意（informed consent）的英文法律/医学说明。\n\n核心含义\n\n依据医疗法，医生在实施治疗前必须先取得患者的知情同意。\n患者需在签署同意书前，理解三方面信息：风险（risks）、益处（benefits）、替代方案（alternatives）。\n\n关键术语\n\nInformed consent：知情同意，指患者在充分了解信息后自愿作出的同意，而非单纯签字。\nAlternatives：替代治疗方案，例如其他疗法或不治疗的选择。\n\n背景\n这是英美医疗法与医学伦理中的基本原则，强调患者的自主决定权；仅有签字而无充分告知，通常不构成有效同意。\n\n内容完整、表述清晰，未见识别导致的明显缺漏。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 8,
+      "label": "News",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "general",
+      "expectedTopic": "news",
+      "expectedKeywords": [
+        "openai",
+        "reasoning",
+        "latency"
+      ],
+      "expectedSites": [
+        "bingnews",
+        "wikipedia",
+        "bing"
+      ],
+      "source": "OpenAl announced a new model on Tuesday, saying it improves reasoning while reducing latency for\ndevelopers.",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "general",
+      "detected": "general",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "OpenAI周二宣布了一款新模型，称其提升了推理能力，同时降低了开发者的延迟。",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一句关于 OpenAI 发布新模型的英文新闻简讯。\n\n**含义**\nOpenAI 在周二宣布推出一款新模型，官方说法是：推理能力更强，同时面向开发者的响应延迟更低。\n\n**关键术语**\n- **reasoning（推理）**：模型进行多步逻辑思考、解题的能力。\n- **latency（延迟）**：从发出请求到收到响应的时间，越低体验越流畅。\n- **for developers**：强调这是面向开发者/API 场景的改进。\n\n**注意**\nOCR 把 \"OpenAI\" 识别成了 \"OpenAl\"（大写 I 误作小写 l）。另外这句话没有提到模型名称、具体指标或发布时间细节，信息不完整，无法判断是哪一款模型。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "OpenAI",
+          "new model",
+          "reasoning",
+          "latency",
+          "developers"
+        ],
+        "links": [
+          {
+            "key": "bingnews",
+            "site": "Bing 新闻",
+            "description": "近期新闻报道",
+            "host": "www.bing.com",
+            "query": "OpenAI new model reasoning",
+            "url": "https://www.bing.com/news/search?q=OpenAI%20new%20model%20reasoning"
+          },
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "OpenAI new model reasoning",
+            "url": "https://en.wikipedia.org/w/index.php?search=OpenAI%20new%20model%20reasoning"
+          },
+          {
+            "key": "bing",
+            "site": "必应",
+            "description": "网页搜索",
+            "host": "www.bing.com",
+            "query": "OpenAI new model reasoning",
+            "url": "https://www.bing.com/search?q=OpenAI%20new%20model%20reasoning"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": "news"
+      },
+      "shots": {
+        "translation": {
+          "file": "round-8-translation.png",
+          "bytes": 218714,
+          "sha256": "315f10d42d79d1a4"
+        },
+        "related": {
+          "file": "related-8-related.png",
+          "bytes": 247248,
+          "sha256": "7372e31689f9776e"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "OpenAI周二宣布了一款新模型，称其提升了推理能力，同时降低了开发者的延迟。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 通用",
+        "sourceMeta": "EN · 108 字符 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 5,
+        "cards": 3,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一句关于 OpenAI 发布新模型的英文新闻简讯。\n\n含义\nOpenAI 在周二宣布推出一款新模型，官方说法是：推理能力更强，同时面向开发者的响应延迟更低。\n\n关键术语\n\nreasoning（推理）：模型进行多步逻辑思考、解题的能力。\nlatency（延迟）：从发出请求到收到响应的时间，越低体验越流畅。\nfor developers：强调这是面向开发者/API 场景的改进。\n\n注意\nOCR 把 \"OpenAI\" 识别成了 \"OpenAl\"（大写 I 误作小写 l）。另外这句话没有提到模型名称、具体指标或发布时间细节，信息不完整，无法判断是哪一款模型。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 9,
+      "label": "Product",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "general",
+      "expectedTopic": "product",
+      "expectedKeywords": [
+        "aerobook",
+        "battery",
+        "price"
+      ],
+      "expectedSites": [
+        "bing",
+        "wikipedia"
+      ],
+      "source": "The AeroBook 14 weighs 1.2 kg, offers 18 hours of battery life, and starts at $899.",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "general",
+      "detected": "general",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "AeroBook 14 重 1.2 千克，续航时间达 18 小时，起售价为 899 美元。",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一句关于 AeroBook 14 笔记本电脑的产品参数介绍。\n\n**核心信息**\n- 重量：1.2 kg（主打轻薄便携）\n- 续航：18 小时（官方标称，实际使用通常更短）\n- 起售价：899 美元（\"起\"表示最低配置价，高配会更贵）\n\n**用词说明**\n- \"starts at\" 是价格表述的固定说法，指基础配置的入门价。\n- 这类句子常见于产品发布稿或电商页面的卖点摘要，只列关键规格，不含屏幕、处理器等细节。\n\n**注意**：OCR 只截取了这一句，缺少上下文（如品牌、发布时间、完整配置），无法判断 18 小时续航的测试条件。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "AeroBook 14",
+          "1.2 kg",
+          "18 hours battery life",
+          "$899"
+        ],
+        "links": [
+          {
+            "key": "bing",
+            "site": "必应",
+            "description": "网页搜索",
+            "host": "www.bing.com",
+            "query": "AeroBook 14 1.2 kg 18 hours battery life",
+            "url": "https://www.bing.com/search?q=AeroBook%2014%201.2%20kg%2018%20hours%20battery%20life"
+          },
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "AeroBook 14 1.2 kg 18 hours battery life",
+            "url": "https://en.wikipedia.org/w/index.php?search=AeroBook%2014%201.2%20kg%2018%20hours%20battery%20life"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": "product"
+      },
+      "shots": {
+        "translation": {
+          "file": "round-9-translation.png",
+          "bytes": 211285,
+          "sha256": "a561071cffadbed8"
+        },
+        "related": {
+          "file": "related-9-related.png",
+          "bytes": 245929,
+          "sha256": "e135bcd621e6e508"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "AeroBook 14 重 1.2 千克，续航时间达 18 小时，起售价为 899 美元。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 通用",
+        "sourceMeta": "EN · 83 字符 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 4,
+        "cards": 2,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一句关于 AeroBook 14 笔记本电脑的产品参数介绍。\n\n核心信息\n\n重量：1.2 kg（主打轻薄便携）\n续航：18 小时（官方标称，实际使用通常更短）\n起售价：899 美元（\"起\"表示最低配置价，高配会更贵）\n\n用词说明\n\n\"starts at\" 是价格表述的固定说法，指基础配置的入门价。\n这类句子常见于产品发布稿或电商页面的卖点摘要，只列关键规格，不含屏幕、处理器等细节。\n\n注意：OCR 只截取了这一句，缺少上下文（如品牌、发布时间、完整配置），无法判断 18 小时续航的测试条件。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    },
+    {
+      "round": 10,
+      "label": "English long",
+      "mode": "ai",
+      "realProvider": true,
+      "expectedDomain": "general",
+      "expectedTopic": "",
+      "expectedKeywords": [
+        "screen translator",
+        "technical terms",
+        "idioms"
+      ],
+      "expectedSites": [
+        "wikipedia",
+        "bing"
+      ],
+      "source": "A good screen translator keeps the layout of the original text, preserves technical terms, and explains\nidioms instead of translating them word by word.",
+      "sourceLang": "en",
+      "targetLang": "zh-CN",
+      "domain": "general",
+      "detected": "general",
+      "domainMode": "auto",
+      "provider": "DeepSeek",
+      "translationStatus": "done",
+      "translation": "优秀的屏幕翻译器会保留原文的排版，保留专业术语，并解释习语，而不是逐字翻译。",
+      "translationNotice": "",
+      "explanationStatus": "done",
+      "explanation": "这是一句关于**屏幕翻译工具设计原则**的英文表述，讲的是好的翻译器应该具备哪些特性。\n\n**核心含义**\n作者提出三条标准：保持原文排版、保留专业术语、习语要解释而非直译。\n\n**逐点解读**\n- **保留排版（keeps the layout）**：翻译后不破坏原文的分段、列表、表格等结构，方便对照阅读。\n- **保留专业术语（preserves technical terms）**：技术词汇不强行意译，避免失真。\n- **解释习语（explains idioms）**：习语（idioms，如 \"break a leg\"）按字面翻译会闹笑话，应给出含义说明。\n\n**背景**\n这属于对翻译工具的产品/技术评价标准，常出现在软件评测或需求描述中，强调\"可读性 + 准确性\"的平衡。\n\n**说明**\n这段文字本身完整，但缺少上下文（如出自哪篇文章或哪款产品），无法判断具体指向。",
+      "explanationNotice": "",
+      "related": {
+        "status": "done",
+        "keywords": [
+          "screen translator",
+          "layout preservation",
+          "technical terms",
+          "idioms",
+          "word-by-word translation"
+        ],
+        "links": [
+          {
+            "key": "wikipedia",
+            "site": "维基百科",
+            "description": "百科条目与背景",
+            "host": "en.wikipedia.org",
+            "query": "screen translator layout preservation technical terms",
+            "url": "https://en.wikipedia.org/w/index.php?search=screen%20translator%20layout%20preservation%20technical%20terms"
+          },
+          {
+            "key": "bing",
+            "site": "必应",
+            "description": "网页搜索",
+            "host": "www.bing.com",
+            "query": "screen translator layout preservation technical terms",
+            "url": "https://www.bing.com/search?q=screen%20translator%20layout%20preservation%20technical%20terms"
+          }
+        ],
+        "source": "ai",
+        "notice": "",
+        "topic": ""
+      },
+      "shots": {
+        "translation": {
+          "file": "round-10-translation.png",
+          "bytes": 223051,
+          "sha256": "5f8d68bc2eee59b4"
+        },
+        "related": {
+          "file": "related-10-related.png",
+          "bytes": 244153,
+          "sha256": "dd6c2b0cf6f37ff5"
+        }
+      },
+      "checks": {
+        "source": true,
+        "domain": true,
+        "translation": true,
+        "explanation": true,
+        "related": true,
+        "keywords": true,
+        "sites": true,
+        "links": true,
+        "topic": true,
+        "relatedSource": true,
+        "relatedUi": true,
+        "renderCode": true,
+        "renderMath": true,
+        "shots": true,
+        "uiError": true
+      },
+      "pass": true,
+      "ui1": {
+        "translationText": "优秀的屏幕翻译器会保留原文的排版，保留专业术语，并解释习语，而不是逐字翻译。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "vision": false,
+        "domainSelect": "auto",
+        "autoOption": "自动 · 通用",
+        "sourceMeta": "EN · 152 字符 · 本地 OCR",
+        "error": ""
+      },
+      "uiRelated": {
+        "heading": "相关知识",
+        "sourceText": "AI 提取",
+        "chips": 5,
+        "cards": 2,
+        "notice": "",
+        "active": true,
+        "error": ""
+      },
+      "ui2": {
+        "explanationText": "这是一句关于屏幕翻译工具设计原则的英文表述，讲的是好的翻译器应该具备哪些特性。\n\n核心含义\n作者提出三条标准：保持原文排版、保留专业术语、习语要解释而非直译。\n\n逐点解读\n\n保留排版（keeps the layout）：翻译后不破坏原文的分段、列表、表格等结构，方便对照阅读。\n保留专业术语（preserves technical terms）：技术词汇不强行意译，避免失真。\n解释习语（explains idioms）：习语（idioms，如 \"break a leg\"）按字面翻译会闹笑话，应给出含义说明。\n\n背景\n这属于对翻译工具的产品/技术评价标准，常出现在软件评测或需求描述中，强调\"可读性 + 准确性\"的平衡。\n\n说明\n这段文字本身完整，但缺少上下文（如出自哪篇文章或哪款产品），无法判断具体指向。",
+        "katex": 0,
+        "codeBlocks": 0,
+        "hljs": 0,
+        "cta": "",
+        "error": ""
+      }
+    }
+  ],
+  "httpChecks": [
+    {
+      "key": "scholar",
+      "site": "Google Scholar",
+      "url": "https://scholar.google.com/scholar?q=Photosynthesis%20chloroplasts%20light%20energy",
+      "ok": false,
+      "error": "fetch failed"
+    },
+    {
+      "key": "wikipedia",
+      "site": "维基百科",
+      "url": "https://en.wikipedia.org/w/index.php?search=Photosynthesis%20chloroplasts%20light%20energy",
+      "ok": false,
+      "error": "fetch failed"
+    },
+    {
+      "key": "wikipedia",
+      "site": "维基百科",
+      "url": "https://zh.wikipedia.org/w/index.php?search=%E5%AE%9E%E6%97%B6%E5%AD%97%E5%B9%95%20%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0%20%E7%BF%BB%E8%AF%91%E7%BB%93%E6%9E%9C",
+      "ok": false,
+      "error": "fetch failed"
+    },
+    {
+      "key": "bing",
+      "site": "必应",
+      "url": "https://www.bing.com/search?q=%E5%AE%9E%E6%97%B6%E5%AD%97%E5%B9%95%20%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0%20%E7%BF%BB%E8%AF%91%E7%BB%93%E6%9E%9C",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "key": "baidu",
+      "site": "百度",
+      "url": "https://www.baidu.com/s?wd=%E5%AE%9E%E6%97%B6%E5%AD%97%E5%B9%95%20%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0%20%E7%BF%BB%E8%AF%91%E7%BB%93%E6%9E%9C",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "key": "stackoverflow",
+      "site": "Stack Overflow",
+      "url": "https://stackoverflow.com/search?q=Python%20generator%20expression%20sum",
+      "ok": true,
+      "status": 403
+    },
+    {
+      "key": "github",
+      "site": "GitHub",
+      "url": "https://github.com/search?q=Python%20generator%20expression%20sum&type=repositories",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "key": "wolfram",
+      "site": "Wolfram Alpha",
+      "url": "https://www.wolframalpha.com/input?i=Derivative%20f'(x)%20%3D%203x%5E2%20-%204x%20%2B%201%20definite%20integral",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "key": "pubmed",
+      "site": "PubMed",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=medical%20law%20informed%20consent%20consent%20form",
+      "ok": true,
+      "status": 200
+    },
+    {
+      "key": "bingnews",
+      "site": "Bing 新闻",
+      "url": "https://www.bing.com/news/search?q=OpenAI%20new%20model%20reasoning",
+      "ok": true,
+      "status": 200
+    }
+  ]
+}

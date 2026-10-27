@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0d1218;
+      color: #f1f7ff;
+      font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+    .wrap {
+      height: 100%;
+      padding: 14px 30px 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .head {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      color: #7c8b9d;
+    }
+    .head i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #8bf3d0;
+    }
+    .scenario {
+      padding: 8px 0 9px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .scenario:last-child { border-bottom: none; }
+    .label {
+      font-family: Consolas, monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: #6f8e86;
+      margin-bottom: 4px;
+    }
+    .text {
+      padding: 5px 0;
+      font-size: 24px;
+      line-height: 1.45;
+      color: #eef5ff;
+      letter-spacing: 0.1px;
+      white-space: pre-wrap;
+    }
+    .cn .text { font-size: 24px; }
+    .code .text {
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 20px;
+      line-height: 1.5;
+      color: #d3f2e6;
+      white-space: pre;
+    }
+    .math .text {
+      font-family: "Cambria Math", "Segoe UI", "Microsoft YaHei UI", serif;
+      font-size: 24px;
+      line-height: 1.45;
+    }
+    .science .text { font-size: 24px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head"><i></i>SCREENLENS · 5-ROUND QA SCENARIOS</div>
+    <div class="scenario" data-round="1">
+      <div class="label">01 · ENGLISH PROSE</div>
+      <div class="text">The quick brown fox jumps over the lazy dog. A screen translator should preserve meaning and tone.</div>
+    </div>
+    <div class="scenario cn" data-round="2">
+      <div class="label">02 · 中文散文</div>
+      <div class="text">屏幕翻译会把画面中的文字转换成你熟悉的语言，并尽量保持原有的语气。</div>
+    </div>
+    <div class="scenario code" data-round="3">
+      <div class="label">03 · CODE</div>
+      <div class="text">function mean(values) {
+  return values.reduce((a, b) => a + b, 0) / values.length;
+}
+// average of an array</div>
+    </div>
+    <div class="scenario math" data-round="4">
+      <div class="label">04 · MATH</div>
+      <div class="text">The area of a circle is A = πr².
+The volume of a sphere is V = (4/3)πr³.</div>
+    </div>
+    <div class="scenario science" data-round="5">
+      <div class="label">05 · SCIENCE</div>
+      <div class="text">Photosynthesis converts light energy into chemical energy in chloroplasts and releases oxygen.</div>
+    </div>
+  </div>
+</body>
+</html>
