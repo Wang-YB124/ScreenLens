@@ -5,6 +5,7 @@ const {
   Tray,
   Notification,
   clipboard,
+  desktopCapturer,
   dialog,
   globalShortcut,
   ipcMain,
@@ -12,6 +13,7 @@ const {
   net,
   protocol,
   screen,
+  session: electronSession,
   shell,
 } = require('electron');
 const fs = require('fs');
@@ -74,6 +76,7 @@ let ocrState = { status: 'starting', languages: [], error: '' };
 let realtimeState = { active: false };
 let audioState = { active: false };
 let selecting = false;
+let screenSourcePromise = null;
 
 const showHome = () => {
   if (!homeWin || homeWin.isDestroyed()) {
@@ -247,7 +250,17 @@ function updateTrayMenu() {
     },
     {
       label: audioOn ? '停止音频字幕' : '音频字幕（系统声音）',
-      click: () => (audio.isActive() ? audio.stop() : audio.start()),
+      click: () => {
+        if (audio.isActive()) {
+          audio.stop();
+          return;
+        }
+        if (realtime.isActive() || selecting) {
+          notify('请先停止当前字幕/框选', '音频字幕需要独占麦克风/系统声音采集');
+          return;
+        }
+        audio.start({ source: 'tray' });
+      },
     },
     { type: 'separator' },
     { label: '打开主界面', click: showHome },
@@ -535,7 +548,7 @@ function registerIpc() {
     return { ok: true };
   });
 
-  ipcMain.handle('action:audio', async () => {
+  ipcMain.handle('action:audio', async (event, payload) => {
     if (audio.isActive()) {
       audio.stop();
       return { ok: true, active: false };
@@ -544,7 +557,7 @@ function registerIpc() {
       return { ok: false, reason: 'busy', error: '请先停止实时字幕' };
     }
     if (selecting) return { ok: false, reason: 'busy' };
-    return audio.start();
+    return audio.start({ clickedAt: payload?.clickedAt, source: payload?.source || 'home' });
   });
 
   ipcMain.handle('action:stop-realtime', () => {
@@ -685,6 +698,26 @@ function registerIpc() {
   });
 }
 
+function getScreenSource() {
+  if (!screenSourcePromise) {
+    screenSourcePromise = desktopCapturer
+      .getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } })
+      .then((sources) => {
+        if (!sources.length) return null;
+        const cursor = screen.getCursorScreenPoint();
+        const display = screen.getDisplayNearestPoint(cursor);
+        return sources.find((item) => String(item.display_id) === String(display.id))
+          || sources[0];
+      })
+      .catch(() => null)
+      .then((source) => {
+        if (!source) screenSourcePromise = null;
+        return source;
+      });
+  }
+  return screenSourcePromise;
+}
+
 async function bootstrap() {
   const userData = app.getPath('userData');
   const tempDir = path.join(app.getPath('temp'), 'ScreenLens');
@@ -738,6 +771,8 @@ async function bootstrap() {
       broadcastState();
     },
     notify,
+    minimizeHome: minimizeHomeForSelection,
+    restoreHome: restoreHomeAfterSelection,
   });
 
   protocol.handle('shot', async (request) => {
@@ -753,6 +788,34 @@ async function bootstrap() {
       return new Response('Not found', { status: 404 });
     }
   });
+
+  try {
+    electronSession.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
+      if (process.env.SL_FORCE_NO_SOURCE === '1') {
+        callback({});
+        return;
+      }
+      getScreenSource()
+        .then((source) => {
+          if (!source) {
+            callback({});
+            return;
+          }
+          if (process.env.SL_FORCE_NO_LOOPBACK === '1') {
+            callback({ video: source });
+            return;
+          }
+          callback({ video: source, audio: 'loopback' });
+        })
+        .catch(() => callback({}));
+    }, { useSystemPicker: false });
+    screen.on('display-added', () => { screenSourcePromise = null; });
+    screen.on('display-removed', () => { screenSourcePromise = null; });
+    screen.on('display-metrics-changed', () => { screenSourcePromise = null; });
+    getScreenSource().catch(() => {});
+  } catch (err) {
+    console.error('[audio] setDisplayMediaRequestHandler failed:', err.message);
+  }
 
   registerIpc();
   createHomeWindow();

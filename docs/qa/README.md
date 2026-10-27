@@ -148,3 +148,32 @@
   - Mock AI：翻译 provider 本地模型，解释 done，相关关键词 3 个；测试后恢复 provider 设置，未使用真实 Key。
   - 多显示器：本机只有单屏，未做物理多屏实测；代码按每屏预热/创建 overlay，并处理 `display-added/removed/metrics-changed`。
 - 截图：`test/tmp/r4-qa-overlay.png`、`r4-qa-result.png`、`r4-qa-realtime-1.png`、`r4-qa-realtime-2.png`、`r4-qa-mock.png`。
+
+## 音频字幕系统回环与启动优化（2026-10-27）
+
+- 数据文件：[audio-2026-10-27.json](audio-2026-10-27.json)。
+- 采集路径：主进程 `setDisplayMediaRequestHandler` 回传 `{ video: screenSource, audio: 'loopback' }`（`useSystemPicker:false`）；渲染进程 `getDisplayMedia({audio:true,video:true})` 后立即停止/移除视频轨；音频轨实测 label `System audio`、deviceId `loopback`、48 kHz、单声道。
+- 启动阶段（点击→，毫秒）：
+
+| 阶段 | 冷态 | 热态 |
+| --- | ---: | ---: |
+| 字幕窗可见 | 169 | 109–143 |
+| 进入聆听 | 640 | 301–585 |
+| 首个分块（约 3 秒） | 3775 | 3458–3720 |
+| Whisper 完成 | 5443 | 5188–6807 |
+| 首条字幕（首次识别输出） | 5445 | 7517（设备切换场景）/ 15013（TTS 测试中首个 3 秒块被过滤后） |
+
+- 系统声音证据：默认输出端点 `{0.0.0.00000000}.{a27f1d7b-d353-413c-83bd-76021fa117e4}`（音量 0.17、未静音）；首块 RMS 0.054–0.143、activeRatio 0.10–0.67、294,956 字节（约 3 秒）；Whisper 识别出“这是一段用于测试系统音频识别的中文语音。”。
+- 提示分支：无声音 `no-sound`、输出静音 `muted`、无输出/不支持回环 `unsupported` 均在字幕条/通知中给出明确中文提示；设备切换后 96 ms 内重新进入聆听，并继续出字幕。
+- 麦克风回归：`Default - Headset Microphone (Realtek(R) Audio)`，subtitle 109 ms / listening 768 ms，无语音时显示麦克风静音/占用提示；停止后主窗口恢复。
+- 主窗口：启动前隐藏（6–16 ms），停止/失败恢复；原本最小化/托盘的窗口不强行弹出（与截图/实时字幕共用回调）。
+- 说明：测试机后台持续有系统声音，静音提示通过捕获窗口注入 silence 状态 + 真实 Windows 端点查询验证；真实回环捕获用本地 TTS 播放验证。设备切换使用 `devicechange` 事件模拟，真实物理输出切换未在本机逐一实测。
+- 截图：`test/tmp/r4-audio-voice-1.png`、`r4-audio-voice-2.png`、`r4-audio-no-sound.png`、`r4-audio-muted.png`、`r4-audio-device.png`、`r4-audio-microphone.png`。
+
+### 打包版复测（2026-10-27）
+
+- 系统回环（打包版，默认输出，TTS）：首轮字幕窗 151 ms / 聆听 643 ms / 首块 3782 ms（RMS 0.147，active 0.737）/ Whisper 5495 ms / 首条字幕 5496 ms；次轮 119 / 332 / 3467 ms（RMS 0.182，active 0.745）/ 5105 ms，识别文本“这是一段用于测试系统音频”。
+- 无声音提示 1120 ms、输出静音提示 903 ms；设备切换 2445 ms 触发、2541 ms 重新聆听、7305 ms 首条字幕；麦克风聆听 471 ms；用户先把主界面最小化时 `home-hidden=false`，停止后仍保持最小化（未强行弹出）。
+- 回归：打包版截图 overlay 304/241 ms、微软翻译完成；实时字幕 overlay 219/154 ms、首条字幕 3361/3051 ms；Mock AI 翻译（本地模型）、解释、相关关键词/链接通过；均恢复主窗口。
+- 状态注入说明：无声音/静音消息通过捕获渲染层注入 `silence` 状态 + 真实 Windows 端点查询验证；真实回环 RMS/文字由 TTS 播放独立验证。`SL_FORCE_NO_SOURCE` 触发的是 Electron Cancel/Abort（消息“音频采集已取消”）；NotAllowedError 权限文案路径已实现，Windows 下未单独构造系统权限拒绝。
+- 汇总：[audio-2026-10-27.json](audio-2026-10-27.json)。

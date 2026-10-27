@@ -2,10 +2,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
-const { BrowserWindow, desktopCapturer, screen } = require('electron');
+const { BrowserWindow, screen } = require('electron');
 const { createRealtimeWindow, sendRealtimeInit } = require('../windows/realtimeWindow');
 const { translateAI, translateFree, LANG_NAMES } = require('./translate');
 const { providerLabel } = require('./llm');
+const { startTiming, markTiming, finishTiming } = require('./timing');
+const { getOutputDeviceState } = require('./audio-device');
 const T2S = require('./t2s.json');
 
 const HALLUCINATION_PATTERNS = [
@@ -45,6 +47,51 @@ function trimOverlap(previous, next) {
   return next;
 }
 
+function wavStats(buffer) {
+  try {
+    if (!buffer || buffer.length < 44) return null;
+    const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    const channels = view.getUint16(22, true) || 1;
+    const sampleRate = view.getUint32(24, true) || 0;
+    let offset = 12;
+    let dataOffset = 44;
+    let dataSize = buffer.length - 44;
+    while (offset + 8 <= buffer.length) {
+      const id = String.fromCharCode(
+        view.getUint8(offset),
+        view.getUint8(offset + 1),
+        view.getUint8(offset + 2),
+        view.getUint8(offset + 3),
+      );
+      const size = view.getUint32(offset + 4, true);
+      if (id === 'data') {
+        dataOffset = offset + 8;
+        dataSize = Math.min(size, buffer.length - dataOffset);
+        break;
+      }
+      offset += 8 + size + (size % 2);
+    }
+    let sum = 0;
+    let count = 0;
+    let active = 0;
+    const step = 2 * channels;
+    for (let i = dataOffset; i + 1 < dataOffset + dataSize; i += step) {
+      const value = view.getInt16(i, true) / 32768;
+      sum += value * value;
+      if (Math.abs(value) >= 0.012) active += 1;
+      count += 1;
+    }
+    return {
+      rms: Math.sqrt(sum / Math.max(1, count)),
+      activeRatio: active / Math.max(1, count),
+      sampleRate,
+      channels,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function looksLikeHallucination(text, language = 'zh') {
   if (!text) return true;
   if (HALLUCINATION_PATTERNS.some((pattern) => pattern.test(text))) return true;
@@ -58,12 +105,15 @@ function looksLikeHallucination(text, language = 'zh') {
 }
 
 class AudioController {
-  constructor({ settings, tempDir, rootDir, onStateChange, notify }) {
+  constructor({ settings, tempDir, rootDir, onStateChange, notify, minimizeHome, restoreHome }) {
     this.settings = settings;
     this.tempDir = tempDir;
     this.rootDir = rootDir;
     this.onStateChange = onStateChange || (() => {});
     this.notify = notify || (() => {});
+    this.minimizeHome = minimizeHome || (async () => false);
+    this.restoreHome = restoreHome || (() => {});
+    this.homeMinimized = false;
     this.active = false;
     this.win = null;
     this.capture = null;
@@ -78,6 +128,20 @@ class AudioController {
     this.uiText = '';
     this.lastErrorAt = 0;
     this.fallbackNotified = false;
+    this.startCount = 0;
+    this.timingId = '';
+    this.firstOriginalSent = false;
+    this.firstSubtitleSent = false;
+    this.firstTextSent = false;
+    this.firstChunkAt = 0;
+    this.firstChunkStats = null;
+    this.silentChunks = 0;
+    this.silenceNoticeKey = '';
+    this.silenceQuerying = false;
+    this.listening = false;
+    this.captureInfo = null;
+    this.whisperStarted = false;
+    this.whisperDone = false;
   }
 
   isActive() {
@@ -113,6 +177,15 @@ class AudioController {
   }
 
   send(payload) {
+    if (!this.firstOriginalSent && payload?.original) {
+      this.firstOriginalSent = true;
+      markTiming(this.timingId, 'first-original', { chars: String(payload.original).length });
+    }
+    if (!this.firstSubtitleSent && payload?.translated) {
+      this.firstSubtitleSent = true;
+      markTiming(this.timingId, 'first-subtitle', { chars: String(payload.translated).length });
+      finishTiming(this.timingId, { outcome: 'first-subtitle' });
+    }
     if (this.win && !this.win.isDestroyed()) {
       this.win.webContents.send('realtime:update', payload);
     }
@@ -124,15 +197,41 @@ class AudioController {
     }
   }
 
-  async start() {
+  async start(options = {}) {
     if (this.active) return { ok: true, active: true };
+    const timingId = startTiming('audio', {
+      source: options.source || 'unknown',
+      clickedAt: options.clickedAt,
+      round: ++this.startCount,
+    });
+    this.timingId = timingId;
+    this.firstOriginalSent = false;
+    this.firstSubtitleSent = false;
+    this.firstTextSent = false;
+    this.firstChunkAt = 0;
+    this.firstChunkStats = null;
+    this.silentChunks = 0;
+    this.silenceNoticeKey = '';
+    this.silenceQuerying = false;
+    this.listening = false;
+    this.captureInfo = null;
+    this.whisperStarted = false;
+    this.whisperDone = false;
+    markTiming(timingId, 'begin-work');
+
     const info = this.modelInfo();
+    markTiming(timingId, 'model-check', { ready: info.ready, name: info.name });
     if (!info.ready) {
       this.notify('音频字幕无法启动', info.reason);
+      finishTiming(timingId, { outcome: 'model-unavailable' });
       return { ok: false, error: info.reason };
     }
+
     const settings = this.settings.get();
     const source = settings.audio.source === 'microphone' ? 'microphone' : 'system';
+    this.homeMinimized = await this.minimizeHome();
+    markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
+
     this.active = true;
     this.busy = false;
     this.queue = [];
@@ -145,13 +244,21 @@ class AudioController {
     this.lastErrorAt = 0;
     this.fallbackNotified = false;
     this.onStateChange({ audioActive: true });
+
     try {
       const display = screen.getPrimaryDisplay();
+      markTiming(timingId, 'subtitle-create-start');
       this.win = createRealtimeWindow({
         rect: display.workArea,
         settings,
         scope: '音频',
       });
+      markTiming(timingId, 'subtitle-created');
+      setTimeout(() => {
+        if (this.win && !this.win.isDestroyed()) {
+          markTiming(timingId, 'subtitle-visible', { visible: this.win.isVisible() });
+        }
+      }, 80);
       this.win.on('closed', () => {
         this.win = null;
         if (this.active) this.stop({ silent: true });
@@ -163,13 +270,14 @@ class AudioController {
         message: source === 'microphone' ? '正在聆听麦克风…' : '正在聆听系统声音…',
       };
       this.send(waiting);
+      markTiming(timingId, 'subtitle-waiting-sent');
       this.win.webContents.on('did-finish-load', () => {
         setTimeout(() => {
           if (this.active) this.send(waiting);
         }, 300);
       });
-      const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } });
-      const sourceInfo = sources.find((item) => String(item.display_id) === String(display.id)) || sources[0];
+
+      markTiming(timingId, 'capture-window-create-start');
       this.capture = new BrowserWindow({
         show: false,
         width: 200,
@@ -184,25 +292,81 @@ class AudioController {
           backgroundThrottling: false,
         },
       });
+      markTiming(timingId, 'capture-window-created');
       this.capture.webContents.on('did-finish-load', () => {
         if (!this.active || !this.capture || this.capture.isDestroyed()) return;
         this.capture.webContents.send('audio:init', {
-          sourceId: sourceInfo ? sourceInfo.id : '',
           source,
           chunkMs: settings.audio.chunkMs,
           overlapMs: settings.audio.overlapMs,
+          firstChunkMs: 3000,
+          timingId,
         });
+        markTiming(timingId, 'capture-init-sent');
       });
       this.capture.loadFile(path.join(__dirname, '..', 'renderer', 'audio-capture', 'index.html'));
     } catch (err) {
       const message = String(err.message || '音频捕获初始化失败');
-      this.notify('音频字幕启动失败', message);
+      markTiming(timingId, 'start-error', { message: message.slice(0, 160) });
+      finishTiming(timingId, { outcome: 'error' });
+      this.releaseHome();
       this.stop({ silent: true });
+      setTimeout(() => this.notify('音频字幕启动失败', message), 150);
       return { ok: false, error: message };
     }
+
     const label = source === 'microphone' ? '麦克风' : '系统声音';
     this.notify('音频字幕已开启', `正在聆听${label} · 本地 Whisper 识别 · 点击按钮或字幕 × 停止`);
     return { ok: true, active: true };
+  }
+
+  async notifySilence() {
+    if (this.silenceQuerying || !this.active || this.firstChunkAt) return;
+    this.silenceQuerying = true;
+    try {
+      const source = this.captureInfo?.source
+        || (this.settings.get().audio.source === 'microphone' ? 'microphone' : 'system');
+      let key = '';
+      let message = '';
+      if (source === 'microphone') {
+        key = 'microphone-silence';
+        message = '正在聆听麦克风，但没有检测到声音；请检查麦克风是否被静音或被其他程序占用。';
+      } else {
+        const device = await getOutputDeviceState();
+        markTiming(this.timingId, 'device-query', {
+          ok: Boolean(device?.ok),
+          muted: device?.muted,
+          anyMuted: device?.anyMuted,
+          volume: device?.volume,
+          anyVolumeZero: device?.anyVolumeZero,
+          deviceName: device?.deviceName,
+          endpointId: device?.endpointId,
+          error: device?.error,
+        });
+        if (!device || !device.ok) {
+          key = 'no-device';
+          message = '没有找到可用的系统输出设备，请检查扬声器/耳机是否连接。';
+        } else if (device.anyMuted || device.anyVolumeZero || device.muted || Number(device.volume) < 0.01) {
+          key = 'muted';
+          message = '系统输出已静音或音量为 0，请取消静音/调高音量后再试。';
+        } else {
+          key = 'no-sound';
+          message = '正在聆听系统声音，但当前没有检测到播放声音；请播放音频或检查输出设备。';
+        }
+      }
+      if (key !== this.silenceNoticeKey) {
+        this.silenceNoticeKey = key;
+        this.send({
+          status: 'waiting',
+          original: this.uiText,
+          translated: '',
+          message,
+        });
+        markTiming(this.timingId, 'silence-notice', { key, message });
+      }
+    } finally {
+      this.silenceQuerying = false;
+    }
   }
 
   pushChunk(buffer) {
@@ -214,6 +378,22 @@ class AudioController {
       return;
     }
     if (data.length < 1024) return;
+    if (!this.firstChunkAt) {
+      this.firstChunkAt = Date.now();
+      this.firstChunkStats = wavStats(data);
+      this.silentChunks = 0;
+      this.silenceNoticeKey = '';
+      markTiming(this.timingId, 'first-chunk', {
+        bytes: data.length,
+        ...(this.firstChunkStats || {}),
+      });
+      this.send({
+        status: 'waiting',
+        original: this.uiText,
+        translated: '',
+        message: '正在识别语音…',
+      });
+    }
     this.seq += 1;
     const file = path.join(this.tempDir, `asr-${process.pid}-${Date.now()}-${this.seq}.wav`);
     try {
@@ -229,11 +409,74 @@ class AudioController {
     this.pump();
   }
 
-  onCaptureStatus(payload) {
+  async onCaptureStatus(payload) {
     if (!this.active || !payload) return;
+    if (payload.status === 'listening') {
+      this.listening = true;
+      this.captureInfo = {
+        source: payload.source,
+        sampleRate: payload.sampleRate,
+        trackLabel: payload.trackLabel,
+        channelCount: payload.channelCount,
+        deviceId: payload.deviceId,
+      };
+      markTiming(this.timingId, 'listening', {
+        captureSource: this.captureInfo.source,
+        sampleRate: this.captureInfo.sampleRate,
+        trackLabel: this.captureInfo.trackLabel,
+        channelCount: this.captureInfo.channelCount,
+        deviceId: this.captureInfo.deviceId,
+      });
+      this.silenceNoticeKey = '';
+      if (this.silentChunks > 0) {
+        this.send({
+          status: 'waiting',
+          original: this.uiText,
+          translated: '',
+          message: payload.source === 'microphone' ? '正在聆听麦克风…' : '正在聆听系统声音…',
+        });
+      }
+      return;
+    }
+    if (payload.status === 'device-change') {
+      this.listening = false;
+      this.silenceNoticeKey = '';
+      markTiming(this.timingId, 'device-change', { message: payload.message });
+      this.send({
+        status: 'waiting',
+        original: this.uiText,
+        translated: '',
+        message: payload.message || '输出设备已切换，正在重新连接…',
+      });
+      return;
+    }
+    if (payload.status === 'silence') {
+      this.silentChunks += 1;
+      markTiming(this.timingId, 'silence', {
+        rms: payload.rms,
+        activeRatio: payload.activeRatio,
+        count: this.silentChunks,
+      });
+      if (this.firstChunkAt) return;
+      await this.notifySilence();
+      return;
+    }
     if (payload.status === 'error') {
-      this.notify('音频采集失败', String(payload.message || '请检查系统声音输出设备'));
+      const message = String(payload.message || '请检查系统声音输出设备');
+      markTiming(this.timingId, 'capture-error', {
+        code: payload.code,
+        message: message.slice(0, 160),
+      });
+      this.send({
+        status: 'error',
+        original: this.uiText,
+        translated: '',
+        message,
+      });
+      finishTiming(this.timingId, { outcome: 'capture-error' });
+      this.releaseHome();
       this.stop({ silent: true });
+      setTimeout(() => this.notify('音频字幕无法继续', message), 150);
     }
   }
 
@@ -241,13 +484,24 @@ class AudioController {
     if (!this.active || this.busy || !this.queue.length) return;
     const item = this.queue.shift();
     this.busy = true;
+    if (!this.whisperStarted) {
+      this.whisperStarted = true;
+      markTiming(this.timingId, 'whisper-start', { queue: this.queue.length + 1 });
+    }
     this.recognize(item.file)
       .then((text) => {
         if (!this.active) return;
+        if (!this.whisperDone) {
+          this.whisperDone = true;
+          markTiming(this.timingId, 'whisper-done', { chars: String(text || '').length });
+        }
         this.handleText(text);
       })
       .catch((err) => {
         if (!this.active) return;
+        markTiming(this.timingId, 'whisper-error', {
+          message: String(err.message || '').slice(0, 160),
+        });
         if (Date.now() - this.lastErrorAt > 6000) {
           this.lastErrorAt = Date.now();
           this.send({
@@ -345,6 +599,10 @@ class AudioController {
     this.prevRaw = cleaned;
     if (!display || looksLikeHallucination(display, language)) return;
     this.uiText = display;
+    if (!this.firstTextSent) {
+      this.firstTextSent = true;
+      markTiming(this.timingId, 'first-text', { chars: display.length });
+    }
     const sourceCode = language === 'en' ? 'en' : 'zh-CN';
     const realtime = settings.realtime || {};
     const target = realtime.targetLang && realtime.targetLang !== 'auto'
@@ -472,8 +730,21 @@ class AudioController {
     this.cache.set(key, value);
   }
 
+  releaseHome() {
+    if (!this.homeMinimized) return;
+    this.homeMinimized = false;
+    this.restoreHome();
+  }
+
   stop({ silent = false } = {}) {
-    if (!this.active && !this.win && !this.capture) return;
+    if (!this.active && !this.win && !this.capture) {
+      this.releaseHome();
+      return;
+    }
+    if (!this.firstSubtitleSent) {
+      markTiming(this.timingId, 'stop-before-subtitle');
+      finishTiming(this.timingId, { outcome: 'stopped' });
+    }
     this.active = false;
     this.gen += 1;
     if (this.abort) {
@@ -493,6 +764,7 @@ class AudioController {
       try { this.win.destroy(); } catch {}
     }
     this.win = null;
+    this.releaseHome();
     this.onStateChange({ audioActive: false });
     if (!silent) {
       // The user stopped audio subtitles; no toast needed, the bar disappears.

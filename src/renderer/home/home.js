@@ -408,7 +408,7 @@ function syncSettingsForm(force) {
   const audioDetail = $('audio-model-detail');
   if (audioDetail) {
     audioDetail.textContent = audioInfo.ready
-      ? `${audioInfo.name || 'Whisper'} · 约为每 6 秒更新一次`
+      ? `${audioInfo.name || 'Whisper'} · 首个约 3 秒，之后约每 6 秒更新一次`
       : (audioInfo.reason || '未找到本地 Whisper 模型');
   }
 
@@ -570,7 +570,7 @@ async function toggleAudio() {
   $('btn-audio').disabled = true;
   $('audio-label').textContent = '启动中…';
   try {
-    const res = await api.invoke('action:audio');
+    const res = await api.invoke('action:audio', { clickedAt: Date.now(), source: 'home' });
     if (!res || !res.ok) {
       pendingAudio = false;
       $('btn-audio').disabled = false;

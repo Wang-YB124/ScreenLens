@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-27",
+  "machine": "Windows 11 x64, 2560x1600 @150%, single display; default output endpoint volume 0.17, unmuted",
+  "loopback_proof": {
+    "method": "Electron 38 session.setDisplayMediaRequestHandler callback({ video: screenSource, audio: 'loopback' }); renderer navigator.mediaDevices.getDisplayMedia({ audio: true, video: true }); video track stopped/removed immediately.",
+    "audio_track": {
+      "label": "System audio",
+      "deviceId": "loopback",
+      "sampleRate": 48000,
+      "channelCount": 1,
+      "videoTracks": 1,
+      "videoStopped": true
+    },
+    "default_output": {
+      "deviceName": "适用于数字麦克风的英特尔® 智音技术",
+      "endpointId": "{0.0.0.00000000}.{a27f1d7b-d353-413c-83bd-76021fa117e4}",
+      "volume": 0.17,
+      "muted": false,
+      "roles": [
+        "console",
+        "multimedia",
+        "communications"
+      ]
+    },
+    "speech_file": "test/tmp/speech-zh-6s.wav and speech-zh.wav (local TTS, played through the default output)",
+    "first_chunk_rms": [
+      0.06324737617664464,
+      0.11623528980662255,
+      0.14341143740847445,
+      0.09714955234502884,
+      0.14659360935175508,
+      0.18219939545323274
+    ],
+    "first_chunk_active_ratio": [
+      0.1275295681423611,
+      0.15106201171875,
+      0.67181396484375,
+      0.3301794744942832,
+      0.7367350260416666,
+      0.7449273003472223
+    ],
+    "first_chunk_bytes": 294956,
+    "recognized_text_examples": [
+      "这是一段用于测试系统音频识别的中文语音。",
+      "这是一段用于测试系统音频",
+      "这是一段用于测试系统音频。"
+    ],
+    "hallucination_observed": "字幕:HK（首个 3 秒块，已按图片/字幕类幻觉过滤策略处理；后续块输出正确句子）"
+  },
+  "startup_ms": {
+    "voice_cold": {
+      "subtitle_visible": 169,
+      "listening": 640,
+      "first_chunk": 3775,
+      "whisper_done": 5443,
+      "first_subtitle_first_output": 5445
+    },
+    "voice_warm": {
+      "subtitle_visible": [
+        127,
+        128,
+        141,
+        143
+      ],
+      "listening": [
+        334,
+        553,
+        585,
+        301
+      ],
+      "first_chunk": [
+        3458,
+        3685,
+        3720
+      ],
+      "whisper_done": [
+        5188,
+        5533,
+        5412
+      ],
+      "first_correct_subtitle": [
+        15013,
+        15080
+      ],
+      "note": "首个 3 秒块的 Whisper 输出在测试音频/后台声音下被过滤；首个正确完整句出现在后续块。打包版使用清晰 TTS 时首条字幕约 5.1–5.5 秒。"
+    },
+    "device_switch": {
+      "subtitle_visible": 182,
+      "listening": 559,
+      "device_change": 2752,
+      "relisten": 2848,
+      "first_chunk": 5939,
+      "first_subtitle": 7517
+    },
+    "microphone": {
+      "subtitle_visible": 109,
+      "listening": 768,
+      "first_chunk": 8711,
+      "first_subtitle": 10288,
+      "trackLabel": "Default - Headset Microphone (Realtek(R) Audio)"
+    },
+    "unsupported": {
+      "error": 311,
+      "code": "unsupported",
+      "message": "当前系统或 Electron 版本没有返回系统声音回环轨道；请改用麦克风来源。"
+    },
+    "no_sound_notice": {
+      "notice": 904,
+      "key": "no-sound",
+      "message": "正在聆听系统声音，但当前没有检测到播放声音；请播放音频或检查输出设备。"
+    },
+    "muted_notice": {
+      "notice": 859,
+      "key": "muted",
+      "message": "系统输出已静音或音量为 0，请取消静音/调高音量后再试。",
+      "query_anyMuted": true
+    },
+    "voice_packaged": {
+      "cold": {
+        "subtitle_visible": 151,
+        "listening": 643,
+        "first_chunk": 3782,
+        "first_chunk_rms": 0.14659360935175508,
+        "first_chunk_active_ratio": 0.7367350260416666,
+        "whisper_done": 5495,
+        "first_subtitle": 5496,
+        "text": "这是一段用于测试系统音频"
+      },
+      "warm": {
+        "subtitle_visible": 119,
+        "listening": 332,
+        "first_chunk": 3467,
+        "first_chunk_rms": 0.18219939545323274,
+        "first_chunk_active_ratio": 0.7449273003472223,
+        "whisper_done": 5105,
+        "first_subtitle": 5105,
+        "text": "这是一段用于测试系统音频"
+      }
+    },
+    "notice_packaged": {
+      "no_sound": 1120,
+      "muted": 903
+    },
+    "device_switch_packaged": {
+      "subtitle_visible": 117,
+      "listening": 317,
+      "device_change": 2445,
+      "relisten": 2541,
+      "first_chunk": 5141,
+      "first_subtitle": 7305,
+      "text": "这是一段用于测试系统音频。"
+    },
+    "microphone_packaged": {
+      "subtitle_visible": 109,
+      "listening": 471,
+      "text": "正在识别语音…"
+    },
+    "no_source": {
+      "error": 186,
+      "code": "abort",
+      "message": "音频采集已取消。"
+    },
+    "minimized_home": {
+      "subtitle_visible": 138,
+      "listening": 625,
+      "home_hidden_flag": false,
+      "still_minimized_after_stop": true
+    }
+  },
+  "home_window": {
+    "hide_before_start": true,
+    "hide_ms": [
+      6,
+      12,
+      16
+    ],
+    "restore_on_stop_or_error": true,
+    "restore_observed_ms": [
+      835,
+      856,
+      884,
+      918,
+      986
+    ],
+    "user_minimized_home": "shared minimizeHome/restoreHome callbacks skip restore when the home was already minimized or hidden by the user"
+  },
+  "silence_test_note": "The test machine had continuous background system audio; the no-sound/muted message branches were triggered by a controlled silence status from the capture renderer while the app queried the real Windows endpoint state. Real loopback RMS/text was verified separately with local TTS. The unsupported-loopback branch was tested end-to-end with SL_FORCE_NO_LOOPBACK=1.",
+  "qa_files": {
+    "harness": "test/tmp/r4-audio.js",
+    "logs": [
+      "test/tmp/r4-audio3.log",
+      "test/tmp/r4-audio4.log",
+      "test/tmp/r4-audio5.log",
+      "test/tmp/r4-pkg-audio.log",
+      "test/tmp/r4-pkg-audio2.log",
+      "test/tmp/r4-pkg-audio3.log"
+    ],
+    "screenshots": [
+      "test/tmp/r4-audio-voice-1.png",
+      "test/tmp/r4-audio-voice-2.png",
+      "test/tmp/r4-audio-no-sound.png",
+      "test/tmp/r4-audio-muted.png",
+      "test/tmp/r4-audio-device.png",
+      "test/tmp/r4-audio-microphone.png"
+    ],
+    "screenshots_packaged": [
+      "test/tmp/r4-audio-voice-1.png",
+      "test/tmp/r4-audio-voice-2.png",
+      "test/tmp/r4-audio-no-sound.png",
+      "test/tmp/r4-audio-muted.png",
+      "test/tmp/r4-audio-device.png",
+      "test/tmp/r4-audio-microphone.png",
+      "test/tmp/r4-qa-result.png",
+      "test/tmp/r4-qa-realtime-1.png",
+      "test/tmp/r4-qa-mock.png"
+    ]
+  },
+  "regression": {
+    "packaged_audio": "system loopback、no-sound/muted、devicechange 重连、麦克风、用户已最小化主窗口均通过",
+    "packaged_screenshot": "overlay 304/241 ms；OCR + 微软翻译 done；关闭结果后主窗口恢复",
+    "packaged_realtime": "overlay 219/154 ms；首条字幕 3361/3051 ms；停止后主窗口恢复",
+    "packaged_mock": {
+      "translation": "done / 本地模型",
+      "explanation": "done",
+      "related_keywords": 3,
+      "related_links": 2
+    },
+    "permission_note": "SL_FORCE_NO_SOURCE 触发 Electron AbortError（音频采集已取消），主窗口恢复；NotAllowedError 权限文案路径已实现，Windows 下未单独构造系统权限拒绝。",
+    "multi_display": "单屏机器；未做物理多屏音频/设备切换测试。"
+  }
+}
