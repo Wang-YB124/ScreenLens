@@ -20,6 +20,8 @@ const opacityValue = $('opacity-value');
 const sourceChips = $('source-chips');
 const targetChips = $('target-chips');
 const previewText = $('preview-text');
+const resizeGrip = $('resize-grip');
+const resetSizeBtn = $('reset-size');
 
 const LANGS = [
   { code: 'zh-CN', label: '中文' },
@@ -59,6 +61,12 @@ let hintTimer = null;
 let hintReady = false;
 let resizeFrame = null;
 let resizePending = false;
+let manualHeight = false;
+let resizing = false;
+let resizePointer = null;
+let gripFrame = null;
+let resizeMoved = false;
+let resizeManualBefore = false;
 let currentDomain = 'general';
 let lastPreview = '';
 let panelOpen = false;
@@ -71,7 +79,30 @@ let dragFrame = null;
 function sendHitZone() {
   const meta = document.querySelector('.meta');
   const bottom = meta ? meta.getBoundingClientRect().bottom : 36;
-  api.send('realtime:hitzone', { metaBottom: Math.ceil(bottom + 6), panelOpen });
+  let grip = null;
+  if (!panelOpen) {
+    const rect = resizeGrip.getBoundingClientRect();
+    grip = {
+      x: Math.floor(rect.x - 5),
+      y: Math.floor(rect.y - 5),
+      width: Math.ceil(rect.width + 10),
+      height: Math.ceil(rect.height + 10),
+    };
+  }
+  api.send('realtime:hitzone', { metaBottom: Math.ceil(bottom + 6), panelOpen, grip });
+}
+
+function updateLineClamp() {
+  let lines = rt.maxLines;
+  if (manualHeight) {
+    const meta = document.querySelector('.meta');
+    const metaH = meta ? meta.offsetHeight : 18;
+    const origH = original.offsetHeight;
+    const available = innerHeight - 14 - 22 - metaH - (origH ? origH + 4 : 0) - 6;
+    const lineH = Math.max(8, rt.fontSize * 1.42);
+    lines = Math.max(1, Math.min(12, Math.floor(available / lineH)));
+  }
+  document.documentElement.style.setProperty('--rt-lines', String(lines));
 }
 
 let saveTimer = null;
@@ -133,6 +164,10 @@ function renderMath(node, text) {
 }
 
 function scheduleResize() {
+  if (manualHeight) {
+    sendHitZone();
+    return;
+  }
   if (dragging) {
     resizePending = true;
     return;
@@ -140,6 +175,7 @@ function scheduleResize() {
   if (resizeFrame) return;
   resizeFrame = requestAnimationFrame(() => {
     resizeFrame = null;
+    document.documentElement.style.setProperty('--rt-lines', String(rt.maxLines));
     const meta = document.querySelector('.meta');
     const metaH = meta ? meta.offsetHeight : 16;
     const panelH = panelOpen ? panel.offsetHeight : 0;
@@ -218,6 +254,7 @@ function applyFont(next) {
   rt.fontSize = Math.max(14, Math.min(40, Math.round(next)));
   document.documentElement.style.setProperty('--rt-font-size', `${rt.fontSize}px`);
   syncStepper();
+  updateLineClamp();
   scheduleResize();
   queueSave({ fontSize: rt.fontSize });
 }
@@ -253,6 +290,7 @@ function setPanel(open) {
   btnSettings.classList.toggle('active', open);
   btnSettings.title = open ? '收起设置' : '字幕设置';
   if (open) updatePreview();
+  updateLineClamp();
   scheduleResize();
 }
 
@@ -262,6 +300,8 @@ api.on('realtime:init', (config) => {
   if (typeof config.maxLines === 'number') rt.maxLines = config.maxLines;
   rt.sourceLang = config.sourceLang || 'auto';
   rt.targetLang = config.targetLang || 'auto';
+  manualHeight = Number(config.boxHeight) > 0;
+  sub.classList.toggle('manual-size', manualHeight);
   if (config.windowTitle) {
     scope.textContent = '窗口';
     scope.title = `识别窗口：${config.windowTitle}`;
@@ -272,7 +312,7 @@ api.on('realtime:init', (config) => {
   }
   document.documentElement.style.setProperty('--rt-font-size', `${rt.fontSize}px`);
   document.documentElement.style.setProperty('--rt-opacity', String(rt.opacity));
-  document.documentElement.style.setProperty('--rt-lines', String(rt.maxLines));
+  updateLineClamp();
   const percent = Math.round(rt.opacity * 100);
   opacityRange.value = String(percent);
   opacityValue.textContent = `${percent}%`;
@@ -414,6 +454,81 @@ for (const row of [sourceChips, targetChips]) {
     event.preventDefault();
   }, { passive: false });
 }
+
+let gripTitle = resizeGrip.title;
+
+function startGripResize(event) {
+  if (event.button !== 0 || closing) return;
+  event.preventDefault();
+  resizing = true;
+  resizePointer = event.pointerId;
+  resizeMoved = false;
+  resizeManualBefore = manualHeight;
+  manualHeight = true;
+  try { resizeGrip.setPointerCapture(event.pointerId); } catch {}
+  document.body.classList.add('resizing');
+  resizeGrip.title = '拖动调整字幕框大小，松开生效';
+  api.send('realtime:resize-start');
+}
+
+function moveGripResize(event) {
+  if (!resizing || event.pointerId !== resizePointer) return;
+  resizeMoved = true;
+  if (gripFrame) return;
+  gripFrame = requestAnimationFrame(() => {
+    gripFrame = null;
+    if (resizing) api.send('realtime:resize-move');
+  });
+}
+
+function endGripResize(event) {
+  if (!resizing) return;
+  const pointer = resizePointer;
+  resizing = false;
+  resizePointer = null;
+  document.body.classList.remove('resizing');
+  resizeGrip.title = gripTitle;
+  try {
+    if (pointer !== null && resizeGrip.hasPointerCapture(pointer)) {
+      resizeGrip.releasePointerCapture(pointer);
+    }
+  } catch {}
+  api.send('realtime:resize-end');
+  if (resizeMoved) {
+    manualHeight = true;
+    sub.classList.add('manual-size');
+    updateLineClamp();
+    api.invoke('realtime:settings', { boxWidth: innerWidth, boxHeight: innerHeight }).catch(() => {});
+  } else {
+    manualHeight = resizeManualBefore;
+    sub.classList.toggle('manual-size', manualHeight);
+    updateLineClamp();
+  }
+  scheduleResize();
+}
+
+async function resetSize() {
+  try { await api.invoke('realtime:reset-size'); } catch {}
+  manualHeight = false;
+  sub.classList.remove('manual-size');
+  updateLineClamp();
+  scheduleResize();
+}
+
+resizeGrip.addEventListener('pointerdown', startGripResize);
+resizeGrip.addEventListener('pointermove', moveGripResize);
+resizeGrip.addEventListener('pointerup', endGripResize);
+resizeGrip.addEventListener('pointercancel', endGripResize);
+resizeGrip.addEventListener('lostpointercapture', () => {
+  if (resizing) endGripResize(null);
+});
+resizeGrip.addEventListener('dblclick', resetSize);
+resetSizeBtn.addEventListener('click', resetSize);
+
+window.addEventListener('resize', () => {
+  updateLineClamp();
+  sendHitZone();
+});
 
 renderChips();
 updatePreview();

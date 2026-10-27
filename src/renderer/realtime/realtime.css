@@ -64,6 +64,7 @@ body {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.6px;
+  flex: none;
 }
 
 .grip {
@@ -225,6 +226,7 @@ body.dragging .grip {
   overflow: hidden;
   text-overflow: ellipsis;
   min-height: 0;
+  flex: none;
 }
 
 .original:empty {
@@ -244,6 +246,7 @@ body.dragging .grip {
   overflow: hidden;
   word-break: break-word;
   transition: color 0.15s ease;
+  flex: none;
 }
 
 .translated.cjk {
@@ -501,9 +504,74 @@ body.dragging .grip {
 }
 
 .panel-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 8.5px;
   font-weight: 600;
   letter-spacing: 0.3px;
   color: #6b7584;
   padding-top: 1px;
+}
+
+.panel-reset {
+  margin-left: auto;
+  flex: none;
+  color: var(--mint);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border-bottom: 1px dashed rgba(139, 243, 208, 0.5);
+}
+
+.panel-reset:hover {
+  color: #d8fff4;
+}
+
+.sub.manual-size .panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.resize-grip {
+  position: absolute;
+  right: 9px;
+  bottom: 9px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9;
+  color: rgba(236, 244, 255, 0.4);
+  border-radius: 5px;
+  cursor: nwse-resize;
+  opacity: 0.75;
+  transition: color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.resize-grip svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.resize-grip:hover {
+  color: var(--mint);
+  background: rgba(139, 243, 208, 0.1);
+  opacity: 1;
+}
+
+.sub.settings-open .resize-grip {
+  display: none;
+}
+
+body.resizing .resize-grip {
+  color: var(--mint);
+  background: rgba(139, 243, 208, 0.12);
+  opacity: 1;
 }

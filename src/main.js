@@ -30,6 +30,10 @@ const {
   startRealtimeDrag,
   moveRealtimeDrag,
   endRealtimeDrag,
+  startRealtimeResize,
+  moveRealtimeResize,
+  endRealtimeResize,
+  resetRealtimeSize,
 } = require('./windows/realtimeWindow');
 const { testProvider, providerLabel } = require('./core/llm');
 const { isAllowedSearchUrl } = require('./core/search');
@@ -347,12 +351,42 @@ function registerIpc() {
     if (win && realtime?.win === win) endRealtimeDrag(win);
   });
 
+  ipcMain.on('realtime:resize-start', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && realtime?.win === win) startRealtimeResize(win);
+  });
+
+  ipcMain.on('realtime:resize-move', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && realtime?.win === win) moveRealtimeResize(win);
+  });
+
+  ipcMain.on('realtime:resize-end', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && realtime?.win === win) endRealtimeResize(win);
+  });
+
+  ipcMain.handle('realtime:reset-size', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || !realtime || realtime.win !== win) return { ok: false };
+    settings.update({ realtime: { boxWidth: 0, boxHeight: 0 } });
+    resetRealtimeSize(win);
+    realtime.refreshSettings();
+    broadcastState();
+    return { ok: true };
+  });
+
   ipcMain.handle('realtime:settings', (event, patch) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win || !realtime || realtime.win !== win) return { ok: false };
     const clean = {};
-    for (const key of ['fontSize', 'opacity', 'maxLines', 'engine', 'sourceLang', 'targetLang']) {
+    for (const key of ['fontSize', 'opacity', 'maxLines', 'engine', 'sourceLang', 'targetLang', 'boxWidth', 'boxHeight']) {
       if (patch && patch[key] !== undefined) clean[key] = patch[key];
+    }
+    if (clean.boxWidth !== undefined || clean.boxHeight !== undefined) {
+      const [width, height] = win.getSize();
+      clean.boxWidth = width;
+      clean.boxHeight = height;
     }
     if (!Object.keys(clean).length) return { ok: true, realtime: settings.get().realtime };
     const before = settings.get().realtime;

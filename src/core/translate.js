@@ -140,10 +140,18 @@ async function translateFree(text, from, to, { signal } = {}) {
       signal: withTimeout(signal, 25000),
       headers: { 'User-Agent': 'ScreenLens/1.0' },
     });
-    if (!res.ok) throw new Error(`免费翻译服务无响应（${res.status}）`);
+    if (!res.ok) {
+      if (res.status === 429) {
+        throw new Error('免费翻译已限流，请稍后再试，或在设置中配置 AI 模型');
+      }
+      throw new Error(`免费翻译服务无响应（${res.status}）`);
+    }
     const data = await res.json();
     if (String(data.responseStatus) !== '200') {
       const detail = data.responseDetails || '请求被拒绝';
+      if (String(data.responseStatus) === '429' || /too many requests/i.test(String(detail))) {
+        throw new Error('免费翻译已限流，请稍后再试，或在设置中配置 AI 模型');
+      }
       if (String(detail).includes('QUERY LENGTH')) throw new Error('文本太长，免费翻译无法处理');
       throw new Error(`免费翻译失败：${detail}`);
     }

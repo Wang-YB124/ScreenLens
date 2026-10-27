@@ -31,6 +31,8 @@ const DEFAULTS = {
     maxLines: 3,
     sourceLang: 'auto',
     targetLang: 'auto',
+    boxWidth: 0,
+    boxHeight: 0,
   },
   historyLimit: 60,
   launchAtLogin: false,
@@ -91,6 +93,10 @@ function sanitize(data) {
   out.realtime.targetLang = ['auto', ...REALTIME_LANG_CODES].includes(out.realtime.targetLang)
     ? out.realtime.targetLang
     : 'auto';
+  const boxWidth = Math.round(Number(out.realtime.boxWidth) || 0);
+  const boxHeight = Math.round(Number(out.realtime.boxHeight) || 0);
+  out.realtime.boxWidth = boxWidth >= 320 ? Math.min(1600, boxWidth) : 0;
+  out.realtime.boxHeight = boxHeight >= 96 ? Math.min(700, boxHeight) : 0;
   out.historyLimit = Math.round(clamp(out.historyLimit, 10, 300, 60));
   for (const key of ['select', 'realtime']) {
     out.hotkeys[key] = String(out.hotkeys[key] || DEFAULTS.hotkeys[key]).trim();
