@@ -7,10 +7,74 @@ const original = $('original');
 const dir = $('dir');
 const provider = $('provider');
 const hint = $('hint');
+const grip = $('grip');
+const panel = $('panel');
+const btnSettings = $('btn-settings');
+const btnClose = $('btn-close');
+const fontValue = $('font-value');
+const fontUp = $('font-up');
+const fontDown = $('font-down');
+const opacityRange = $('opacity-range');
+const opacityValue = $('opacity-value');
+const sourceChips = $('source-chips');
+const targetChips = $('target-chips');
+const previewText = $('preview-text');
+
+const LANGS = [
+  { code: 'zh-CN', label: '中文' },
+  { code: 'en', label: 'English' },
+  { code: 'ja', label: '日本語' },
+  { code: 'ko', label: '한국어' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'es', label: 'Español' },
+  { code: 'pt', label: 'Português' },
+  { code: 'it', label: 'Italiano' },
+];
+
+const SAMPLE = {
+  'zh-CN': '字幕效果预览',
+  en: 'Subtitle preview',
+  ja: '字幕プレビュー',
+  ko: '자막 미리보기',
+  ru: 'Предпросмотр субтитров',
+  fr: 'Aperçu des sous-titres',
+  de: 'Untertitel-Vorschau',
+  es: 'Vista previa de subtítulos',
+  pt: 'Prévia da legenda',
+  it: 'Anteprima sottotitoli',
+};
+
+const rt = {
+  fontSize: 20,
+  opacity: 0.92,
+  maxLines: 3,
+  sourceLang: 'auto',
+  targetLang: 'auto',
+};
 
 let hintTimer = null;
+let hintReady = false;
 let resizeFrame = null;
+let resizePending = false;
 let currentDomain = 'general';
+let lastPreview = '';
+let panelOpen = false;
+let closing = false;
+
+let dragging = false;
+let dragPointer = null;
+let dragFrame = null;
+
+function sendHitZone() {
+  const meta = document.querySelector('.meta');
+  const bottom = meta ? meta.getBoundingClientRect().bottom : 36;
+  api.send('realtime:hitzone', { metaBottom: Math.ceil(bottom + 6), panelOpen });
+}
+
+let saveTimer = null;
+let pendingSave = null;
 
 function mathSegments(text) {
   const pattern = /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g;
@@ -68,16 +132,24 @@ function renderMath(node, text) {
 }
 
 function scheduleResize() {
+  if (dragging) {
+    resizePending = true;
+    return;
+  }
   if (resizeFrame) return;
   resizeFrame = requestAnimationFrame(() => {
     resizeFrame = null;
     const meta = document.querySelector('.meta');
-    const wrap = document.querySelector('.wrap');
-    const metaH = meta ? meta.offsetHeight : 14;
+    const metaH = meta ? meta.offsetHeight : 16;
+    const panelH = panelOpen ? panel.offsetHeight : 0;
     const origH = original.offsetHeight;
     const transH = translated.offsetHeight;
-    const total = 14 + 22 + metaH + (origH ? origH + 4 : 0) + transH + 6;
+    const body = panelOpen
+      ? panelH + 8
+      : (origH ? origH + 4 : 0) + transH + 6;
+    const total = 14 + 22 + metaH + body;
     api.send('realtime:resize', Math.min(340, Math.max(96, Math.ceil(total))));
+    sendHitZone();
   });
 }
 
@@ -88,14 +160,124 @@ function setLoading(text) {
   translated.append(document.createTextNode(text));
 }
 
-api.on('realtime:init', (config) => {
-  document.documentElement.style.setProperty('--rt-font-size', `${config.fontSize}px`);
-  document.documentElement.style.setProperty('--rt-opacity', String(config.opacity));
-  document.documentElement.style.setProperty('--rt-lines', String(config.maxLines));
-  hint.textContent = `${String(config.hotkey || '').replace(/Control/g, 'Ctrl').replace(/\+/g, ' + ')} 停止`;
-  clearTimeout(hintTimer);
+function updatePreview() {
+  previewText.textContent = lastPreview || SAMPLE[rt.targetLang] || '字幕效果预览';
+}
+
+function makeChip(label, code, active, onPick) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = active ? 'chip active' : 'chip';
+  btn.textContent = label;
+  btn.dataset.code = code;
+  btn.addEventListener('click', () => onPick(code));
+  return btn;
+}
+
+function renderChips() {
+  const sourceOptions = [{ code: 'auto', label: '自动' }, ...LANGS];
+  const targetOptions = [{ code: 'auto', label: '跟随设置' }, ...LANGS];
+  sourceChips.replaceChildren(...sourceOptions.map((option) => makeChip(
+    option.label,
+    option.code,
+    option.code === rt.sourceLang,
+    (code) => setLanguage('sourceLang', code),
+  )));
+  targetChips.replaceChildren(...targetOptions.map((option) => makeChip(
+    option.label,
+    option.code,
+    option.code === rt.targetLang,
+    (code) => setLanguage('targetLang', code),
+  )));
+}
+
+function flashHint(text) {
+  hint.textContent = text;
   hint.classList.remove('fade');
-  hintTimer = setTimeout(() => hint.classList.add('fade'), 6500);
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => hint.classList.add('fade'), 3600);
+}
+
+function setLanguage(key, code) {
+  if (rt[key] === code) return;
+  rt[key] = code;
+  renderChips();
+  updatePreview();
+  api.invoke('realtime:settings', { [key]: code }).catch(() => {});
+  flashHint('语言已切换，正在重译…');
+}
+
+function syncStepper() {
+  fontValue.textContent = String(rt.fontSize);
+  fontDown.disabled = rt.fontSize <= 14;
+  fontUp.disabled = rt.fontSize >= 40;
+}
+
+function applyFont(next) {
+  rt.fontSize = Math.max(14, Math.min(40, Math.round(next)));
+  document.documentElement.style.setProperty('--rt-font-size', `${rt.fontSize}px`);
+  syncStepper();
+  scheduleResize();
+  queueSave({ fontSize: rt.fontSize });
+}
+
+function queueSave(patch) {
+  pendingSave = { ...(pendingSave || {}), ...patch };
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushSave, 160);
+}
+
+function flushSave() {
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  if (!pendingSave) return;
+  const payload = pendingSave;
+  pendingSave = null;
+  api.invoke('realtime:settings', payload).catch(() => {});
+}
+
+function applyOpacity(percent) {
+  const value = Math.max(35, Math.min(100, Math.round(Number(percent) || 92)));
+  rt.opacity = value / 100;
+  opacityRange.value = String(value);
+  opacityValue.textContent = `${value}%`;
+  document.documentElement.style.setProperty('--rt-opacity', String(rt.opacity));
+  queueSave({ opacity: rt.opacity });
+}
+
+function setPanel(open) {
+  panelOpen = open;
+  panel.hidden = !open;
+  sub.classList.toggle('settings-open', open);
+  btnSettings.classList.toggle('active', open);
+  btnSettings.title = open ? '收起设置' : '字幕设置';
+  if (open) updatePreview();
+  scheduleResize();
+}
+
+api.on('realtime:init', (config) => {
+  if (typeof config.fontSize === 'number') rt.fontSize = config.fontSize;
+  if (typeof config.opacity === 'number') rt.opacity = config.opacity;
+  if (typeof config.maxLines === 'number') rt.maxLines = config.maxLines;
+  rt.sourceLang = config.sourceLang || 'auto';
+  rt.targetLang = config.targetLang || 'auto';
+  document.documentElement.style.setProperty('--rt-font-size', `${rt.fontSize}px`);
+  document.documentElement.style.setProperty('--rt-opacity', String(rt.opacity));
+  document.documentElement.style.setProperty('--rt-lines', String(rt.maxLines));
+  const percent = Math.round(rt.opacity * 100);
+  opacityRange.value = String(percent);
+  opacityValue.textContent = `${percent}%`;
+  syncStepper();
+  renderChips();
+  updatePreview();
+  if (!hintReady) {
+    hintReady = true;
+    const label = String(config.hotkey || '').replace(/Control/g, 'Ctrl').replace(/\+/g, ' + ');
+    hint.textContent = label ? `${label} 停止` : '再次按下快捷键停止';
+    clearTimeout(hintTimer);
+    hint.classList.remove('fade');
+    hintTimer = setTimeout(() => hint.classList.add('fade'), 6500);
+  }
   scheduleResize();
 });
 
@@ -135,6 +317,8 @@ function renderUpdate(payload) {
     const text = payload.translated || '';
     if (currentDomain !== 'code' && /\$|\\\(|\\\[/.test(text)) renderMath(translated, text);
     else translated.textContent = text;
+    lastPreview = text.replace(/\s+/g, ' ').trim().slice(0, 160);
+    if (panelOpen) updatePreview();
     return;
   }
   if (payload.status === 'error') {
@@ -156,4 +340,73 @@ api.on('realtime:update', (payload) => {
   scheduleResize();
 });
 
+function endDrag(event) {
+  if (!dragging) return;
+  dragging = false;
+  dragPointer = null;
+  document.body.classList.remove('dragging');
+  try {
+    if (event && grip.hasPointerCapture(event.pointerId)) grip.releasePointerCapture(event.pointerId);
+  } catch {}
+  api.send('realtime:drag-end');
+  if (resizePending) {
+    resizePending = false;
+    scheduleResize();
+  }
+}
+
+grip.addEventListener('pointerdown', (event) => {
+  if (event.button !== 0 || closing) return;
+  event.preventDefault();
+  dragging = true;
+  dragPointer = event.pointerId;
+  try { grip.setPointerCapture(event.pointerId); } catch {}
+  document.body.classList.add('dragging');
+  api.send('realtime:drag-start');
+});
+
+grip.addEventListener('pointermove', (event) => {
+  if (!dragging || event.pointerId !== dragPointer || dragFrame) return;
+  dragFrame = requestAnimationFrame(() => {
+    dragFrame = null;
+    if (dragging) api.send('realtime:drag-move');
+  });
+});
+
+grip.addEventListener('pointerup', endDrag);
+grip.addEventListener('pointercancel', endDrag);
+grip.addEventListener('lostpointercapture', () => {
+  if (dragging) endDrag(null);
+});
+
+btnSettings.addEventListener('click', () => setPanel(!panelOpen));
+
+btnClose.addEventListener('click', () => {
+  if (closing) return;
+  closing = true;
+  flushSave();
+  sub.classList.add('closing');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(() => {
+    api.invoke('action:stop-realtime').catch(() => {});
+  }, reduce ? 0 : 180);
+});
+
+fontDown.addEventListener('click', () => applyFont(rt.fontSize - 2));
+fontUp.addEventListener('click', () => applyFont(rt.fontSize + 2));
+
+opacityRange.addEventListener('input', (event) => applyOpacity(event.target.value));
+opacityRange.addEventListener('change', flushSave);
+
+for (const row of [sourceChips, targetChips]) {
+  row.addEventListener('wheel', (event) => {
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    row.scrollLeft += event.deltaY;
+    event.preventDefault();
+  }, { passive: false });
+}
+
+renderChips();
+updatePreview();
+syncStepper();
 scheduleResize();

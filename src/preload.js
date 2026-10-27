@@ -27,6 +27,7 @@ const INVOKE_CHANNELS = new Set([
   'window:maximize',
   'window:close',
   'window:hide',
+  'realtime:settings',
 ]);
 
 const SEND_CHANNELS = new Set([
@@ -34,6 +35,10 @@ const SEND_CHANNELS = new Set([
   'overlay:cancel',
   'overlay:ready',
   'realtime:resize',
+  'realtime:hitzone',
+  'realtime:drag-start',
+  'realtime:drag-move',
+  'realtime:drag-end',
 ]);
 
 const EVENT_CHANNELS = new Set([

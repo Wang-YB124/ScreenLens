@@ -10,7 +10,7 @@
 - AI 解释：代码逻辑、公式推导、科普背景；支持可选多模态读图。
 - 相关知识：按原文、译文与领域提取关键词，提供维基百科、必应/百度、Google Scholar、Stack Overflow、GitHub、PubMed 等真实搜索链接，点击用默认浏览器打开。
 - 代码 / 数学 / 科普：领域提示词、KaTeX 公式、highlight.js 代码高亮与复制。
-- 实时字幕：置顶、点击穿透、领域识别、AI/免费引擎自动选择。
+- 实时字幕：置顶、可拖动、字幕内设置（字号 / 背景透明度 / 多语言互译）、点击穿透、领域识别、AI/免费引擎自动选择。
 - 隐私：截图默认不出本机；API Key 使用 Windows DPAPI 加密保存。
 
 ## 界面截图
@@ -19,6 +19,10 @@
 | --- | --- |
 | ![首页](docs/screenshots/home.png) | ![相关知识](docs/screenshots/related.png) |
 | ![新手引导](docs/screenshots/onboarding.png) | ![代码翻译](docs/screenshots/code.png) |
+
+实时字幕设置（字号、背景透明度、原文/译文语言；左上角把手可拖动，右上角 × 关闭）：
+
+![实时字幕设置](docs/screenshots/realtime.png)
 
 ## 直接使用
 

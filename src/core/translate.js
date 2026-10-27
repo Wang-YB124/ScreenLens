@@ -7,6 +7,11 @@ const LANG_NAMES = {
   ja: '日本語',
   ko: '한국어',
   ru: 'Русский',
+  fr: 'Français',
+  de: 'Deutsch',
+  es: 'Español',
+  pt: 'Português',
+  it: 'Italiano',
   auto: '自动',
 };
 
@@ -16,6 +21,11 @@ const MEMORY_LANG = {
   ja: 'ja',
   ko: 'ko',
   ru: 'ru',
+  fr: 'fr',
+  de: 'de',
+  es: 'es',
+  pt: 'pt',
+  it: 'it',
 };
 
 function detectLang(text) {
@@ -37,6 +47,19 @@ function resolveDirection(text, settings) {
   const source = detectLang(text);
   let target = settings.targetLang;
   if (settings.smartSwap) {
+    if (source === target) target = target === 'zh-CN' ? 'en' : 'zh-CN';
+    else if (source === 'zh-CN' && target === 'ja') target = 'ja';
+  }
+  return { source, target };
+}
+
+function resolveRealtimeDirection(text, settings) {
+  const rt = settings.realtime || {};
+  const pinned = rt.sourceLang && rt.sourceLang !== 'auto' ? rt.sourceLang : '';
+  const source = pinned || detectLang(text);
+  if (rt.targetLang && rt.targetLang !== 'auto') return { source, target: rt.targetLang };
+  let target = settings.targetLang;
+  if (!pinned && settings.smartSwap) {
     if (source === target) target = target === 'zh-CN' ? 'en' : 'zh-CN';
     else if (source === 'zh-CN' && target === 'ja') target = 'ja';
   }
@@ -241,6 +264,7 @@ module.exports = {
   LANG_NAMES,
   detectLang,
   resolveDirection,
+  resolveRealtimeDirection,
   chunkText,
   translateFree,
   translateAI,

@@ -29,6 +29,8 @@ const DEFAULTS = {
     opacity: 0.92,
     engine: 'auto',
     maxLines: 3,
+    sourceLang: 'auto',
+    targetLang: 'auto',
   },
   historyLimit: 60,
   launchAtLogin: false,
@@ -37,6 +39,7 @@ const DEFAULTS = {
 };
 
 const TARGET_LANGS = ['zh-CN', 'en', 'ja', 'ko'];
+const REALTIME_LANG_CODES = ['zh-CN', 'en', 'ja', 'ko', 'ru', 'fr', 'de', 'es', 'pt', 'it'];
 
 function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -82,6 +85,12 @@ function sanitize(data) {
     ? out.realtime.engine
     : 'auto';
   out.realtime.maxLines = Math.round(clamp(out.realtime.maxLines, 1, 6, 3));
+  out.realtime.sourceLang = ['auto', ...REALTIME_LANG_CODES].includes(out.realtime.sourceLang)
+    ? out.realtime.sourceLang
+    : 'auto';
+  out.realtime.targetLang = ['auto', ...REALTIME_LANG_CODES].includes(out.realtime.targetLang)
+    ? out.realtime.targetLang
+    : 'auto';
   out.historyLimit = Math.round(clamp(out.historyLimit, 10, 300, 60));
   for (const key of ['select', 'realtime']) {
     out.hotkeys[key] = String(out.hotkeys[key] || DEFAULTS.hotkeys[key]).trim();
@@ -167,4 +176,4 @@ class SettingsStore {
   }
 }
 
-module.exports = { SettingsStore, DEFAULTS, TARGET_LANGS, DOMAINS };
+module.exports = { SettingsStore, DEFAULTS, TARGET_LANGS, REALTIME_LANG_CODES, DOMAINS };

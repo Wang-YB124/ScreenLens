@@ -12,15 +12,57 @@
   <div class="wrap">
     <div class="sub" id="sub">
       <div class="meta">
+        <span class="grip" id="grip" title="按住拖动字幕">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </span>
         <span class="live"><i></i>实时</span>
         <span class="dir" id="dir"></span>
         <span class="provider" id="provider"></span>
         <span class="hint" id="hint">再次按下快捷键停止</span>
+        <span class="ctrls">
+          <button type="button" class="rt-btn" id="btn-settings" title="字幕设置" aria-label="字幕设置">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+            </svg>
+          </button>
+          <button type="button" class="rt-btn rt-close" id="btn-close" title="关闭字幕" aria-label="关闭字幕">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6"></path>
+            </svg>
+          </button>
+        </span>
       </div>
       <div class="original" id="original"></div>
       <div class="translated" id="translated">
         <span class="waiting-dot"></span>
         将选区对准字幕或文字区域
+      </div>
+      <div class="panel" id="panel" hidden>
+        <div class="panel-row">
+          <span class="p-label">字号</span>
+          <div class="stepper">
+            <button type="button" class="step-btn" id="font-down" aria-label="减小字号">A−</button>
+            <span class="p-value" id="font-value">20</span>
+            <button type="button" class="step-btn" id="font-up" aria-label="增大字号">A+</button>
+          </div>
+          <span class="p-label p-label-mid">背景</span>
+          <input class="p-range" id="opacity-range" type="range" min="35" max="100" step="1" value="92" aria-label="字幕背景不透明度" />
+          <span class="p-value" id="opacity-value">92%</span>
+        </div>
+        <div class="panel-row">
+          <span class="p-label">原文</span>
+          <div class="chips" id="source-chips"></div>
+        </div>
+        <div class="panel-row">
+          <span class="p-label">译为</span>
+          <div class="chips" id="target-chips"></div>
+        </div>
+        <div class="preview">
+          <span class="preview-tag">预览</span>
+          <span class="preview-text" id="preview-text">字幕效果预览</span>
+        </div>
+        <div class="panel-foot">拖动左上角把手可移动字幕 · 设置自动保存并立即生效</div>
       </div>
     </div>
   </div>

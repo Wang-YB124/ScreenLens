@@ -1,8 +1,8 @@
 const path = require('path');
 const { dipToPhysicalRect } = require('./capture');
 const { selectRegion } = require('../windows/overlay');
-const { createRealtimeWindow } = require('../windows/realtimeWindow');
-const { resolveDirection, translateFree, translateAI, LANG_NAMES } = require('./translate');
+const { createRealtimeWindow, sendRealtimeInit } = require('../windows/realtimeWindow');
+const { resolveRealtimeDirection, translateFree, translateAI, LANG_NAMES } = require('./translate');
 const { providerLabel } = require('./llm');
 const { detectDomain, DOMAIN_LABELS } = require('./domain');
 
@@ -135,7 +135,7 @@ class RealtimeController {
       const settings = this.settings.get();
       const mode = settings.contentDomain || 'auto';
       const domain = mode === 'auto' ? detectDomain(text) : mode;
-      const direction = resolveDirection(text, settings);
+      const direction = resolveRealtimeDirection(text, settings);
       const domainSuffix = domain !== 'general' ? ` · ${DOMAIN_LABELS[domain]}` : '';
       const directionLabel = `${this.langShort(direction.source)} → ${LANG_NAMES[direction.target] || direction.target}${domainSuffix}`;
       this.send({
@@ -164,11 +164,34 @@ class RealtimeController {
   }
 
   langShort(lang) {
-    return { 'zh-CN': '中文', en: 'EN', ja: '日本語', ko: '한국어', ru: 'RU' }[lang] || lang;
+    return {
+      'zh-CN': '中文',
+      en: 'EN',
+      ja: '日本語',
+      ko: '한국어',
+      ru: 'RU',
+      fr: 'FR',
+      de: 'DE',
+      es: 'ES',
+      pt: 'PT',
+      it: 'IT',
+    }[lang] || lang;
+  }
+
+  invalidate() {
+    this.lastKey = '';
+    if (this.abort) {
+      try { this.abort.abort(); } catch {}
+      this.abort = null;
+    }
+  }
+
+  refreshSettings() {
+    sendRealtimeInit(this.win, this.settings.get());
   }
 
   async translate(text, direction, settings, directionLabel, domain) {
-    const cacheKey = `${text}\u0000${direction.target}\u0000${domain}`;
+    const cacheKey = `${text}\u0000${direction.source}\u0000${direction.target}\u0000${domain}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
       this.send({

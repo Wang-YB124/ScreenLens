@@ -24,7 +24,13 @@ const { OcrService } = require('./core/ocr');
 const { SessionManager } = require('./core/session');
 const { RealtimeController } = require('./core/realtime');
 const { ResultWindow } = require('./windows/resultWindow');
-const { resizeRealtimeWindow } = require('./windows/realtimeWindow');
+const {
+  resizeRealtimeWindow,
+  updateRealtimeHitzone,
+  startRealtimeDrag,
+  moveRealtimeDrag,
+  endRealtimeDrag,
+} = require('./windows/realtimeWindow');
 const { testProvider, providerLabel } = require('./core/llm');
 const { isAllowedSearchUrl } = require('./core/search');
 
@@ -301,6 +307,15 @@ function applySettingsPatch(patch) {
     registerHotkeys();
   }
   if (before.historyLimit !== next.historyLimit) history.setLimit(next.historyLimit);
+  if (JSON.stringify(before.realtime) !== JSON.stringify(next.realtime)) {
+    realtime?.refreshSettings();
+  }
+  if (
+    before.targetLang !== next.targetLang ||
+    before.smartSwap !== next.smartSwap
+  ) {
+    realtime?.invalidate();
+  }
   session?.refreshCurrent();
   broadcastState();
   return next;
@@ -310,6 +325,46 @@ function registerIpc() {
   ipcMain.on('realtime:resize', (event, height) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win && realtime?.win === win) resizeRealtimeWindow(win, height);
+  });
+
+  ipcMain.on('realtime:hitzone', (event, zone) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && realtime?.win === win) updateRealtimeHitzone(win, zone);
+  });
+
+  ipcMain.on('realtime:drag-start', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && realtime?.win === win) startRealtimeDrag(win);
+  });
+
+  ipcMain.on('realtime:drag-move', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && realtime?.win === win) moveRealtimeDrag(win);
+  });
+
+  ipcMain.on('realtime:drag-end', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && realtime?.win === win) endRealtimeDrag(win);
+  });
+
+  ipcMain.handle('realtime:settings', (event, patch) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || !realtime || realtime.win !== win) return { ok: false };
+    const clean = {};
+    for (const key of ['fontSize', 'opacity', 'maxLines', 'engine', 'sourceLang', 'targetLang']) {
+      if (patch && patch[key] !== undefined) clean[key] = patch[key];
+    }
+    if (!Object.keys(clean).length) return { ok: true, realtime: settings.get().realtime };
+    const before = settings.get().realtime;
+    const next = settings.update({ realtime: clean });
+    if (
+      before.sourceLang !== next.realtime.sourceLang ||
+      before.targetLang !== next.realtime.targetLang
+    ) {
+      realtime.invalidate();
+    }
+    broadcastState();
+    return { ok: true, realtime: next.realtime };
   });
 
   ipcMain.handle('app:state', () => state());
