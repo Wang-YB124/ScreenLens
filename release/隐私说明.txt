@@ -19,8 +19,9 @@
 
 二、发送到外部服务的数据
 ------------------------
-1. 免费翻译（MyMemory）
+1. 免费翻译（微软 Bing 翻译 / MyMemory）
    - 触发条件：使用免费翻译通道（默认开启，可在设置中关闭）。
+   - 通道顺序：优先使用微软 Bing 翻译的公开网页接口；不可用时自动回退 MyMemory。
    - 发送内容：选中区域的文字。
    - 不发送：截图、窗口标题、历史记录、设置。
 
@@ -41,7 +42,9 @@
 
 三、第三方服务
 --------------
-- MyMemory：免费翻译由第三方提供，受其额度与服务条款约束。
+- 微软 Bing 翻译（公开网页接口）：免费翻译首选通道，受其服务条款与可用性约束。
+  参考：https://www.bing.com/translator
+- MyMemory：免费翻译备用通道，受其额度与服务条款约束。
   参考：https://mymemory.translated.net/
 - Windows OCR：由 Microsoft Windows 在本机提供。
 - AI 服务商：由你在设置中选择并配置，其隐私政策、数据保留与计费规则适用。
@@ -51,7 +54,7 @@
 - Electron、KaTeX、highlight.js：界面与渲染组件，不参与数据处理。
   组件许可证见发布包 licenses 目录与 LICENSES.chromium.html。
 
-本应用与 MyMemory、Microsoft、各 AI 服务商没有隶属或背书关系。
+本应用与微软 Bing 翻译、MyMemory、Microsoft、各 AI 服务商没有隶属或背书关系。
 
 
 四、你的控制权

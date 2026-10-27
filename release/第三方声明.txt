@@ -25,9 +25,10 @@
 
 二、服务
 --------
-1. MyMemory（免费翻译）
-   - 由第三方提供，按需发送选中文字。
-   - 受其额度与服务条款约束；商业发布前请自行评估。
+1. 免费翻译（微软 Bing 翻译 / MyMemory）
+   - 优先调用微软 Bing 翻译的公开网页接口；请求失败时自动回退 MyMemory。
+   - 按需发送选中文字；两者均由第三方提供，受其额度、可用性与服务条款约束。
+   - https://www.bing.com/translator
    - https://mymemory.translated.net/
 
 2. Windows OCR

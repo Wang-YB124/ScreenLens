@@ -37,6 +37,7 @@ const {
   resetRealtimeSize,
 } = require('./windows/realtimeWindow');
 const { testProvider, providerLabel } = require('./core/llm');
+const { warmFreeTranslator } = require('./core/translate');
 const { isAllowedSearchUrl } = require('./core/search');
 
 app.setName('ScreenLens');
@@ -186,34 +187,37 @@ function createHomeWindow() {
   win.on('maximize', () => win.webContents.send('app:maximized', true));
   win.on('unmaximize', () => win.webContents.send('app:maximized', false));
   win.on('closed', () => {
-    if (win.__hoverFocusTimer) clearInterval(win.__hoverFocusTimer);
     if (homeWin === win) homeWin = null;
   });
-  let hoverSince = 0;
-  win.__hoverFocusTimer = setInterval(() => {
-    if (!win || win.isDestroyed() || !win.isVisible() || win.isFocused()) {
-      hoverSince = 0;
-      return;
-    }
-    const cursor = screen.getCursorScreenPoint();
-    const bounds = win.getBounds();
-    const inside = cursor.x >= bounds.x && cursor.x < bounds.x + bounds.width
-      && cursor.y >= bounds.y && cursor.y < bounds.y + bounds.height;
-    if (!inside) {
-      hoverSince = 0;
-      return;
-    }
-    if (!hoverSince) {
-      hoverSince = Date.now();
-      return;
-    }
-    if (Date.now() - hoverSince > 260) {
-      hoverSince = 0;
-      try { win.focus(); } catch {}
-    }
-  }, 80);
   homeWin = win;
   return win;
+}
+
+let homeMinimizedForSelection = false;
+
+async function minimizeHomeForSelection() {
+  const win = homeWin;
+  if (!win || win.isDestroyed()) return false;
+  if (win.isMinimized()) {
+    homeMinimizedForSelection = false;
+    return false;
+  }
+  if (!win.isVisible()) return homeMinimizedForSelection;
+  homeMinimizedForSelection = true;
+  win.hide();
+  return true;
+}
+
+function restoreHomeAfterSelection() {
+  if (!homeMinimizedForSelection) return;
+  homeMinimizedForSelection = false;
+  const win = homeWin;
+  if (!win || win.isDestroyed()) return;
+  try {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+  } catch {}
 }
 
 function navigate(tab) {
@@ -701,6 +705,8 @@ async function bootstrap() {
       broadcastState();
     },
     notify,
+    minimizeHome: minimizeHomeForSelection,
+    restoreHome: restoreHomeAfterSelection,
   });
   realtime = new RealtimeController({
     settings,
@@ -749,6 +755,11 @@ async function bootstrap() {
   createTray();
   registerHotkeys();
   applyLoginItem(settings.get().launchAtLogin);
+
+  const startup = settings.get();
+  if (startup.freeTranslation !== false && (!settings.hasProvider() || startup.translateEngine === 'free')) {
+    setTimeout(() => { warmFreeTranslator(); }, 1500);
+  }
 
   ocr.on('ready', ({ languages }) => {
     ocrState = { status: 'ready', languages, error: '' };

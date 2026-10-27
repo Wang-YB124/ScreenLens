@@ -56,7 +56,7 @@ function idleRelated() {
 }
 
 class SessionManager {
-  constructor({ settings, ocr, history, resultWindow, tempDir, onHistoryChanged, onStateChange, notify }) {
+  constructor({ settings, ocr, history, resultWindow, tempDir, onHistoryChanged, onStateChange, notify, minimizeHome, restoreHome }) {
     this.settings = settings;
     this.ocr = ocr;
     this.history = history;
@@ -65,6 +65,9 @@ class SessionManager {
     this.onHistoryChanged = onHistoryChanged || (() => {});
     this.onStateChange = onStateChange || (() => {});
     this.notify = notify || (() => {});
+    this.minimizeHome = minimizeHome || (async () => false);
+    this.restoreHome = restoreHome || (() => {});
+    this.homeMinimized = false;
     this.selecting = false;
     this.current = null;
     this.translateAbort = null;
@@ -142,11 +145,17 @@ class SessionManager {
     if (this.selecting) return;
     this.selecting = true;
     this.onStateChange({ selecting: true });
+    let resultShown = false;
     try {
       const hadResult = this.result.isOpen();
       this.result.hide();
+      this.homeMinimized = await this.minimizeHome();
       const selection = await selectRegion();
       if (!selection) {
+        if (this.homeMinimized) {
+          this.homeMinimized = false;
+          this.restoreHome();
+        }
         if (hadResult && this.current) {
           this.result.show(this.publicRecord(this.current.record), this.current.record.rect);
         }
@@ -180,6 +189,7 @@ class SessionManager {
       };
       this.current = { record };
       this.result.show(this.publicRecord(record), rect);
+      resultShown = true;
       const png = image.toPNG();
       const tempImage = path.join(this.tempDir, `${record.id}.png`);
       fs.writeFileSync(tempImage, png);
@@ -195,6 +205,10 @@ class SessionManager {
         this.update(record);
       });
     } catch (err) {
+      if (this.homeMinimized && !resultShown) {
+        this.homeMinimized = false;
+        this.restoreHome();
+      }
       this.notify('框选失败', err.message);
     } finally {
       this.selecting = false;
@@ -356,6 +370,19 @@ class SessionManager {
     this.persist(record);
   }
 
+  async freeTranslate(record, source, target, controller) {
+    return translateFree(source, record.sourceLang, target, {
+      signal: controller.signal,
+      onPartial: (partial) => {
+        if (!this.current || this.current.record.id !== record.id) return;
+        if (controller.signal.aborted) return;
+        record.translation.text = partial;
+        record.translation.status = 'loading';
+        this.update(record);
+      },
+    });
+  }
+
   async runTranslation(record) {
     const settings = this.settings.get();
     this.applyDomain(record, settings);
@@ -393,9 +420,7 @@ class SessionManager {
           return;
         }
         try {
-          const result = await translateFree(source, record.sourceLang, target, {
-            signal: controller.signal,
-          });
+          const result = await this.freeTranslate(record, source, target, controller);
           record.translation = {
             status: 'done',
             text: result.text,
@@ -476,9 +501,7 @@ class SessionManager {
             notice: `AI 翻译不可用，已改用免费翻译：${lastError.message}`,
           };
           this.update(record);
-          const fallback = await translateFree(source, record.sourceLang, target, {
-            signal: controller.signal,
-          });
+          const fallback = await this.freeTranslate(record, source, target, controller);
           record.translation = {
             status: 'done',
             text: fallback.text,
@@ -828,6 +851,10 @@ class SessionManager {
     this.result.close();
     this.abortStreams();
     this.current = null;
+    if (this.homeMinimized) {
+      this.homeMinimized = false;
+      this.restoreHome();
+    }
   }
 }
 

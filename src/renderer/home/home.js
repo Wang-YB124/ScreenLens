@@ -368,7 +368,7 @@ function syncSettingsForm(force) {
   } else if (!s.freeTranslation && s.translateEngine === 'free') {
     hint.textContent = '免费通道已关闭，请在引擎中选择 AI 或重新开启';
   } else if (s.translateEngine === 'free') {
-    hint.textContent = '始终使用免费 MyMemory 通道';
+    hint.textContent = '始终使用免费翻译通道';
   } else if (s.translateEngine === 'ai') {
     hint.textContent = state.provider.hasProvider ? '使用已配置的 AI 模型翻译' : '未配置模型，将回退免费通道';
   } else {
@@ -742,11 +742,18 @@ function bindEvents() {
     btn.textContent = '重试 OCR';
   });
 
-  document.addEventListener('mousemove', () => {
-    if (document.hasFocus() || hoverFocusTimer) return;
+  document.addEventListener('mousemove', (event) => {
+    const interactive = event.target instanceof Element
+      && event.target.closest('button, a, input, select, textarea, [role="button"]');
+    if (!interactive) {
+      clearTimeout(hoverFocusTimer);
+      hoverFocusTimer = null;
+      return;
+    }
+    if (hoverFocusTimer) return;
     hoverFocusTimer = setTimeout(() => {
       hoverFocusTimer = null;
-      if (!document.hasFocus()) api.send('window:focus');
+      api.send('window:focus');
     }, 120);
   });
   document.addEventListener('mouseleave', () => {

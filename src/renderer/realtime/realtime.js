@@ -341,7 +341,7 @@ api.on('realtime:init', (config) => {
 function renderUpdate(payload) {
   if (payload.direction) dir.textContent = payload.direction;
   if (payload.provider) {
-    provider.textContent = payload.provider === '免费翻译'
+    provider.textContent = payload.provider === '免费翻译' || payload.provider === '微软翻译'
       ? 'FREE'
       : (payload.provider === '原文' ? 'ORIG' : 'AI');
   }

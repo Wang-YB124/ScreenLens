@@ -86,7 +86,7 @@ class RealtimeController {
         ? `正在识别窗口「${String(this.targetWindow.title || '').slice(0, 32)}」；`
         : '';
       if (this.engine === 'free') {
-        this.notify('实时字幕已开启（免费翻译）', `${windowNote}免费通道延迟较高，配置 AI 模型后字幕会更流畅；再次按 ${settings.hotkeys.realtime} 停止`);
+        this.notify('实时字幕已开启（免费翻译）', `${windowNote}免费通道约 1 秒/句，配置 AI 模型后字幕会更流畅；再次按 ${settings.hotkeys.realtime} 停止`);
       } else {
         this.notify('实时字幕已开启', `${windowNote}再次按 ${settings.hotkeys.realtime} 即可停止`);
       }

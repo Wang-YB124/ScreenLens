@@ -122,16 +122,217 @@ function chunkText(text, max = 480) {
 
 let memoryUsage = { count: 0, resetAt: 0 };
 
+const BING_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0';
+const BING_HOST = 'https://cn.bing.com';
+const BING_IID = 'translator.5026';
+const BING_LANG = {
+  'zh-CN': 'zh-Hans',
+  'zh-TW': 'zh-Hant',
+  en: 'en',
+  ja: 'ja',
+  ko: 'ko',
+  ru: 'ru',
+  fr: 'fr',
+  de: 'de',
+  es: 'es',
+  pt: 'pt',
+  it: 'it',
+};
+const FREE_CACHE_TTL = 15 * 60 * 1000;
+const FREE_CACHE_LIMIT = 200;
+const freeCache = new Map();
+let bingAuth = null;
+let bingAuthAt = 0;
+let bingAuthPending = null;
+
 function withTimeout(signal, ms) {
   const timeout = AbortSignal.timeout(ms);
   if (!signal) return timeout;
   return AbortSignal.any ? AbortSignal.any([signal, timeout]) : signal;
 }
 
-async function translateFree(text, from, to, { signal } = {}) {
+function freeCacheKey(from, to, text) {
+  return `${from}\u0000${to}\u0000${text}`;
+}
+
+function freeCacheGet(key) {
+  const item = freeCache.get(key);
+  if (!item) return null;
+  if (Date.now() > item.expires) {
+    freeCache.delete(key);
+    return null;
+  }
+  freeCache.delete(key);
+  freeCache.set(key, item);
+  return item.value;
+}
+
+function freeCacheSet(key, value) {
+  if (!value?.text) return;
+  if (freeCache.size >= FREE_CACHE_LIMIT) {
+    const oldest = freeCache.keys().next().value;
+    if (oldest !== undefined) freeCache.delete(oldest);
+  }
+  freeCache.set(key, { value, expires: Date.now() + FREE_CACHE_TTL });
+}
+
+async function loadBingAuth(signal) {
+  if (bingAuth && Date.now() - bingAuthAt < 30 * 60 * 1000) return bingAuth;
+  if (bingAuthPending) return bingAuthPending;
+  bingAuthPending = (async () => {
+    let res;
+    try {
+      res = await fetch(`${BING_HOST}/translator`, {
+        headers: {
+          'User-Agent': BING_UA,
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        },
+        signal: withTimeout(signal, 12000),
+      });
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      throw new Error('无法连接翻译服务，请检查网络');
+    }
+    if (!res.ok) throw new Error(`翻译服务无响应（${res.status}）`);
+    const html = await res.text();
+    const ig = html.match(/IG:"([^"]+)"/)?.[1] || '';
+    const auth = html.match(/params_AbusePreventionHelper\s*=\s*\[(\d+),\s*"([^"]+)",\s*(\d+)\]/);
+    if (!ig || !auth) throw new Error('翻译服务鉴权失败');
+    bingAuth = { ig, token: auth[2], key: auth[1] };
+    bingAuthAt = Date.now();
+    return bingAuth;
+  })().finally(() => {
+    bingAuthPending = null;
+  });
+  return bingAuthPending;
+}
+
+async function warmFreeTranslator() {
+  try {
+    await loadBingAuth();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function bingLang(code, source = false) {
+  if (!code || code === 'auto') return source ? 'auto-detect' : 'zh-Hans';
+  return BING_LANG[code] || code;
+}
+
+async function translateBingChunk(text, from, to, signal) {
+  let refreshed = false;
+  for (;;) {
+    const auth = await loadBingAuth(signal);
+    const body = new URLSearchParams({
+      fromLang: bingLang(from, true),
+      text,
+      to: bingLang(to),
+      token: auth.token,
+      key: auth.key,
+    });
+    let res;
+    try {
+      res = await fetch(`${BING_HOST}/ttranslatev3?isVertical=1&&IG=${encodeURIComponent(auth.ig)}&IID=${BING_IID}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': BING_UA,
+          Referer: `${BING_HOST}/translator`,
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        },
+        body,
+        signal: withTimeout(signal, 18000),
+      });
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      throw new Error('无法连接翻译服务，请检查网络');
+    }
+    if (res.status === 429) throw new Error('免费翻译已限流，请稍后再试');
+    if ((res.status === 401 || res.status === 403) && !refreshed) {
+      refreshed = true;
+      bingAuth = null;
+      bingAuthAt = 0;
+      continue;
+    }
+    if (!res.ok) throw new Error(`翻译服务无响应（${res.status}）`);
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      throw new Error('翻译服务返回了无法解析的数据');
+    }
+    const translated = data?.[0]?.translations?.[0]?.text;
+    if (typeof translated === 'string' && translated.trim()) return translated;
+    if (data?.statusCode || data?.error) {
+      if (!refreshed) {
+        refreshed = true;
+        bingAuth = null;
+        bingAuthAt = 0;
+        continue;
+      }
+      throw new Error('翻译服务暂时不可用');
+    }
+    throw new Error('翻译服务没有返回结果');
+  }
+}
+
+async function translateBing(text, from, to, { signal, onPartial } = {}) {
+  const chunks = chunkText(text, 1200);
+  if (!chunks.length) return { text: '', chunks: 0 };
+  const results = new Array(chunks.length);
+  let cursor = 0;
+  let shown = 0;
+  const emit = () => {
+    if (!onPartial || signal?.aborted) return;
+    let prefix = 0;
+    while (prefix < results.length && typeof results[prefix] === 'string') prefix += 1;
+    if (prefix <= shown) return;
+    shown = prefix;
+    try {
+      onPartial(results.slice(0, prefix).join('\n').trim());
+    } catch {}
+  };
+  const worker = async () => {
+    while (cursor < chunks.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await translateBingChunk(chunks[index], from, to, signal);
+      emit();
+    }
+  };
+  const settled = await Promise.allSettled(
+    Array.from({ length: Math.min(2, chunks.length) }, () => worker()),
+  );
+  const failed = settled.find((item) => item.status === 'rejected');
+  if (failed) throw failed.reason;
+  return { text: results.join('\n').trim(), chunks: chunks.length };
+}
+
+async function translateFree(text, from, to, { signal, onPartial } = {}) {
   const source = MEMORY_LANG[from] || 'en';
   const target = MEMORY_LANG[to] || 'zh-CN';
-  const chunks = chunkText(text);
+  const plain = String(text || '');
+  if (!plain.trim()) return { text: '', provider: '免费翻译', chunks: 0 };
+
+  const key = freeCacheKey(source, target, plain);
+  const cached = freeCacheGet(key);
+  if (cached) {
+    try { onPartial?.(cached.text); } catch {}
+    return { ...cached, cached: true };
+  }
+
+  try {
+    const result = await translateBing(plain, source, target, { signal, onPartial });
+    const value = { text: result.text, provider: '微软翻译', chunks: result.chunks };
+    freeCacheSet(key, value);
+    return value;
+  } catch (err) {
+    if (signal?.aborted) throw err;
+  }
+
+  const chunks = chunkText(plain);
   if (!chunks.length) return { text: '', provider: '免费翻译', chunks: 0 };
   const results = [];
   for (const chunk of chunks) {
@@ -169,13 +370,18 @@ async function translateFree(text, from, to, { signal } = {}) {
     const value = decodeEntities(data.responseData?.translatedText || '');
     if (!value) throw new Error('免费翻译没有返回结果');
     results.push(value.replace(/\s+$/, ''));
+    try {
+      onPartial?.(results.join('\n').trim());
+    } catch {}
   }
   memoryUsage.count += String(text).length;
-  return {
+  const value = {
     text: results.join('\n').trim(),
     provider: '免费翻译',
     chunks: chunks.length,
   };
+  freeCacheSet(key, value);
+  return value;
 }
 
 async function translateAI(text, from, to, {
@@ -287,6 +493,7 @@ module.exports = {
   chunkText,
   translateFree,
   translateAI,
+  warmFreeTranslator,
   cleanModelText,
   normalizeCodeLayout,
   engineFor,
