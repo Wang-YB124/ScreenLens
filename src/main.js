@@ -76,9 +76,14 @@ let ocrState = { status: 'starting', languages: [], error: '' };
 let realtimeState = { active: false };
 let audioState = { active: false };
 let selecting = false;
+let homeMinimizedForSelection = false;
 let screenSourcePromise = null;
 let bootstrappedResolve = null;
 const bootstrapped = new Promise((resolve) => { bootstrappedResolve = resolve; });
+
+function homeHiddenForSession() {
+  return homeMinimizedForSelection || selecting || Boolean(realtimeState.active) || Boolean(audioState.active);
+}
 
 const showHome = () => {
   if (!homeWin || homeWin.isDestroyed()) {
@@ -184,11 +189,19 @@ function createHomeWindow() {
   });
   win.setMenu(null);
   win.loadFile(path.join(__dirname, 'renderer', 'home', 'index.html'));
+  let startupTimer = null;
   win.once('ready-to-show', () => {
-    if (!process.argv.includes('--hidden')) win.show();
+    if (startupTimer) {
+      clearTimeout(startupTimer);
+      startupTimer = null;
+    }
+    if (!process.argv.includes('--hidden') && !homeHiddenForSession()) {
+      win.show();
+    }
   });
-  setTimeout(() => {
-    if (!win.isDestroyed() && !process.argv.includes('--hidden') && !win.isVisible()) {
+  startupTimer = setTimeout(() => {
+    startupTimer = null;
+    if (!win.isDestroyed() && !process.argv.includes('--hidden') && !win.isVisible() && !homeHiddenForSession()) {
       win.show();
       win.focus();
     }
@@ -203,13 +216,15 @@ function createHomeWindow() {
   win.on('maximize', () => win.webContents.send('app:maximized', true));
   win.on('unmaximize', () => win.webContents.send('app:maximized', false));
   win.on('closed', () => {
+    if (startupTimer) {
+      clearTimeout(startupTimer);
+      startupTimer = null;
+    }
     if (homeWin === win) homeWin = null;
   });
   homeWin = win;
   return win;
 }
-
-let homeMinimizedForSelection = false;
 
 async function minimizeHomeForSelection() {
   const win = homeWin;
@@ -220,6 +235,7 @@ async function minimizeHomeForSelection() {
   }
   if (!win.isVisible()) return homeMinimizedForSelection;
   homeMinimizedForSelection = true;
+  try { win.setSkipTaskbar(true); } catch {}
   win.hide();
   return true;
 }
@@ -232,6 +248,7 @@ function restoreHomeAfterSelection() {
   if (!win || win.isDestroyed()) return;
   try {
     if (win.isMinimized()) win.restore();
+    win.setSkipTaskbar(false);
     win.show();
     win.focus();
   } catch {}
@@ -415,6 +432,7 @@ function registerIpc() {
   ipcMain.on('window:focus', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win || win.isDestroyed() || win !== homeWin) return;
+    if (homeHiddenForSession()) return;
     if (win.isMinimized()) win.restore();
     if (!win.isVisible()) win.show();
     win.focus();

@@ -191,3 +191,24 @@
 
 - 三处语言下拉均为 10 项；目标设为 Français 后截图翻译显示「中文 → FR」，provider 微软翻译，译文为法文（Trois lignes directrices…），关闭结果后主窗口恢复。
 - 隐藏主窗口后重新启动打包版：现有主窗口恢复可见、非最小化，前台为 ScreenLens；最小化后重新启动同样恢复（visible=true, iconic=false）。
+
+## 主界面即时收起（2026-10-27）
+
+- 数据：[hide-2026-10-27.json](hide-2026-10-27.json)。
+- 问题：冷启动后开始截图/实时字幕时，主界面偶尔会先消失又出现；发布包里 `ready-to-show` 晚于收起动作时会无条件 `show()`，悬停聚焦的 `window:focus` 也会把隐藏的主界面拉回来。
+- 改法：
+  - 首页在 `pointerdown` 时同步加 `body.pre-hide`（opacity 0），不等 IPC 返回；恢复/失败/3 秒兜底时移除。
+  - 收起时先 `setSkipTaskbar(true)` 再 `hide()`，恢复时先 `setSkipTaskbar(false)` 再 `show()/focus()`，任务栏按钮随主界面一起消失。
+  - 启动兜底定时器在 `ready-to-show`/`closed` 时清除；`ready-to-show`、兜底定时器、`window:focus` 统一用 `homeHiddenForSession()` 守卫，框选/实时/音频进行中不再自动显示主界面。
+- 打包版冷启动实测（点击→）：
+
+| 场景 | pre-hide 类 | 主界面隐藏 | overlay 可见 | overlay 首帧 |
+| --- | ---: | ---: | ---: | ---: |
+| 截图翻译 | 13 ms | 9 ms | 242 ms | 292 ms |
+| 实时字幕 | 11 ms | 6 ms | 191 ms | 207 ms |
+
+- 三次冷启动范围：主界面隐藏 6–10 ms，截图 overlay 220–242 ms，实时 overlay 185–191 ms；每次 +1.8 s 与模拟 `window:focus` 后主界面都保持隐藏。
+
+- 稳定性：截图 overlay 保持 1.8 s 后主界面仍隐藏；模拟悬停聚焦（`window:focus`）后仍隐藏；取消框选/停止实时后恢复可见且 `pre-hide` 清除。
+- 最小化回归：用户原本最小化的主界面，框选期间与取消后都保持最小化（`iconic=true`），未被强行弹出。
+- 证据：`test/tmp/pkg-hide.log`、`test/tmp/pkg-hide-overlay.png`；QA 使用独立 userData/TEMP。

@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-27",
+  "scope": "Home window instant hide for screenshot, realtime subtitles, and audio subtitles",
+  "changes": [
+    "home renderer adds body.pre-hide (opacity 0) synchronously on pointerdown before IPC",
+    "main minimizes home with setSkipTaskbar(true) before hide and restores taskbar on show",
+    "startup fallback show timer is cleared on ready-to-show/closed and guarded by session activity",
+    "ready-to-show, startup timer, and window:focus no longer re-show the home while selecting/realtime/audio is active"
+  ],
+  "packaged_cold_start": {
+    "screenshot": {
+      "prehide_class_ms": 13,
+      "home_hidden_ms": 9,
+      "overlay_visible_ms": 242,
+      "overlay_first_frame_ms": 292,
+      "home_hidden_after_1800ms": true,
+      "home_hidden_after_focus_ping": true,
+      "restored_visible": true,
+      "prehide_cleared": true
+    },
+    "realtime": {
+      "prehide_class_ms": 11,
+      "home_hidden_ms": 6,
+      "overlay_visible_ms": 191,
+      "overlay_first_frame_ms": 207,
+      "home_hidden_after_1800ms": true,
+      "restored_visible": true,
+      "prehide_cleared": true
+    },
+    "minimized_home": {
+      "before": "iconic=true",
+      "during_overlay": "iconic=true",
+      "after_cancel": "iconic=true",
+      "home_hidden_ms": 0
+    }
+  },
+  "root_cause": "Cold packaged startup could fire a show path after the home was hidden for selection: the ready-to-show handler and startup fallback timer called show() unconditionally, and hover focus (window:focus) could show a hidden home. The home briefly reappeared over the frozen capture background.",
+  "evidence": [
+    "test/tmp/pkg-hide.log",
+    "test/tmp/pkg-hide-overlay.png",
+    "test/tmp/pkg-hide-verify.js"
+  ],
+  "release_zip_sha256": "F980CD2DC5F48E40A561264D0073A9EAC7BD0DD5539CFE13709F2662D82B5856",
+  "runs_note": "Three cold packaged runs: home hidden 6–10 ms; screenshot overlay visible 220–242 ms; realtime overlay visible 185–191 ms. Home stayed hidden at +1.8 s and after a window:focus ping in every run."
+}

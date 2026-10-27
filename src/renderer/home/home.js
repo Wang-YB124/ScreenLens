@@ -29,6 +29,29 @@ let suppressAudioClick = 0;
 let pendingAudio = false;
 let hoverFocusTimer = null;
 let realtimeSawSelecting = false;
+let preHideTimer = null;
+
+function preHideHome() {
+  document.body.classList.add('pre-hide');
+  clearTimeout(preHideTimer);
+  preHideTimer = setTimeout(() => {
+    preHideTimer = null;
+    if (!document.hidden) resetHomeUI();
+  }, 3000);
+}
+
+function resetHomeUI() {
+  document.body.classList.remove('pre-hide');
+  clearTimeout(preHideTimer);
+  preHideTimer = null;
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) resetHomeUI();
+});
+window.addEventListener('focus', () => {
+  if (!document.hidden) resetHomeUI();
+});
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -494,10 +517,12 @@ function triggerSelect() {
     return;
   }
   pendingSelect = true;
+  preHideHome();
   $('btn-select').disabled = true;
   $('select-label').textContent = '准备中…';
   api.invoke('action:select', { clickedAt: Date.now(), source: 'home' }).then((res) => {
     if (!res || !res.ok) {
+      resetHomeUI();
       pendingSelect = false;
       $('btn-select').disabled = Boolean(state?.selecting);
       $('select-label').textContent = state?.selecting ? '框选中…' : '截屏翻译';
@@ -511,6 +536,7 @@ function triggerSelect() {
       $('select-label').textContent = state?.selecting ? '框选中…' : '截屏翻译';
     }, 4500);
   }).catch((err) => {
+    resetHomeUI();
     pendingSelect = false;
     $('btn-select').disabled = Boolean(state?.selecting);
     $('select-label').textContent = state?.selecting ? '框选中…' : '截屏翻译';
@@ -528,10 +554,12 @@ function toggleRealtime() {
     return;
   }
   pendingRealtime = true;
+  preHideHome();
   $('btn-realtime').disabled = true;
   $('realtime-label').textContent = '启动中…';
   api.invoke('action:realtime', { clickedAt: Date.now(), source: 'home' }).then((res) => {
     if (!res || !res.ok) {
+      resetHomeUI();
       pendingRealtime = false;
       $('btn-realtime').disabled = false;
       $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
@@ -545,6 +573,7 @@ function toggleRealtime() {
       $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
     }, 6000);
   }).catch((err) => {
+    resetHomeUI();
     pendingRealtime = false;
     $('btn-realtime').disabled = false;
     $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
@@ -567,11 +596,13 @@ async function toggleAudio() {
     return;
   }
   pendingAudio = true;
+  preHideHome();
   $('btn-audio').disabled = true;
   $('audio-label').textContent = '启动中…';
   try {
     const res = await api.invoke('action:audio', { clickedAt: Date.now(), source: 'home' });
     if (!res || !res.ok) {
+      resetHomeUI();
       pendingAudio = false;
       $('btn-audio').disabled = false;
       $('audio-label').textContent = state?.audio?.active ? '停止音频' : '音频字幕';
@@ -585,6 +616,7 @@ async function toggleAudio() {
       $('audio-label').textContent = state?.audio?.active ? '停止音频' : '音频字幕';
     }, 5000);
   } catch (err) {
+    resetHomeUI();
     pendingAudio = false;
     $('btn-audio').disabled = false;
     $('audio-label').textContent = '音频字幕';
