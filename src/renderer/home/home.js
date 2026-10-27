@@ -496,7 +496,7 @@ function triggerSelect() {
   pendingSelect = true;
   $('btn-select').disabled = true;
   $('select-label').textContent = '准备中…';
-  api.invoke('action:select').then((res) => {
+  api.invoke('action:select', { clickedAt: Date.now(), source: 'home' }).then((res) => {
     if (!res || !res.ok) {
       pendingSelect = false;
       $('btn-select').disabled = Boolean(state?.selecting);
@@ -530,7 +530,7 @@ function toggleRealtime() {
   pendingRealtime = true;
   $('btn-realtime').disabled = true;
   $('realtime-label').textContent = '启动中…';
-  api.invoke('action:realtime').then((res) => {
+  api.invoke('action:realtime', { clickedAt: Date.now(), source: 'home' }).then((res) => {
     if (!res || !res.ok) {
       pendingRealtime = false;
       $('btn-realtime').disabled = false;

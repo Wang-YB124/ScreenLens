@@ -1,27 +1,47 @@
 const path = require('path');
-const { dipToPhysicalRect } = require('./capture');
+const { captureDisplaysFast, dipToPhysicalRect } = require('./capture');
 const { selectRegion } = require('../windows/overlay');
 const { createRealtimeWindow, sendRealtimeInit } = require('../windows/realtimeWindow');
 const { resolveRealtimeDirection, translateFree, translateAI, LANG_NAMES } = require('./translate');
 const { providerLabel } = require('./llm');
 const { detectDomain, DOMAIN_LABELS } = require('./domain');
+const { startTiming, markTiming, finishTiming } = require('./timing');
 
 function normalizeKey(text) {
   return String(text || '').replace(/\s+/g, ' ').trim().slice(0, 1600);
 }
 
+function tailLines(text, maxLines = 8, maxChars = 800) {
+  const value = String(text || '').trim();
+  if (!value) return '';
+  const lines = value.replace(/\r/g, '').split('\n');
+  let out = lines.slice(-maxLines).join('\n').trim();
+  if (out.length > maxChars) out = out.slice(-maxChars).trim();
+  return out;
+}
+
 class RealtimeController {
-  constructor({ settings, ocr, tempDir, onStateChange, notify, hideResult, restoreResult }) {
+  constructor({ settings, ocr, tempDir, onStateChange, notify, hideResult, restoreResult, minimizeHome, restoreHome }) {
     this.settings = settings;
     this.ocr = ocr;
     this.tempDir = tempDir;
     this.hideResult = hideResult || (() => false);
     this.restoreResult = restoreResult || (() => {});
+    this.minimizeHome = minimizeHome || (async () => false);
+    this.restoreHome = restoreHome || (() => {});
+    this.homeMinimized = false;
     this.onStateChange = onStateChange || (() => {});
     this.notify = notify || (() => {});
     this.active = false;
     this.selecting = false;
     this.busy = false;
+    this.startCount = 0;
+    this.timingId = '';
+    this.timedFirstOcrStart = false;
+    this.timedFirstOcrDone = false;
+    this.timedFirstTranslate = false;
+    this.firstOriginalSent = false;
+    this.firstSubtitleSent = false;
     this.timer = null;
     this.win = null;
     this.abort = null;
@@ -38,26 +58,60 @@ class RealtimeController {
     return this.active;
   }
 
-  async start() {
+  async start(options = {}) {
     if (this.active || this.selecting) return;
     this.selecting = true;
     this.onStateChange({ selecting: true });
+    const timingId = startTiming('realtime', {
+      source: options.source || 'unknown',
+      clickedAt: options.clickedAt,
+      round: ++this.startCount,
+    });
+    this.timingId = timingId;
+    this.timedFirstOcrStart = false;
+    this.timedFirstOcrDone = false;
+    this.timedFirstTranslate = false;
+    this.firstOriginalSent = false;
+    this.firstSubtitleSent = false;
     try {
-      const hadResult = this.hideResult();
-      const windows = await this.ocr.listWindows({ excludePid: process.pid }).catch(() => []);
-      const selection = await selectRegion({ windows });
-      if (!selection) {
-        if (hadResult) this.restoreResult();
+      if (!this.ocr.available) {
+        markTiming(timingId, 'ocr-unavailable');
+        this.notify('实时字幕无法启动', 'OCR 引擎暂不可用，请稍后重试');
+        finishTiming(timingId, { outcome: 'ocr-unavailable' });
         return;
       }
-      if (this.active) return;
+      const hadResult = this.hideResult();
+      markTiming(timingId, 'result-hidden', { hadResult });
+      this.homeMinimized = await this.minimizeHome();
+      markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
+      const selection = await selectRegion({
+        timingId,
+        finishOnFrame: false,
+        capture: (opts) => captureDisplaysFast(this.ocr, this.tempDir, opts),
+        windowsProvider: () => this.ocr.listWindows({ excludePid: process.pid }),
+      });
+      markTiming(timingId, 'selection-result', { hasSelection: Boolean(selection) });
+      if (!selection) {
+        this.releaseHome();
+        if (hadResult) this.restoreResult();
+        finishTiming(timingId, { outcome: 'cancel' });
+        return;
+      }
+      if (this.active) {
+        this.releaseHome();
+        finishTiming(timingId, { outcome: 'race-active' });
+        return;
+      }
       const settings = this.settings.get();
       const canAI = this.settings.hasProvider();
       this.engine = settings.realtime.engine === 'free'
         ? 'free'
         : (canAI ? 'ai' : 'free');
       if (this.engine === 'free' && !settings.freeTranslation) {
+        markTiming(timingId, 'engine-unavailable');
+        this.releaseHome();
         this.notify('实时字幕无法启动', '请先在设置中配置 AI 模型，或开启免费翻译通道。');
+        finishTiming(timingId, { outcome: 'engine-unavailable' });
         return;
       }
       this.selection = selection;
@@ -80,6 +134,7 @@ class RealtimeController {
       this.win.on('closed', () => {
         this.win = null;
       });
+      markTiming(timingId, 'subtitle-window-created');
       this.onStateChange({ realtimeActive: true });
       this.schedule(60);
       const windowNote = this.targetWindow
@@ -91,7 +146,10 @@ class RealtimeController {
         this.notify('实时字幕已开启', `${windowNote}再次按 ${settings.hotkeys.realtime} 即可停止`);
       }
     } catch (err) {
+      markTiming(timingId, 'error', { message: String(err.message || '').slice(0, 160) });
+      this.releaseHome();
       this.notify('实时字幕启动失败', err.message);
+      finishTiming(timingId, { outcome: 'error' });
     } finally {
       this.selecting = false;
       this.onStateChange({ selecting: false });
@@ -99,6 +157,15 @@ class RealtimeController {
   }
 
   send(payload) {
+    if (!this.firstOriginalSent && payload?.original) {
+      this.firstOriginalSent = true;
+      markTiming(this.timingId, 'first-original', { chars: String(payload.original).length });
+    }
+    if (!this.firstSubtitleSent && payload?.translated) {
+      this.firstSubtitleSent = true;
+      markTiming(this.timingId, 'first-subtitle', { chars: String(payload.translated).length });
+      finishTiming(this.timingId, { outcome: 'first-subtitle' });
+    }
     if (this.win && !this.win.isDestroyed()) {
       this.win.webContents.send('realtime:update', payload);
     }
@@ -114,6 +181,10 @@ class RealtimeController {
     try {
       if (this.busy) return;
       this.busy = true;
+      if (!this.timedFirstOcrStart) {
+        this.timedFirstOcrStart = true;
+        markTiming(this.timingId, 'first-ocr-start');
+      }
       let res;
       try {
         res = this.targetWindow
@@ -164,7 +235,11 @@ class RealtimeController {
       this.lastWindowErrorAt = 0;
       if (res.windowRect) this.physical = res.windowRect;
       if (!this.ocrLang && res.engine) this.ocrLang = res.engine;
-      const text = String(res.text || '').trim().slice(0, 1600);
+      if (!this.timedFirstOcrDone) {
+        this.timedFirstOcrDone = true;
+        markTiming(this.timingId, 'first-ocr-done', { engine: res.engine, captureMs: res.captureMs });
+      }
+      const text = tailLines(String(res.text || '').trim().slice(0, 1600), 8, 800);
       if (!text) {
         this.emptyStreak += 1;
         if (!this.lastText && this.emptyStreak === 1) {
@@ -273,6 +348,10 @@ class RealtimeController {
     }
     const controller = new AbortController();
     this.abort = controller;
+    if (!this.timedFirstTranslate) {
+      this.timedFirstTranslate = true;
+      markTiming(this.timingId, 'first-translate-start');
+    }
     let provider = this.engine === 'ai' ? providerLabel(settings.provider) : '免费翻译';
     try {
       let output = '';
@@ -356,8 +435,21 @@ class RealtimeController {
     this.cache.set(key, value);
   }
 
+  releaseHome() {
+    if (!this.homeMinimized) return;
+    this.homeMinimized = false;
+    this.restoreHome();
+  }
+
   stop({ silent = false } = {}) {
-    if (!this.active && !this.win) return;
+    if (!this.active && !this.win) {
+      this.releaseHome();
+      return;
+    }
+    if (!this.firstSubtitleSent) {
+      markTiming(this.timingId, 'stop-before-subtitle');
+      finishTiming(this.timingId, { outcome: 'stopped' });
+    }
     this.active = false;
     this.targetWindow = null;
     this.windowGoneCount = 0;
@@ -372,6 +464,7 @@ class RealtimeController {
       try { this.win.destroy(); } catch {}
     }
     this.win = null;
+    this.releaseHome();
     this.onStateChange({ realtimeActive: false });
   }
 }

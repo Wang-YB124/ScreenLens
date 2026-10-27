@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { nativeImage, screen } = require('electron');
 const { selectRegion } = require('../windows/overlay');
-const { cropDisplayImage } = require('./capture');
+const { captureDisplaysFast, cropDisplayImage } = require('./capture');
 const {
   resolveDirection,
   translateFree,
@@ -10,6 +10,7 @@ const {
   LANG_NAMES,
 } = require('./translate');
 const { providerLabel, streamChat } = require('./llm');
+const { startTiming, markTiming, finishTiming } = require('./timing');
 const { detectDomain, normalizeDomain, DOMAIN_LABELS } = require('./domain');
 const { buildExplainSystem } = require('./prompts');
 const {
@@ -69,6 +70,8 @@ class SessionManager {
     this.restoreHome = restoreHome || (() => {});
     this.homeMinimized = false;
     this.selecting = false;
+    this.selectionCount = 0;
+    this.timingId = '';
     this.current = null;
     this.translateAbort = null;
     this.explainAbort = null;
@@ -141,16 +144,28 @@ class SessionManager {
     record.domain = mode === 'auto' ? record.detectedDomain : mode;
   }
 
-  async startSelection() {
+  async startSelection(options = {}) {
     if (this.selecting) return;
     this.selecting = true;
     this.onStateChange({ selecting: true });
+    const timingId = startTiming('select', {
+      source: options.source || 'unknown',
+      clickedAt: options.clickedAt,
+      round: ++this.selectionCount,
+    });
+    this.timingId = timingId;
     let resultShown = false;
     try {
       const hadResult = this.result.isOpen();
       this.result.hide();
+      markTiming(timingId, 'result-hidden', { hadResult });
       this.homeMinimized = await this.minimizeHome();
-      const selection = await selectRegion();
+      markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
+      const selection = await selectRegion({
+        timingId,
+        capture: (opts) => captureDisplaysFast(this.ocr, this.tempDir, opts),
+      });
+      markTiming(timingId, 'selection-result', { hasSelection: Boolean(selection) });
       if (!selection) {
         if (this.homeMinimized) {
           this.homeMinimized = false;
@@ -159,6 +174,7 @@ class SessionManager {
         if (hadResult && this.current) {
           this.result.show(this.publicRecord(this.current.record), this.current.record.rect);
         }
+        finishTiming(timingId, { outcome: 'cancel' });
         return;
       }
       this.abortStreams();
@@ -190,6 +206,7 @@ class SessionManager {
       this.current = { record };
       this.result.show(this.publicRecord(record), rect);
       resultShown = true;
+      markTiming(timingId, 'result-shown');
       const png = image.toPNG();
       const tempImage = path.join(this.tempDir, `${record.id}.png`);
       fs.writeFileSync(tempImage, png);
@@ -205,11 +222,13 @@ class SessionManager {
         this.update(record);
       });
     } catch (err) {
+      markTiming(timingId, 'error', { message: String(err.message || '').slice(0, 160) });
       if (this.homeMinimized && !resultShown) {
         this.homeMinimized = false;
         this.restoreHome();
       }
       this.notify('框选失败', err.message);
+      finishTiming(timingId, { outcome: 'error' });
     } finally {
       this.selecting = false;
       this.onStateChange({ selecting: false });

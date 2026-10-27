@@ -1,4 +1,7 @@
-const { desktopCapturer, screen } = require('electron');
+const { desktopCapturer, nativeImage, screen } = require('electron');
+const fs = require('fs');
+const path = require('path');
+const { markTiming } = require('./timing');
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -22,6 +25,72 @@ async function captureDisplays() {
     if (!source) source = sources[index] || sources[0];
     return { display, image: source?.thumbnail || null };
   });
+}
+
+async function captureDisplaysFast(ocr, tempDir, { timingId } = {}) {
+  const displays = screen.getAllDisplays();
+  const cursor = screen.getCursorScreenPoint();
+  const focusId = screen.getDisplayNearestPoint(cursor).id;
+  const ordered = displays.slice().sort((a, b) => {
+    if (a.id === focusId) return -1;
+    if (b.id === focusId) return 1;
+    return 0;
+  });
+  const dir = path.join(tempDir, 'screens');
+  fs.mkdirSync(dir, { recursive: true });
+  const shots = [];
+  for (const display of ordered) {
+    const physical = screen.dipToScreenRect(null, display.bounds);
+    const rect = {
+      x: Math.round(physical.x),
+      y: Math.round(physical.y),
+      width: Math.round(physical.width),
+      height: Math.round(physical.height),
+    };
+    const file = path.join(dir, `screen-${process.pid}-${display.id}.png`);
+    const started = Date.now();
+    let capture;
+    try {
+      capture = await ocr.captureRect(rect, file);
+    } catch (err) {
+      markTiming(timingId, 'display-capture-error', {
+        displayId: display.id,
+        message: String(err.message || '').slice(0, 120),
+      });
+      if (!shots.length) throw err;
+      continue;
+    }
+    const readStarted = Date.now();
+    const image = nativeImage.createFromPath(capture.path || file);
+    const readMs = Date.now() - readStarted;
+    try { fs.unlinkSync(capture.path || file); } catch {}
+    if (image.isEmpty()) {
+      if (!shots.length) throw new Error('屏幕截图读取失败');
+      continue;
+    }
+    const size = image.getSize();
+    if (size.width < 40 || size.height < 30) {
+      if (!shots.length) throw new Error('屏幕截图尺寸异常');
+      continue;
+    }
+    shots.push({
+      display,
+      image,
+      captureMs: capture.captureMs || 0,
+      readMs,
+      totalMs: Date.now() - started,
+    });
+    markTiming(timingId, 'display-captured', {
+      displayId: display.id,
+      focus: display.id === focusId,
+      captureMs: capture.captureMs || 0,
+      readMs,
+      totalMs: Date.now() - started,
+      width: size.width,
+      height: size.height,
+    });
+  }
+  return shots;
 }
 
 function cropDisplayImage(displayShot, rect) {
@@ -67,4 +136,4 @@ function dipToPhysicalRect(rect) {
   }
 }
 
-module.exports = { captureDisplays, cropDisplayImage, dipToPhysicalRect };
+module.exports = { captureDisplays, captureDisplaysFast, cropDisplayImage, dipToPhysicalRect };

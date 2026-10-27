@@ -111,3 +111,40 @@
   - 取消框选：overlay 关闭后主界面恢复可见并获得焦点；结果窗打开期间主界面保持收起；关闭结果窗后恢复。
   - 主界面 `topmost=false`；悬停空背景不改变前台窗口。
 - 截图：`test/tmp/r3-overlay.png`（框选时主界面已收起）、`test/tmp/r3-result.png`（微软翻译结果）。
+
+## 框选 / 实时字幕启动性能与主窗口收起（2026-10-27）
+
+- 数据文件：[timing-2026-10-27.json](timing-2026-10-27.json)。
+- 计时方法：主进程 `[timing]` 日志，记录 click → 主窗口收起 → capture → overlay 创建/ready → overlay 可见 → 首帧；实时字幕另记首条 OCR 与首条字幕。冷态 = 首次/overlay 未预热；热态 = 已预热复用。QA 使用独立 `--user-data-dir` 与独立 TEMP 实例，未改动用户正在使用的数据。
+- 截图翻译（点击 → overlay 首帧）：
+
+| 场景 | 改前 | 改后 |
+| --- | ---: | ---: |
+| 冷态首次 | 3613 ms | 319 ms（overlay 窗口本次创建；生产环境启动 1.8s 后预热，首次点击通常已是热态） |
+| 热态再次 | 1497 / 1424 ms | 155 / 167 / 216 ms |
+| 全屏 capture | 3317 / 1193 / 1163 ms | 173 / 108 / 112 ms |
+| 预览编码 | 140–250 ms（PNG data URL） | 21–27 ms（JPEG Buffer，约 230–288 KB） |
+
+- 实时字幕（点击 → overlay 首帧 / 首条字幕）：
+
+| 场景 | 改前 | 改后 |
+| --- | ---: | ---: |
+| overlay 冷/热 | 3591 / 3416 ms | 319 ms（冷，窗口本次创建）/ 155–169 ms（热，预热复用） |
+| 首条字幕（短区域） | 8825 / 10909 ms | 5166 / 2810 ms（135 字区域，热态缓存命中） |
+| 首条字幕（长区域） | — | 3842 / 1654 ms（1153 字区域，截取 8 行/800 字后） |
+| 窗口枚举 | 先串行 88/20 ms 再截屏 | 截屏后补发，约 0 ms 阻塞 |
+
+- 主要改法：
+  - overlay 全屏截图改用 OCR worker 已有的 GDI `CopyFromScreen`（PNG 落盘 + `nativeImage` 读取），不再用 `desktopCapturer` 全屏缩略图。
+  - 预览改为 1.25× DIP JPEG Buffer（`blob:` 解码），主进程保留全分辨率 `NativeImage` 供 OCR 裁剪。
+  - overlay 窗口启动后预热、按显示器复用，`overlay:init`/`overlay:reset` 重置状态。
+  - 实时字幕的 `listWindows` 延后到截屏后，通过 `overlay:windows` 补发；不再阻塞 overlay 出现。
+  - 实时字幕在截屏前隐藏主界面；取消、引擎不可用、OCR 硬失败、停止字幕时恢复。截图翻译共用同一组主窗口收起/恢复回调。
+  - 实时字幕 OCR 文本按最近 8 行/800 字截取后再翻译，减少长窗口首条字幕等待。
+- 回归：
+  - 截图翻译：选中知乎文章 → OCR 247 字 → 微软翻译 703 字，status done；关闭结果后主窗口恢复。
+  - 实时字幕：点击 → 162–169 ms overlay、首条 OCR 约 1.5–1.65 s、首条字幕 1.65 s（热，长区域截断）至 5.17 s（冷，短区域）；停止后主窗口恢复。
+  - 取消框选、结果窗关闭、热键（QA 实例使用备用键 Ctrl+Shift+X / Ctrl+Alt+T）、窗口模式（overlay 收到 `windows` 列表并选中窗口）、引擎不可用（关闭免费通道，`engine-unavailable` 后主窗口恢复）均通过。
+  - Mock AI：翻译 provider 本地模型，解释 done，相关关键词 3 个；测试后恢复 provider 设置，未使用真实 Key。
+  - 多显示器：本机只有单屏，未做物理多屏实测；代码按每屏预热/创建 overlay，并处理 `display-added/removed/metrics-changed`。
+- 截图：`test/tmp/r4-qa-overlay.png`、`r4-qa-result.png`、`r4-qa-realtime-1.png`、`r4-qa-realtime-2.png`、`r4-qa-mock.png`。

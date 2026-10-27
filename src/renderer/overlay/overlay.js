@@ -13,6 +13,10 @@ const windowHover = document.getElementById('window-hover');
 const windowTitle = document.getElementById('window-title');
 
 let displayId = null;
+let timingId = '';
+let imageUrl = '';
+let imageToken = 0;
+let isFocusScreen = true;
 let dragStart = null;
 let currentRect = null;
 let dragging = false;
@@ -112,10 +116,72 @@ function submitWindow(item) {
   });
 }
 
+function resetOverlay() {
+  imageToken += 1;
+  if (imageUrl) {
+    URL.revokeObjectURL(imageUrl);
+    imageUrl = '';
+  }
+  scene.style.backgroundImage = 'none';
+  finished = false;
+  dragging = false;
+  dragStart = null;
+  currentRect = null;
+  pressedWindow = null;
+  moved = false;
+  hoverWindowId = null;
+  windows = [];
+  isFocusScreen = true;
+  hint.classList.remove('hidden');
+  hintTitle.textContent = '拖拽框选要识别的内容';
+  hintSub.textContent = '松开鼠标后自动翻译 · 截图仅在本机处理';
+  hintKeyWindow.classList.add('hidden');
+  selection.classList.add('hidden');
+  selection.classList.remove('confirm');
+  windowHover.classList.add('hidden');
+  windowHover.style.cssText = '';
+  document.body.classList.remove('dragging', 'closing', 'window-hovering');
+  sizeLabel.textContent = '0 × 0';
+  crossH.style.top = '0px';
+  crossV.style.left = '0px';
+}
+
+async function setSceneImage(buffer, type) {
+  const token = ++imageToken;
+  if (imageUrl) {
+    URL.revokeObjectURL(imageUrl);
+    imageUrl = '';
+  }
+  scene.style.backgroundImage = 'none';
+  if (!buffer) return;
+  let url = '';
+  try {
+    const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+    if (!bytes.length) return;
+    const blob = new Blob([bytes], { type: type || 'image/jpeg' });
+    url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.src = url;
+    if (typeof img.decode === 'function') await img.decode();
+    else await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; });
+    if (token !== imageToken) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    imageUrl = url;
+    scene.style.backgroundImage = `url("${url}")`;
+  } catch {
+    if (url) URL.revokeObjectURL(url);
+    scene.style.backgroundImage = 'none';
+  }
+}
+
 api.on('overlay:init', (payload) => {
+  resetOverlay();
   displayId = payload.displayId;
+  timingId = payload.timingId || '';
+  isFocusScreen = Boolean(payload.isFocus);
   windows = Array.isArray(payload.windows) ? payload.windows : [];
-  if (payload.image) scene.style.backgroundImage = `url("${payload.image}")`;
   if (!payload.isFocus) {
     const title = hint.querySelector('.hint-copy strong');
     if (title) title.textContent = '点击此屏幕继续框选';
@@ -124,7 +190,27 @@ api.on('overlay:init', (payload) => {
     hintSub.textContent = '选择窗口后持续识别该窗口 · 截图仅在本机处理';
     hintKeyWindow.classList.remove('hidden');
   }
-  api.send('overlay:ready');
+  setSceneImage(payload.image, payload.imageType).finally(() => {
+    api.send('overlay:ready', { timingId, displayId, image: Boolean(payload.image) });
+  });
+});
+
+api.on('overlay:reset', resetOverlay);
+
+api.on('overlay:windows', (payload) => {
+  windows = Array.isArray(payload.windows) ? payload.windows : [];
+  if (!isFocusScreen || !windows.length || finished || dragging) return;
+  hintTitle.textContent = '单击选择窗口 · 拖拽框选区域';
+  hintSub.textContent = '选择窗口后持续识别该窗口 · 截图仅在本机处理';
+  hintKeyWindow.classList.remove('hidden');
+});
+
+api.on('overlay:shown', () => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      api.send('overlay:frame', { timingId, displayId, at: Date.now() });
+    });
+  });
 });
 
 window.addEventListener('mousedown', (event) => {

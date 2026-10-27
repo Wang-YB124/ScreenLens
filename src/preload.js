@@ -37,6 +37,7 @@ const SEND_CHANNELS = new Set([
   'overlay:submit',
   'overlay:cancel',
   'overlay:ready',
+  'overlay:frame',
   'realtime:resize',
   'realtime:hitzone',
   'realtime:drag-start',
@@ -61,6 +62,9 @@ const EVENT_CHANNELS = new Set([
   'audio:init',
   'audio:stop',
   'overlay:init',
+  'overlay:shown',
+  'overlay:windows',
+  'overlay:reset',
   'toast',
 ]);
 

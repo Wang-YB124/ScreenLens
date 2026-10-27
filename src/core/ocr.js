@@ -216,6 +216,19 @@ class OcrService extends EventEmitter {
     return Array.isArray(res.windows) ? res.windows : [];
   }
 
+  async captureRect(rect, imagePath) {
+    const res = await this.request({
+      action: 'capture',
+      image: imagePath,
+      x: Math.round(rect.x),
+      y: Math.round(rect.y),
+      w: Math.round(rect.width),
+      h: Math.round(rect.height),
+    }, 15000);
+    if (!res.capture || !res.capture.path) throw new Error('屏幕截图失败');
+    return res.capture;
+  }
+
   postProcess(res, engine) {
     const text = tidyText(res.text || '');
     const lines = (res.lines || []).map((line) => ({

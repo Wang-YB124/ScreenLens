@@ -25,6 +25,7 @@ const { SessionManager } = require('./core/session');
 const { RealtimeController } = require('./core/realtime');
 const { AudioController } = require('./core/audio');
 const { ResultWindow } = require('./windows/resultWindow');
+const { warmOverlays, disposeOverlays } = require('./windows/overlay');
 const {
   resizeRealtimeWindow,
   updateRealtimeHitzone,
@@ -211,6 +212,7 @@ async function minimizeHomeForSelection() {
 function restoreHomeAfterSelection() {
   if (!homeMinimizedForSelection) return;
   homeMinimizedForSelection = false;
+  if (quitting) return;
   const win = homeWin;
   if (!win || win.isDestroyed()) return;
   try {
@@ -236,12 +238,12 @@ function updateTrayMenu() {
     {
       label: '框选翻译',
       accelerator: hotkeys.select || undefined,
-      click: () => session.startSelection(),
+      click: () => session.startSelection({ source: 'tray' }),
     },
     {
       label: active ? '停止实时字幕' : '实时字幕',
       accelerator: hotkeys.realtime || undefined,
-      click: () => (realtime.isActive() ? realtime.stop() : realtime.start()),
+      click: () => (realtime.isActive() ? realtime.stop() : realtime.start({ source: 'tray' })),
     },
     {
       label: audioOn ? '停止音频字幕' : '音频字幕（系统声音）',
@@ -292,11 +294,11 @@ function registerHotkeys() {
   const actions = {
     select: () => {
       if (selecting) return;
-      session.startSelection();
+      session.startSelection({ source: 'hotkey' });
     },
     realtime: () => {
       if (realtime.isActive()) realtime.stop();
-      else realtime.start();
+      else realtime.start({ source: 'hotkey' });
     },
   };
   const used = new Set();
@@ -518,18 +520,18 @@ function registerIpc() {
     }
   });
 
-  ipcMain.handle('action:select', () => {
+  ipcMain.handle('action:select', (event, payload) => {
     if (selecting) return { ok: false, reason: 'busy' };
     if (audio.isActive()) audio.stop({ silent: true });
-    session.startSelection();
+    session.startSelection({ clickedAt: payload?.clickedAt, source: payload?.source || 'home' });
     return { ok: true };
   });
 
-  ipcMain.handle('action:realtime', () => {
+  ipcMain.handle('action:realtime', (event, payload) => {
     if (realtime.isActive()) return { ok: true, active: true };
     if (selecting) return { ok: false, reason: 'busy' };
     if (audio.isActive()) audio.stop({ silent: true });
-    realtime.start();
+    realtime.start({ clickedAt: payload?.clickedAt, source: payload?.source || 'home' });
     return { ok: true };
   });
 
@@ -724,6 +726,8 @@ async function bootstrap() {
       return wasOpen;
     },
     restoreResult: () => session.restoreResult(),
+    minimizeHome: minimizeHomeForSelection,
+    restoreHome: restoreHomeAfterSelection,
   });
   audio = new AudioController({
     settings,
@@ -755,6 +759,12 @@ async function bootstrap() {
   createTray();
   registerHotkeys();
   applyLoginItem(settings.get().launchAtLogin);
+  const prewarmDelay = Number(process.env.SL_PREWARM_DELAY_MS ?? 1800);
+  if (Number.isFinite(prewarmDelay) && prewarmDelay >= 0) {
+    setTimeout(() => {
+      try { warmOverlays(); } catch {}
+    }, prewarmDelay);
+  }
 
   const startup = settings.get();
   if (startup.freeTranslation !== false && (!settings.hasProvider() || startup.translateEngine === 'free')) {
@@ -769,6 +779,9 @@ async function bootstrap() {
     ocrState = { status: 'error', languages: [], error: err.message };
     broadcastState();
     notify('OCR 引擎不可用', err.message);
+    try {
+      if (realtime && (realtime.isActive() || realtime.selecting)) realtime.stop({ silent: true });
+    } catch {}
   });
 
   ocr.start().then(({ languages }) => {
@@ -796,6 +809,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   quitting = true;
+  try { disposeOverlays(); } catch {}
   try { globalShortcut.unregisterAll(); } catch {}
   try { realtime?.stop({ silent: true }); } catch {}
   try { audio?.stop({ silent: true }); } catch {}

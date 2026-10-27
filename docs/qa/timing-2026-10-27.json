@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-27",
+  "machine": "Windows 11 x64, 2560x1600 @150%, single display",
+  "method": "Main-process [timing] JSON logs. click -> home hide -> capture -> overlay window ready -> overlay visible -> first frame. Realtime additionally: first OCR -> first subtitle. Cold = first run/overlay not prewarmed; warm = prewarmed/reused overlay. QA used a separate userData/temp instance; live app state untouched.",
+  "screenshot_ms": {
+    "before": {
+      "cold": 3613,
+      "warm": [1497, 1424],
+      "capture": [3317, 1193, 1163],
+      "preview_encode": [140, 250],
+      "overlay_window_and_load": "~230-300"
+    },
+    "after": {
+      "cold_no_prewarm": 319,
+      "cold_no_prewarm_capture": 173,
+      "cold_no_prewarm_window_load": 113,
+      "warm_prewarmed": [216, 167, 155],
+      "warm_capture": [108, 112, 149],
+      "preview_encode": [21, 22, 27],
+      "preview_bytes": [234240, 263136, 287706]
+    }
+  },
+  "realtime_ms": {
+    "before": {
+      "overlay_cold": 3591,
+      "overlay_warm": 3416,
+      "first_subtitle_cold": 8825,
+      "first_subtitle_warm": 10909,
+      "sample_chars": [135, 271],
+      "list_windows_before_capture": [88, 20]
+    },
+    "after": {
+      "overlay_warm": [162, 169, 155],
+      "overlay_cold_no_prewarm": [298, 319],
+      "first_ocr_done": [1494, 1647],
+      "first_subtitle_small_region": [5166, 2810],
+      "first_subtitle_large_region_no_cap": [6101, 7373],
+      "first_subtitle_large_region_cap800": [3842, 1654],
+      "sample_chars_large": [437, 1153],
+      "window_list_after_capture_ms": 0,
+      "tail_cap": "8 lines / 800 chars"
+    }
+  },
+  "source_changes": [
+    "Overlay screen capture now uses the existing OCR worker GDI capture action (CopyFromScreen) with a full-resolution PNG written to temp; no desktopCapturer full-screen thumbnail.",
+    "Overlay preview is a 1.25x DIP JPEG Buffer sent over IPC and decoded as a blob: URL before overlay:ready; full-res NativeImage remains in main for OCR cropping.",
+    "Overlay windows are prewarmed at startup (default 1.8s) and reused per display; reset on overlay:init/overlay:reset.",
+    "Realtime window enumeration is deferred until after the capture and sent to overlays via overlay:windows; overlay appears before the list is ready.",
+    "Realtime hides the main window before capture; restores on cancel, engine/OCR failure, or stop; screenshot flow unchanged but now shares the same callbacks.",
+    "Realtime OCR text is tail-limited to 8 lines / 800 chars before translation.",
+    "Added [timing] marks and an internal SL_PREWARM_DELAY_MS QA hook."
+  ],
+  "verification": {
+    "screenshot_translation": true,
+    "screenshot_cancel_restore": true,
+    "result_close_restore": true,
+    "realtime_start_hide_first_subtitle_stop_restore": true,
+    "realtime_window_mode": true,
+    "realtime_window_list_count": 1,
+    "hotkey_select": true,
+    "hotkey_realtime": true,
+    "engine_unavailable_restore": true,
+    "mock_ai_translation_explain_related": {
+      "translation": "done / 本地模型",
+      "explanation": "done",
+      "related_keywords": 3
+    },
+    "multi_display_physical": "not available on this machine; per-display prewarm/overlay and display add/remove handlers reviewed"
+  },
+  "screenshots": [
+    "test/tmp/r4-qa-overlay.png",
+    "test/tmp/r4-qa-result.png",
+    "test/tmp/r4-qa-realtime-1.png",
+    "test/tmp/r4-qa-realtime-2.png",
+    "test/tmp/r4-qa-mock.png"
+  ]
+}
