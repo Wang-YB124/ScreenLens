@@ -77,6 +77,8 @@ let realtimeState = { active: false };
 let audioState = { active: false };
 let selecting = false;
 let screenSourcePromise = null;
+let bootstrappedResolve = null;
+const bootstrapped = new Promise((resolve) => { bootstrappedResolve = resolve; });
 
 const showHome = () => {
   if (!homeWin || homeWin.isDestroyed()) {
@@ -84,9 +86,18 @@ const showHome = () => {
     return;
   }
   if (homeWin.isMinimized()) homeWin.restore();
+  try { homeWin.setSkipTaskbar(false); } catch {}
   homeWin.show();
+  try { homeWin.moveTop(); } catch {}
   homeWin.focus();
 };
+
+app.on('second-instance', () => {
+  app.whenReady()
+    .then(() => bootstrapped)
+    .then(showHome)
+    .catch(() => {});
+});
 
 function iconPath(name = 'icon.png') {
   const file = path.join(ASSETS, name);
@@ -185,6 +196,7 @@ function createHomeWindow() {
   win.on('close', (event) => {
     if (!quitting) {
       event.preventDefault();
+      try { win.setSkipTaskbar(true); } catch {}
       win.hide();
     }
   });
@@ -680,14 +692,23 @@ function registerIpc() {
   ipcMain.handle('window:close', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (!win) return { ok: false };
-    if (win === homeWin) win.hide();
-    else win.close();
+    if (win === homeWin) {
+      try { win.setSkipTaskbar(true); } catch {}
+      win.hide();
+    } else {
+      win.close();
+    }
     return { ok: true };
   });
 
   ipcMain.handle('window:hide', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (win) win.hide();
+    if (win) {
+      if (win === homeWin) {
+        try { win.setSkipTaskbar(true); } catch {}
+      }
+      win.hide();
+    }
     return { ok: true };
   });
 
@@ -856,7 +877,7 @@ async function bootstrap() {
     notify('OCR 引擎初始化失败', err.message);
   });
 
-  app.on('second-instance', showHome);
+  bootstrappedResolve();
 }
 
 if (gotLock) {

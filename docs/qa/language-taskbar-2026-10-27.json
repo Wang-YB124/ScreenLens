@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-27",
+  "languages": {
+    "screenshot_selects": [
+      "quick-target",
+      "setting-target",
+      "setting-explain-lang"
+    ],
+    "options": [
+      "zh-CN",
+      "en",
+      "ja",
+      "ko",
+      "ru",
+      "fr",
+      "de",
+      "es",
+      "pt",
+      "it"
+    ],
+    "labels": [
+      "简体中文",
+      "English",
+      "日本語",
+      "한국어",
+      "Русский",
+      "Français",
+      "Deutsch",
+      "Español",
+      "Português",
+      "Italiano"
+    ],
+    "realtime_target_options": [
+      "auto",
+      "zh-CN",
+      "en",
+      "ja",
+      "ko",
+      "ru",
+      "fr",
+      "de",
+      "es",
+      "pt",
+      "it"
+    ],
+    "test": {
+      "targetLang": "fr",
+      "sourceLang": "zh-CN",
+      "resultHeader": "中文 → FR",
+      "provider": "微软翻译",
+      "status": "done",
+      "sample": "《Assistant VI 1 / Rien que Bǐ Kǒu Yǒu Tián Bǐ Kǒu numéro selon 1 position arrêt calibration opération / ... / Fermer la bouche de levage ...",
+      "note": "目标语言写入 settings.targetLang，免费翻译实际输出法文；结果窗语言标签显示 FR。"
+    }
+  },
+  "taskbar": {
+    "hide_via_ipc": {
+      "before": "visible=true",
+      "after": "visible=false",
+      "skipTaskbar": true
+    },
+    "relaunch_hidden": {
+      "result": "existing home visible=true, iconic=false",
+      "second_process": "exits due to single-instance lock"
+    },
+    "minimize": {
+      "result": "iconic=true",
+      "relaunch": "existing home visible=true, iconic=false"
+    },
+    "single_instance": true,
+    "implementation": "second-instance registered before bootstrap and waits for bootstrap; showHome setSkipTaskbar(false)+moveTop+focus; close/hide setSkipTaskbar(true); tray/pinned/relaunch all call showHome."
+  },
+  "qa_files": {
+    "logs": [
+      "test/tmp/r4-lang.log",
+      "test/tmp/second-lang.log",
+      "test/tmp/second-lang2.log",
+      "test/tmp/r4-pkg-lang.log",
+      "test/tmp/pkg-second-lang.log",
+      "test/tmp/pkg-second-lang2.log"
+    ],
+    "screenshots": [
+      "test/tmp/r4-qa-result.png"
+    ],
+    "screenshots_packaged": [
+      "test/tmp/r4-qa-result.png"
+    ]
+  },
+  "packaged": {
+    "options_quick_target": [
+      "zh-CN",
+      "en",
+      "ja",
+      "ko",
+      "ru",
+      "fr",
+      "de",
+      "es",
+      "pt",
+      "it"
+    ],
+    "options_setting_target": [
+      "zh-CN",
+      "en",
+      "ja",
+      "ko",
+      "ru",
+      "fr",
+      "de",
+      "es",
+      "pt",
+      "it"
+    ],
+    "test_target": "fr",
+    "result_header": "中文 → FR",
+    "provider": "微软翻译",
+    "sample": "Trois lignes directrices ... C est la base commune pour les deux rôles ... 使用免费翻译",
+    "taskbar": {
+      "hide": "visible=false",
+      "relaunch_hidden": "visible=true (existing instance, foreground ScreenLens)",
+      "minimize": "iconic=true",
+      "relaunch_minimized": "visible=true, iconic=false (existing instance)"
+    }
+  }
+}

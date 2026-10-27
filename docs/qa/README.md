@@ -177,3 +177,17 @@
 - 回归：打包版截图 overlay 304/241 ms、微软翻译完成；实时字幕 overlay 219/154 ms、首条字幕 3361/3051 ms；Mock AI 翻译（本地模型）、解释、相关关键词/链接通过；均恢复主窗口。
 - 状态注入说明：无声音/静音消息通过捕获渲染层注入 `silence` 状态 + 真实 Windows 端点查询验证；真实回环 RMS/文字由 TTS 播放独立验证。`SL_FORCE_NO_SOURCE` 触发的是 Electron Cancel/Abort（消息“音频采集已取消”）；NotAllowedError 权限文案路径已实现，Windows 下未单独构造系统权限拒绝。
 - 汇总：[audio-2026-10-27.json](audio-2026-10-27.json)。
+
+## 截图目标语言与任务栏唤醒（2026-10-27）
+
+- 数据：[language-taskbar-2026-10-27.json](language-taskbar-2026-10-27.json)。
+- 语言：`quick-target`、`setting-target`、`setting-explain-lang` 三个截图/设置下拉均从 4 种扩展到 10 种，与实时字幕目标语言一致：简体中文、English、日本語、한국어、Русский、Français、Deutsch、Español、Português、Italiano。结果窗/历史语言标签同步（FR/DE/ES/PT/IT）。
+- 实测：目标语言设为 Français 后截图翻译结果为「中文 → FR」，provider 微软翻译，译文为法文；免费链路验证。
+- 任务栏：关闭到托盘时 `setSkipTaskbar(true)` 移除无效任务栏按钮；`showHome` 恢复 `setSkipTaskbar(false)`，并 `moveTop`/focus。`second-instance` 在 bootstrap 前注册并等待 bootstrap 完成。
+- 实测：隐藏主窗口后重复启动 → 现有主窗口恢复可见、非最小化；最小化后重复启动 → 同样恢复；第二个进程因单实例锁退出。应用保持单实例设计。
+- 截图：`test/tmp/r4-qa-result.png`（中文 → FR）。
+
+### 打包版复测（2026-10-27）
+
+- 三处语言下拉均为 10 项；目标设为 Français 后截图翻译显示「中文 → FR」，provider 微软翻译，译文为法文（Trois lignes directrices…），关闭结果后主窗口恢复。
+- 隐藏主窗口后重新启动打包版：现有主窗口恢复可见、非最小化，前台为 ScreenLens；最小化后重新启动同样恢复（visible=true, iconic=false）。

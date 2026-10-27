@@ -46,8 +46,8 @@ const DEFAULTS = {
   },
 };
 
-const TARGET_LANGS = ['zh-CN', 'en', 'ja', 'ko'];
 const REALTIME_LANG_CODES = ['zh-CN', 'en', 'ja', 'ko', 'ru', 'fr', 'de', 'es', 'pt', 'it'];
+const TARGET_LANGS = REALTIME_LANG_CODES.slice();
 
 function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);

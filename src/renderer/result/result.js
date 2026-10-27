@@ -1,7 +1,7 @@
 const api = window.screenlens;
 const $ = (id) => document.getElementById(id);
 
-const LANG_LABEL = { 'zh-CN': '中文', en: 'EN', ja: '日文', ko: '韩文', ru: 'RU', auto: 'AUTO' };
+const LANG_LABEL = { 'zh-CN': '中文', en: 'EN', ja: '日文', ko: '韩文', ru: 'RU', fr: 'FR', de: 'DE', es: 'ES', pt: 'PT', it: 'IT', auto: 'AUTO' };
 const DOMAIN_LABELS = {
   auto: '自动',
   general: '通用',

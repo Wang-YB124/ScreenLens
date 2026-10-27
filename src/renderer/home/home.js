@@ -13,7 +13,7 @@ const PRESETS = {
   custom: null,
 };
 
-const LANG_LABEL = { 'zh-CN': '中文', en: 'EN', ja: '日文', ko: '韩文', ru: 'RU', auto: 'AUTO' };
+const LANG_LABEL = { 'zh-CN': '中文', en: 'EN', ja: '日文', ko: '韩文', ru: 'RU', fr: 'FR', de: 'DE', es: 'ES', pt: 'PT', it: 'IT', auto: 'AUTO' };
 const TAB_LABEL = { home: '首页', history: '历史', settings: '设置' };
 
 let state = null;
