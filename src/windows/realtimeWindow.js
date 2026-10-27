@@ -30,6 +30,15 @@ function computeBounds(rect, settings) {
   return { x, y, width, height, below: y > anchor.y };
 }
 
+function raiseRealtimeWindow(win) {
+  if (!win || win.isDestroyed()) return;
+  try {
+    win.setAlwaysOnTop(false);
+    win.setAlwaysOnTop(true, 'screen-saver');
+    win.moveTop();
+  } catch {}
+}
+
 function resizeRealtimeWindow(win, height) {
   const placement = win.__screenlensPlacement;
   if (!placement) return;
@@ -47,6 +56,7 @@ function resizeRealtimeWindow(win, height) {
   if (!placement.below) y = bounds.y + bounds.height - target;
   y = Math.round(clamp(y, work.y + 8, work.y + work.height - target - 8));
   win.setBounds({ x: bounds.x, y, width: bounds.width, height: target });
+  raiseRealtimeWindow(win);
 }
 
 function createRealtimeWindow({ rect, settings }) {
@@ -90,6 +100,8 @@ function createRealtimeWindow({ rect, settings }) {
       below: bounds.below,
     });
     win.showInactive();
+    raiseRealtimeWindow(win);
+    setTimeout(() => raiseRealtimeWindow(win), 300);
   });
   return win;
 }

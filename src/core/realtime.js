@@ -70,7 +70,11 @@ class RealtimeController {
       });
       this.onStateChange({ realtimeActive: true });
       this.schedule(60);
-      this.notify('实时字幕已开启', `再次按 ${settings.hotkeys.realtime} 即可停止`);
+      if (this.engine === 'free') {
+        this.notify('实时字幕已开启（免费翻译）', `免费通道延迟较高，配置 AI 模型后字幕会更流畅；再次按 ${settings.hotkeys.realtime} 停止`);
+      } else {
+        this.notify('实时字幕已开启', `再次按 ${settings.hotkeys.realtime} 即可停止`);
+      }
     } catch (err) {
       this.notify('实时字幕启动失败', err.message);
     } finally {
@@ -94,10 +98,25 @@ class RealtimeController {
     try {
       if (this.busy) return;
       this.busy = true;
-      const res = await this.ocr.recognizeRegion(this.physical, {
-        imagePath: this.tmpImage,
-        lang: this.ocrLang || 'auto',
-      });
+      let res;
+      try {
+        res = await this.ocr.recognizeRegion(this.physical, {
+          imagePath: this.tmpImage,
+          lang: this.ocrLang || 'auto',
+        });
+      } catch (err) {
+        if (!this.active) return;
+        if (Date.now() - this.lastErrorAt > 4000) {
+          this.lastErrorAt = Date.now();
+          this.send({
+            status: 'error',
+            original: this.lastText || '',
+            translated: '',
+            message: '屏幕识别暂时不可用，正在重试…',
+          });
+        }
+        return;
+      }
       if (!this.active) return;
       if (!this.ocrLang && res.engine) this.ocrLang = res.engine;
       const text = String(res.text || '').trim().slice(0, 1600);
@@ -135,7 +154,7 @@ class RealtimeController {
           status: 'error',
           original: this.lastText || '',
           translated: '',
-          message: err.message,
+          message: '字幕暂时不可用，正在重试…',
         });
       }
     } finally {

@@ -109,8 +109,17 @@ function renderUpdate(payload) {
     original.title = text;
   }
   if (payload.status === 'loading') {
-    setLoading('翻译中…');
+    const hasPrevious = translated.textContent.trim()
+      && !translated.querySelector('.waiting-dot')
+      && !translated.classList.contains('loading');
     translated.classList.remove('error', 'streaming', 'code-text');
+    if (hasPrevious) {
+      translated.classList.remove('loading');
+      translated.classList.add('pending');
+    } else {
+      translated.classList.remove('pending');
+      setLoading('翻译中…');
+    }
     return;
   }
   if (payload.status === 'streaming') {

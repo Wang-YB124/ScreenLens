@@ -187,6 +187,10 @@ body {
   gap: 8px;
 }
 
+.translated.pending {
+  opacity: 0.72;
+}
+
 .translated.error {
   color: #e8a7a7;
   font-weight: 500;
