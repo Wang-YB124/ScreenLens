@@ -2,25 +2,25 @@
   "date": "2026-10-28",
   "scope": "Low-latency audio subtitle cadence after whisper-server + short sliding window",
   "base": {
-    "serverReadyMs": 289,
-    "firstChunkMs": 2732,
-    "recognizeMs": 355,
-    "firstTextMs": 3088,
-    "firstSubtitleMs": 3088,
+    "serverReadyMs": 273,
+    "firstChunkMs": 2895,
+    "recognizeMs": 356,
+    "firstTextMs": 3366,
+    "firstSubtitleMs": 3252,
     "updates": [
-      3190,
-      5842,
-      8319,
-      10785,
-      13427
+      3366,
+      5850,
+      8363,
+      11149,
+      13672
     ],
     "intervalsMs": [
-      2261,
-      418,
-      2652,
-      2477,
-      2466,
-      2642
+      2445,
+      408,
+      2484,
+      2513,
+      2786,
+      2523
     ],
     "note": "same-language zh target; base model"
   },
@@ -38,6 +38,6 @@
     "test/tmp/audio-realtime/summary.json",
     "test/tmp/audio-realtime/realtime-audio.png"
   ],
-  "release_zip_sha256": "3BCFE94B9E051C5B3458D3D686A141A52801EF60100FFA0C80BDB8128A004255",
+  "release_zip_sha256": "60214F5777FB2A50F6E60DB53B41B6397654D9B2D9CD12FDB944E4A6C22A5472",
   "final_artifact_verified": true
 }

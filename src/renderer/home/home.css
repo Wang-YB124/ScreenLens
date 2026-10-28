@@ -1674,3 +1674,16 @@ input[type="range"]::-webkit-slider-thumb {
 body.pre-hide {
   opacity: 0;
 }
+
+.record-dir {
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}

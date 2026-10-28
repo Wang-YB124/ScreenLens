@@ -130,6 +130,7 @@ function notify(title, body) {
 function state() {
   const publicSettings = settings.getPublic();
   const audioInfo = audio ? audio.modelInfo() : { ready: false, name: 'Whisper', reason: '音频服务未初始化' };
+  const recordInfo = audio ? audio.recordInfo() : { dir: '', custom: false };
   return {
     settings: publicSettings,
     history: history.list(),
@@ -141,6 +142,8 @@ function state() {
       ready: audioInfo.ready,
       name: audioInfo.name,
       reason: audioInfo.reason,
+      recordDir: recordInfo.dir,
+      recordCustom: recordInfo.custom,
     },
     selecting,
     provider: {
@@ -608,6 +611,29 @@ function registerIpc() {
   });
 
   ipcMain.handle('audio:records-path', () => (audio ? audio.recordInfo() : { dir: '', lastRecord: '' }));
+
+  ipcMain.handle('audio:choose-record-dir', async () => {
+    if (!audio) return { ok: false, error: '音频服务未初始化' };
+    const current = audio.recordInfo();
+    const options = {
+      title: '选择音频记录保存位置',
+      defaultPath: current.dir,
+      properties: ['openDirectory', 'createDirectory'],
+    };
+    const parent = homeWin && !homeWin.isDestroyed() ? homeWin : undefined;
+    const result = parent ? await dialog.showOpenDialog(parent, options) : await dialog.showOpenDialog(options);
+    if (result.canceled || !result.filePaths?.length) return { ok: false, canceled: true };
+    const dir = result.filePaths[0];
+    applySettingsPatch({ audio: { recordDir: dir } });
+    broadcastState();
+    return { ok: true, path: dir, active: audio.isActive() };
+  });
+
+  ipcMain.handle('audio:reset-record-dir', () => {
+    applySettingsPatch({ audio: { recordDir: '' } });
+    broadcastState();
+    return { ok: true, path: audio ? audio.recordInfo().dir : '', active: audio ? audio.isActive() : false };
+  });
 
   ipcMain.handle('audio:records-open', async () => {
     if (!audio) return { ok: false, error: '音频服务未初始化' };

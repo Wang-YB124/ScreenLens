@@ -33,6 +33,8 @@ const INVOKE_CHANNELS = new Set([
   'action:restart-ocr',
   'action:audio',
   'audio:records-path',
+  'audio:choose-record-dir',
+  'audio:reset-record-dir',
   'audio:records-open',
   'audio:records-open-file',
 ]);

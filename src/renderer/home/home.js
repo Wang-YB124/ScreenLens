@@ -429,6 +429,11 @@ function syncSettingsForm(force) {
     audioStatus.textContent = audioInfo.ready ? '已就绪' : '未安装';
     audioStatus.classList.toggle('mint', Boolean(audioInfo.ready));
   }
+  const recordDirEl = $('audio-record-dir');
+  if (recordDirEl && audioInfo.recordDir) {
+    recordDirEl.textContent = `${audioInfo.recordCustom ? '自定义：' : '默认：'}${audioInfo.recordDir}`;
+    recordDirEl.title = audioInfo.recordDir;
+  }
   const audioDetail = $('audio-model-detail');
   if (audioDetail) {
     audioDetail.textContent = audioInfo.ready
@@ -758,6 +763,28 @@ function bindEvents() {
       showToast(res?.ok ? '音频记录' : '无法打开记录', res?.ok ? (res.path || '已打开记录文件夹') : (res?.error || '请稍后重试'));
     } catch (err) {
       showToast('无法打开记录', err.message || '请稍后重试');
+    }
+  });
+
+  $('choose-audio-records').addEventListener('click', async () => {
+    try {
+      const res = await api.invoke('audio:choose-record-dir');
+      if (res?.ok) {
+        showToast('音频记录位置已更新', res.active ? '将在下一次音频会话生效' : res.path);
+      } else if (!res?.canceled) {
+        showToast('无法更改记录位置', res?.error || '请稍后重试');
+      }
+    } catch (err) {
+      showToast('无法更改记录位置', err.message || '请稍后重试');
+    }
+  });
+
+  $('reset-audio-records').addEventListener('click', async () => {
+    try {
+      const res = await api.invoke('audio:reset-record-dir');
+      showToast(res?.ok ? '已恢复默认记录位置' : '无法恢复默认位置', res?.path || res?.error || '');
+    } catch (err) {
+      showToast('无法恢复默认位置', err.message || '请稍后重试');
     }
   });
 

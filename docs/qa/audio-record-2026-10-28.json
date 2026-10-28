@@ -5,7 +5,8 @@
     "Every audio session accumulates original/translated segments with elapsed timestamps.",
     "The TXT is auto-saved about 900 ms after updates and finalized when audio stops.",
     "Header includes start time, source, recognition language (auto shows detected language), target language and model.",
-    "Settings → Audio subtitles has an “open records folder” button; the audio subtitle bar has a file button that opens the latest record."
+    "Settings → Audio subtitles has an “open records folder” button; the audio subtitle bar has a file button that opens the latest record.",
+    "The record directory is configurable in Settings → Audio subtitles; reset returns to the default userData/audio-records folder."
   ],
   "storage": "%APPDATA%\\ScreenLens\\audio-records",
   "test": {
@@ -38,6 +39,8 @@
     "test/tmp/audio-record.log",
     "test/tmp/audio-record-test.js"
   ],
-  "release_zip_sha256": "3BCFE94B9E051C5B3458D3D686A141A52801EF60100FFA0C80BDB8128A004255",
-  "final_artifact_verified": true
+  "release_zip_sha256": "60214F5777FB2A50F6E60DB53B41B6397654D9B2D9CD12FDB944E4A6C22A5472",
+  "final_artifact_verified": true,
+  "storageConfigurable": true,
+  "storageDefault": "%APPDATA%\\ScreenLens\\audio-records"
 }

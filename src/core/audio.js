@@ -222,7 +222,7 @@ class AudioController {
     this.server = null;
     this.serverPort = 0;
     this.serverStarting = null;
-    this.recordDir = path.join(app.getPath('userData'), 'audio-records');
+    this.recordDir = this.resolveRecordDir();
     this.recordFile = '';
     this.recordSegments = [];
     this.recordStartedAt = 0;
@@ -230,6 +230,7 @@ class AudioController {
     this.recordTimer = null;
     this.recordFinished = false;
     this.lastRecordPath = '';
+    this.recordErrorNotified = false;
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;
@@ -421,6 +422,26 @@ class AudioController {
     }
   }
 
+  defaultRecordDir() {
+    return path.join(app.getPath('userData'), 'audio-records');
+  }
+
+  resolveRecordDir() {
+    const custom = String(this.settings.get().audio.recordDir || '').trim();
+    return custom || this.defaultRecordDir();
+  }
+
+  latestRecord(dir) {
+    try {
+      const files = fs.readdirSync(dir)
+        .filter((name) => name.startsWith('音频记录-') && name.endsWith('.txt'))
+        .sort();
+      return files.length ? path.join(dir, files[files.length - 1]) : '';
+    } catch {
+      return '';
+    }
+  }
+
   beginRecord({ source, settings }) {
     const now = Date.now();
     const date = new Date(now);
@@ -432,12 +453,13 @@ class AudioController {
       : settings.targetLang;
     const language = settings.audio.language;
     const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
-    this.recordDir = path.join(app.getPath('userData'), 'audio-records');
+    this.recordDir = this.resolveRecordDir();
     this.recordFile = path.join(this.recordDir, `音频记录-${stamp}.txt`);
     this.recordSegments = [];
     this.recordStartedAt = now;
     this.recordTimer = null;
     this.recordFinished = false;
+    this.recordErrorNotified = false;
     this.recordMeta = {
       startedAt: now,
       source: source === 'microphone' ? '麦克风' : '系统声音',
@@ -519,6 +541,10 @@ class AudioController {
       return this.recordFile;
     } catch (err) {
       markTiming(this.timingId, 'record-error', { message: String(err.message || '').slice(0, 120) });
+      if (!this.recordErrorNotified) {
+        this.recordErrorNotified = true;
+        this.notify('音频记录保存失败', `无法写入 ${this.recordDir}；请在 设置 → 音频字幕 更换记录位置。`);
+      }
       return '';
     }
   }
@@ -535,7 +561,17 @@ class AudioController {
   }
 
   recordInfo() {
-    return { dir: this.recordDir, lastRecord: this.lastRecordPath || '' };
+    const dir = this.active && this.recordDir ? this.recordDir : this.resolveRecordDir();
+    let last = this.lastRecordPath;
+    if (!last || path.dirname(last) !== dir || !fs.existsSync(last)) {
+      last = this.latestRecord(dir);
+    }
+    return {
+      dir,
+      lastRecord: last || '',
+      defaultDir: this.defaultRecordDir(),
+      custom: Boolean(String(this.settings.get().audio.recordDir || '').trim()),
+    };
   }
 
   send(payload) {
@@ -594,7 +630,7 @@ class AudioController {
     this.server = null;
     this.serverPort = 0;
     this.serverStarting = null;
-    this.recordDir = path.join(app.getPath('userData'), 'audio-records');
+    this.recordDir = this.resolveRecordDir();
     this.recordFile = '';
     this.recordSegments = [];
     this.recordStartedAt = 0;
@@ -602,6 +638,7 @@ class AudioController {
     this.recordTimer = null;
     this.recordFinished = false;
     this.lastRecordPath = '';
+    this.recordErrorNotified = false;
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;

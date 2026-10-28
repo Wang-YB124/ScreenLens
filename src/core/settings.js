@@ -42,6 +42,7 @@ const DEFAULTS = {
     source: 'system',
     language: 'zh',
     model: 'base',
+    recordDir: '',
     chunkMs: 4000,
     overlapMs: 2000,
   },
@@ -118,6 +119,7 @@ function sanitize(data) {
   }
   out.audio.language = ['auto', 'zh', 'en', 'ja', 'ko', 'ru', 'fr', 'de', 'es', 'pt', 'it'].includes(out.audio.language) ? out.audio.language : 'zh';
   out.audio.model = ['base', 'small'].includes(out.audio.model) ? out.audio.model : 'base';
+  out.audio.recordDir = typeof out.audio.recordDir === 'string' ? out.audio.recordDir.trim().slice(0, 260) : '';
   out.audio.chunkMs = Math.round(clamp(out.audio.chunkMs, 2500, 8000, 4000));
   out.audio.overlapMs = Math.round(clamp(out.audio.overlapMs, 300, 2500, 2000));
   return out;

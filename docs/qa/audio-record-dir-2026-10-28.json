@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-28",
+  "scope": "Configurable storage directory for audio subtitle records",
+  "pass": true,
+  "defaultDir": "%APPDATA%\\ScreenLens\\audio-records",
+  "customTestDir": "test/tmp/qa-custom-records/我的记录",
+  "ui": {
+    "chooseButton": true,
+    "openButton": true,
+    "resetButton": true,
+    "display": "自定义：<path> / 默认：<path>"
+  },
+  "test": {
+    "configuredCustom": true,
+    "stateRecordDirMatchedCustom": true,
+    "fileWrittenToCustom": true,
+    "file": "test/tmp/qa-custom-records/我的记录/音频记录-20261028-105122.txt",
+    "resetOk": true,
+    "resetStateRecordDirDefault": true,
+    "customFilePreservedAfterReset": true
+  },
+  "notes": [
+    "The native folder-picker dialog itself was not automated; choosing is handled by dialog.showOpenDialog and the persisted path/write/reset path was verified via the same IPC/settings flow.",
+    "The current session keeps the directory chosen at its start; changing the path while audio is active applies to the next audio session.",
+    "Long paths are ellipsized in the settings row with the full path in the tooltip."
+  ],
+  "evidence": [
+    "test/tmp/audio-record-dir-test.js",
+    "test/tmp/audio-settings.png"
+  ],
+  "release_zip_sha256": "60214F5777FB2A50F6E60DB53B41B6397654D9B2D9CD12FDB944E4A6C22A5472",
+  "final_artifact_verified": true
+}
