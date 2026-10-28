@@ -39,14 +39,14 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdme7vmjndb",
-        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg5r0qiew4p",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "字幕在你观看视频时始终显示在视频顶部。\n第3句，每2.5秒切换",
-        "textLen": 31,
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
         "dir": "中文 → 中文",
@@ -55,21 +55,21 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 24,
-        "overlayVisible": 213,
-        "overlayFirstFrame": 226
+        "homeHidden": 34,
+        "overlayVisible": 387,
+        "overlayFirstFrame": 401
       },
-      "hiddenMs": 24,
-      "overlayMs": 213,
+      "hiddenMs": 34,
+      "overlayMs": 387,
       "switched": {
-        "id": "mvrdme7vmjndb",
-        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg5r0qiew4p",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "Le sous-titre reste en haut de la vidéo pendant que vous regardez. \n3ᵉ phrase. Changement toutes les 2,5 secondes",
-        "textLen": 113,
+        "text": "La traduction en temps réel transforme n'importe quelle vidéo dans votre langue. Phrase 1. Changement toutes les 2,5 secondes",
+        "textLen": 125,
         "targetLang": "fr",
         "sourceLang": "zh-CN",
         "dir": "中文 → FR",
@@ -81,7 +81,7 @@
         "quick": "fr",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -101,7 +101,7 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdmka0d3k12",
+        "id": "mvrg5xniux0c7",
         "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
@@ -118,13 +118,13 @@
       },
       "timing": {
         "homeHidden": 26,
-        "overlayVisible": 170,
-        "overlayFirstFrame": 178
+        "overlayVisible": 351,
+        "overlayFirstFrame": 357
       },
       "hiddenMs": 26,
-      "overlayMs": 170,
+      "overlayMs": 351,
       "switched": {
-        "id": "mvrdmka0d3k12",
+        "id": "mvrg5xniux0c7",
         "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
@@ -143,7 +143,7 @@
         "quick": "ja",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -163,14 +163,14 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdmqih06xsq",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg64x6cbzqe",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
-        "textLen": 29,
+        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
+        "textLen": 43,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
         "dir": "中文 → 中文",
@@ -179,21 +179,21 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 26,
-        "overlayVisible": 174,
-        "overlayFirstFrame": 179
+        "homeHidden": 27,
+        "overlayVisible": 346,
+        "overlayFirstFrame": 353
       },
-      "hiddenMs": 26,
-      "overlayMs": 174,
+      "hiddenMs": 27,
+      "overlayMs": 346,
       "switched": {
-        "id": "mvrdmqih06xsq",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg64x6cbzqe",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "Echtzeitübersetzung verwandelt jedes Video in Ihre Sprache. Satz 1. Wechselt alle 2,5 Sekunden",
-        "textLen": 94,
+        "text": "Wählen Sie eine Region aus, und ScreenLens liest sie für Sie weiter. Satz 2. Alle 2,5 Sekunden wechseln",
+        "textLen": 103,
         "targetLang": "de",
         "sourceLang": "zh-CN",
         "dir": "中文 → DE",
@@ -205,7 +205,7 @@
         "quick": "de",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -225,14 +225,14 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdmws0soua8",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6bjjthvqu",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
-        "textLen": 29,
+        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
+        "textLen": 43,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
         "dir": "中文 → 中文",
@@ -241,21 +241,21 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 29,
-        "overlayVisible": 173,
-        "overlayFirstFrame": 179
+        "homeHidden": 26,
+        "overlayVisible": 399,
+        "overlayFirstFrame": 405
       },
-      "hiddenMs": 29,
-      "overlayMs": 173,
+      "hiddenMs": 26,
+      "overlayMs": 399,
       "switched": {
-        "id": "mvrdmws0soua8",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6bjjthvqu",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "La traducción en tiempo real convierte cualquier video a tu idioma.  \nFrase 1. Cambia cada 2.5 segundos",
-        "textLen": 103,
+        "text": "Seleccione una región, y ScreenLens seguirá leyéndola por usted.  \nSegunda oración. Cambia cada 2,5 segundos",
+        "textLen": 108,
         "targetLang": "es",
         "sourceLang": "zh-CN",
         "dir": "中文 → ES",
@@ -267,7 +267,7 @@
         "quick": "es",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -287,14 +287,14 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdn2ubqcxos",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6ht0qrkox",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
-        "textLen": 29,
+        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
+        "textLen": 43,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
         "dir": "中文 → 中文",
@@ -304,20 +304,20 @@
       },
       "timing": {
         "homeHidden": 28,
-        "overlayVisible": 171,
-        "overlayFirstFrame": 177
+        "overlayVisible": 347,
+        "overlayFirstFrame": 360
       },
       "hiddenMs": 28,
-      "overlayMs": 171,
+      "overlayMs": 347,
       "switched": {
-        "id": "mvrdn2ubqcxos",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6ht0qrkox",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "A tradução em tempo real transforma qualquer vídeo no seu idioma.\nFrase 1. Troca a cada 2,5 segundos",
-        "textLen": 100,
+        "text": "Selecione uma região, e o ScreenLens continuará lendo para você. \nSegunda frase. Alterna a cada 2,5 segundos",
+        "textLen": 108,
         "targetLang": "pt",
         "sourceLang": "zh-CN",
         "dir": "中文 → PT",
@@ -329,7 +329,7 @@
         "quick": "pt",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -349,13 +349,13 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdn93ylxsu2",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6o94nu1cr",
+        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "text": "字幕在你观看视频时始终显示在顶部。\n第3句，每2.5秒切换",
         "textLen": 29,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
@@ -365,21 +365,21 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 29,
-        "overlayVisible": 169,
-        "overlayFirstFrame": 173
+        "homeHidden": 25,
+        "overlayVisible": 333,
+        "overlayFirstFrame": 337
       },
-      "hiddenMs": 29,
-      "overlayMs": 169,
+      "hiddenMs": 25,
+      "overlayMs": 333,
       "switched": {
-        "id": "mvrdn93ylxsu2",
-        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6o94nu1cr",
+        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "La traduzione in tempo reale trasforma qualsiasi video nella tua lingua.  \nFrase 1. Cambia ogni 2,5 secondi",
-        "textLen": 107,
+        "text": "I sottotitoli rimangono in cima al video mentre guardi. La terza frase cambia ogni 2,5 secondi",
+        "textLen": 94,
         "targetLang": "it",
         "sourceLang": "zh-CN",
         "dir": "中文 → IT",
@@ -391,7 +391,7 @@
         "quick": "it",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -411,14 +411,14 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdnfcgd9zll",
-        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6um0ehx67",
+        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
-        "textLen": 43,
+        "text": "字幕在你观看视频时始终显示在顶部。\n第3句，每2.5秒切换",
+        "textLen": 29,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
         "dir": "中文 → 中文",
@@ -427,21 +427,20 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 25,
-        "overlayVisible": 166,
-        "overlayFirstFrame": 176
+        "homeHidden": 23,
+        "overlayVisible": 344
       },
-      "hiddenMs": 25,
-      "overlayMs": 166,
+      "hiddenMs": 23,
+      "overlayMs": 344,
       "switched": {
-        "id": "mvrdnfcgd9zll",
-        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg6um0ehx67",
+        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "Выберите область, и ScreenLens будет продолжать считывать её для вас. \nПредложение 2. Меняется каждые 2,5 секунды",
-        "textLen": 113,
+        "text": "Субтитр остаётся вверху видео, пока вы смотрите. \nПредложение 3. Меняется каждые 2,5 секунды",
+        "textLen": 92,
         "targetLang": "ru",
         "sourceLang": "zh-CN",
         "dir": "中文 → RU",
@@ -453,7 +452,7 @@
         "quick": "ru",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -473,14 +472,14 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdnlmmjl98r",
-        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg71abqsxj5",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
-        "textLen": 43,
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
         "dir": "中文 → 中文",
@@ -489,21 +488,21 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 25,
-        "overlayVisible": 175,
-        "overlayFirstFrame": 182
+        "homeHidden": 26,
+        "overlayVisible": 350,
+        "overlayFirstFrame": 367
       },
-      "hiddenMs": 25,
-      "overlayMs": 175,
+      "hiddenMs": 26,
+      "overlayMs": 350,
       "switched": {
-        "id": "mvrdnlmmjl98r",
-        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg71abqsxj5",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "영역을 선택하면 ScreenLens가 그것을 계속 읽어줍니다. \n두 번째 문장. 2.5초마다 전환",
-        "textLen": 54,
+        "text": "실시간 번역은 모든 비디오를 당신의 언어로 바꿉니다. \n첫 번째 문장. 매 2.5초마다 전환",
+        "textLen": 51,
         "targetLang": "ko",
         "sourceLang": "zh-CN",
         "dir": "中文 → 韩文",
@@ -515,7 +514,7 @@
         "quick": "ko",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -535,14 +534,14 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdnry7hlz4m",
-        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg77yjoblck",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
-        "textLen": 43,
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
         "targetLang": "zh-CN",
         "sourceLang": "zh-CN",
         "dir": "中文 → 中文",
@@ -551,21 +550,21 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 30,
-        "overlayVisible": 178,
-        "overlayFirstFrame": 183
+        "homeHidden": 26,
+        "overlayVisible": 351,
+        "overlayFirstFrame": 372
       },
-      "hiddenMs": 30,
-      "overlayMs": 178,
+      "hiddenMs": 26,
+      "overlayMs": 351,
       "switched": {
-        "id": "mvrdnry7hlz4m",
-        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "id": "mvrg77yjoblck",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
         "provider": "微软翻译",
         "error": "",
-        "text": "Select a region, and ScreenLens keeps reading it for you. \nSentence 2. Switches every 2.5 seconds",
-        "textLen": 97,
+        "text": "Real-time translation turns any video into your language.  \nSentence 1. Switch every 2.5 seconds",
+        "textLen": 96,
         "targetLang": "en",
         "sourceLang": "zh-CN",
         "dir": "中文 → EN",
@@ -577,7 +576,7 @@
         "quick": "en",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -597,7 +596,7 @@
       "prehide": true,
       "homeHiddenAt1700": true,
       "initial": {
-        "id": "mvrdny8hrdzea",
+        "id": "mvrg7eu49tcnd",
         "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
@@ -613,14 +612,14 @@
         "selectDisabled": false
       },
       "timing": {
-        "homeHidden": 24,
-        "overlayVisible": 170,
-        "overlayFirstFrame": 179
+        "homeHidden": 28,
+        "overlayVisible": 420,
+        "overlayFirstFrame": 428
       },
-      "hiddenMs": 24,
-      "overlayMs": 170,
+      "hiddenMs": 28,
+      "overlayMs": 420,
       "switched": {
-        "id": "mvrdny8hrdzea",
+        "id": "mvrg7eu49tcnd",
         "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
         "sourceLen": 77,
         "status": "done",
@@ -639,7 +638,7 @@
         "quick": "zh-CN",
         "prehide": false,
         "info": {
-          "hwnd": 2885606,
+          "hwnd": 1769778,
           "w": 1322,
           "visible": true,
           "y": 90,
@@ -658,7 +657,8 @@
     "Result window now shows the latest record after page load (fixes a stale OCR-state overwrite race).",
     "Realtime stop while the region overlay is open now cancels the overlay instead of leaving selecting=true (fixes next start returning busy).",
     "CJK target detection reads record.meta.targetLang (previously always undefined).",
-    "action:set-target no longer starts a new selection when OCR is still pending; it only persists the target."
+    "action:set-target no longer starts a new selection when OCR is still pending; it only persists the target.",
+    "After hiding the home/result, wait 160 ms (SL_HIDE_SETTLE_MS) before freezing the screen; overlay preview verified free of any home-window ghost."
   ],
   "roundsSummary": {
     "screenshot": "10/10 pass",
@@ -676,12 +676,12 @@
       "Italiano"
     ],
     "homeHiddenMsRange": [
-      24,
-      30
+      23,
+      34
     ],
     "overlayVisibleMsRange": [
-      166,
-      213
+      333,
+      420
     ],
     "homeHiddenAt1700ms": "10/10"
   },
@@ -691,5 +691,7 @@
     "log": "test/tmp/ten-round.log",
     "harness": "test/tmp/ten-round-qa.js"
   },
-  "release_zip_sha256": "4BBBB79DF5AC2576BA4BC2D40DF833682C00667CD100AD9509B9CA2DD5E783FE"
+  "release_zip_sha256": "249CA3AF6D1B8F3E539B1B1D901F7BCB233974F2B8792AF499559AB2090C5514",
+  "hideSettleMs": 160,
+  "overlayPreviewNoHomeGhost": true
 }

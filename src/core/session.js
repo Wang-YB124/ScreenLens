@@ -10,7 +10,7 @@ const {
   LANG_NAMES,
 } = require('./translate');
 const { providerLabel, streamChat } = require('./llm');
-const { startTiming, markTiming, finishTiming } = require('./timing');
+const { startTiming, markTiming, finishTiming, waitHideSettle, HIDE_SETTLE_MS } = require('./timing');
 const { detectDomain, normalizeDomain, DOMAIN_LABELS } = require('./domain');
 const { buildExplainSystem } = require('./prompts');
 const {
@@ -161,6 +161,10 @@ class SessionManager {
       markTiming(timingId, 'result-hidden', { hadResult });
       this.homeMinimized = await this.minimizeHome();
       markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
+      if (this.homeMinimized || hadResult) {
+        await waitHideSettle();
+        markTiming(timingId, 'hide-settled', { ms: HIDE_SETTLE_MS, home: this.homeMinimized, result: hadResult });
+      }
       const selection = await selectRegion({
         timingId,
         capture: (opts) => captureDisplaysFast(this.ocr, this.tempDir, opts),

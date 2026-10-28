@@ -43,4 +43,10 @@ function finishTiming(id, extra = {}) {
   entries.delete(id);
 }
 
-module.exports = { startTiming, markTiming, finishTiming };
+const HIDE_SETTLE_MS = Math.max(0, Number(process.env.SL_HIDE_SETTLE_MS) || 160);
+
+function waitHideSettle() {
+  return new Promise((resolve) => setTimeout(resolve, HIDE_SETTLE_MS));
+}
+
+module.exports = { startTiming, markTiming, finishTiming, waitHideSettle, HIDE_SETTLE_MS };

@@ -5,7 +5,7 @@ const { createRealtimeWindow, sendRealtimeInit } = require('../windows/realtimeW
 const { resolveRealtimeDirection, translateFree, translateAI, LANG_NAMES } = require('./translate');
 const { providerLabel } = require('./llm');
 const { detectDomain, DOMAIN_LABELS } = require('./domain');
-const { startTiming, markTiming, finishTiming } = require('./timing');
+const { startTiming, markTiming, finishTiming, waitHideSettle, HIDE_SETTLE_MS } = require('./timing');
 
 function normalizeKey(text) {
   return String(text || '').replace(/\s+/g, ' ').trim().slice(0, 1600);
@@ -85,6 +85,16 @@ class RealtimeController {
       markTiming(timingId, 'result-hidden', { hadResult });
       this.homeMinimized = await this.minimizeHome();
       markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
+      if (this.homeMinimized || hadResult) {
+        await waitHideSettle();
+        markTiming(timingId, 'hide-settled', { ms: HIDE_SETTLE_MS, home: this.homeMinimized, result: hadResult });
+      }
+      if (this.cancelRequested) {
+        this.cancelRequested = false;
+        this.releaseHome();
+        finishTiming(timingId, { outcome: 'cancelled' });
+        return;
+      }
       const selection = await selectRegion({
         timingId,
         finishOnFrame: false,

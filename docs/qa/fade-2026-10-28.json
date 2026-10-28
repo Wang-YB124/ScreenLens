@@ -30,5 +30,7 @@
   "fix": "BrowserWindow.setOpacity(0) before hide(); setOpacity(1) before show()/restore().",
   "frames": "test/tmp/visual-hide/frame-*.png",
   "restoredScreenshot": "test/tmp/fade-restored.png",
-  "release_zip_sha256": "4BBBB79DF5AC2576BA4BC2D40DF833682C00667CD100AD9509B9CA2DD5E783FE"
+  "release_zip_sha256": "249CA3AF6D1B8F3E539B1B1D901F7BCB233974F2B8792AF499559AB2090C5514",
+  "hideSettleMs": 160,
+  "note": "After hide, wait 160 ms before capturing so the frozen background cannot contain a home ghost; the overlay itself appears around 0.33-0.42 s."
 }
