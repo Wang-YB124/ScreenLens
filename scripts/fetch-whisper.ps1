@@ -16,6 +16,9 @@ if (-not (Test-Path (Join-Path $runtime 'whisper-cli.exe'))) {
     $release = Get-ChildItem -Path $tmp -Recurse -Directory -Filter 'Release' | Select-Object -First 1
     if (-not $release) { throw 'Release folder not found in whisper archive.' }
     Copy-Item -Path (Join-Path $release.FullName 'whisper-cli.exe') -Destination $runtime -Force
+    if (Test-Path (Join-Path $release.FullName 'whisper-server.exe')) {
+        Copy-Item -Path (Join-Path $release.FullName 'whisper-server.exe') -Destination $runtime -Force
+    }
     Copy-Item -Path (Join-Path $release.FullName 'whisper.dll') -Destination $runtime -Force
     Copy-Item -Path (Join-Path $release.FullName 'ggml*.dll') -Destination $runtime -Force
     Copy-Item -Path (Join-Path $release.FullName 'libopenblas.dll') -Destination $runtime -Force

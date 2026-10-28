@@ -2,6 +2,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
+const http = require('http');
+const net = require('net');
 const { BrowserWindow, screen } = require('electron');
 const { createRealtimeWindow, sendRealtimeInit } = require('../windows/realtimeWindow');
 const { translateAI, translateFree, LANG_NAMES } = require('./translate');
@@ -9,6 +11,44 @@ const { providerLabel } = require('./llm');
 const { startTiming, markTiming, finishTiming } = require('./timing');
 const { getOutputDeviceState } = require('./audio-device');
 const T2S = require('./t2s.json');
+
+function findFreePort() {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(0));
+    server.listen(0, '127.0.0.1', () => {
+      const port = server.address().port;
+      server.close(() => resolve(port));
+    });
+  });
+}
+
+function waitForPort(port, timeout = 8000) {
+  return new Promise((resolve) => {
+    const end = Date.now() + timeout;
+    const attempt = () => {
+      if (Date.now() > end) {
+        resolve(false);
+        return;
+      }
+      const socket = net.connect({ host: '127.0.0.1', port });
+      socket.once('connect', () => {
+        socket.destroy();
+        resolve(true);
+      });
+      socket.once('error', () => {
+        socket.destroy();
+        setTimeout(attempt, 150);
+      });
+      socket.setTimeout(600, () => {
+        socket.destroy();
+        setTimeout(attempt, 150);
+      });
+    };
+    attempt();
+  });
+}
+
 
 const HALLUCINATION_PATTERNS = [
   /^(谢谢观看|感谢观看|请不吝点赞|字幕由|字幕组|訂閱|订阅|小铃铛|明镜与点点)/,
@@ -178,6 +218,10 @@ class AudioController {
     this.firstChunkStats = null;
     this.detectedLang = '';
     this.languageSetting = this.settings.get().audio.language;
+    this.modelSetting = this.settings.get().audio.model;
+    this.server = null;
+    this.serverPort = 0;
+    this.serverStarting = null;
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;
@@ -194,18 +238,32 @@ class AudioController {
   modelInfo() {
     const base = path.join(this.rootDir, 'vendor', 'whisper');
     const runtime = path.join(base, 'runtime', 'whisper-cli.exe');
+    const server = path.join(base, 'runtime', 'whisper-server.exe');
     const models = path.join(base, 'models');
     const candidates = [
-      { name: 'Whisper small (q5_1)', file: 'ggml-small-q5_1.bin', min: 150 * 1024 * 1024 },
-      { name: 'Whisper base (q5_1)', file: 'ggml-base-q5_1.bin', min: 40 * 1024 * 1024 },
+      { key: 'base', name: 'Whisper base (q5_1)', file: 'ggml-base-q5_1.bin', min: 40 * 1024 * 1024 },
+      { key: 'small', name: 'Whisper small (q5_1)', file: 'ggml-small-q5_1.bin', min: 150 * 1024 * 1024 },
+    ];
+    const desired = this.settings.get().audio.model === 'small' ? 'small' : 'base';
+    const ordered = [
+      ...candidates.filter((item) => item.key === desired),
+      ...candidates.filter((item) => item.key !== desired),
     ];
     if (fs.existsSync(runtime)) {
-      for (const candidate of candidates) {
+      for (const candidate of ordered) {
         const file = path.join(models, candidate.file);
         try {
           const stat = fs.statSync(file);
           if (stat.size >= candidate.min) {
-            return { ready: true, runtime, model: file, name: candidate.name, reason: '' };
+            return {
+              ready: true,
+              runtime,
+              server: fs.existsSync(server) ? server : '',
+              model: file,
+              name: candidate.name,
+              key: candidate.key,
+              reason: '',
+            };
           }
         } catch {}
       }
@@ -213,10 +271,146 @@ class AudioController {
     return {
       ready: false,
       runtime,
+      server: '',
       model: '',
       name: 'Whisper',
+      key: '',
       reason: '未找到本地 Whisper 运行文件或模型，请先运行 scripts/fetch-whisper.ps1',
     };
+  }
+
+  async ensureServer() {
+    if (this.server && this.serverPort) return this.serverPort;
+    if (this.serverStarting) return this.serverStarting;
+    const info = this.modelInfo();
+    if (!info.ready || !info.server) return 0;
+    const port = await findFreePort();
+    if (!port) return 0;
+    const threads = Math.max(4, Math.min(8, (os.cpus() || []).length || 4));
+    const args = [
+      '-m', info.model,
+      '-t', String(threads),
+      '--host', '127.0.0.1',
+      '--port', String(port),
+      '-sns',
+      '-bo', '1',
+      '-bs', '1',
+    ];
+    this.serverStarting = new Promise((resolve) => {
+      let proc;
+      try {
+        proc = spawn(info.server, args, {
+          cwd: path.dirname(info.server),
+          windowsHide: true,
+          stdio: ['ignore', 'ignore', 'pipe'],
+        });
+      } catch {
+        resolve(0);
+        return;
+      }
+      this.server = proc;
+      try { proc.stderr.on('data', () => {}); } catch {}
+      let settled = false;
+      const done = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+      proc.once('error', () => {
+        if (this.server === proc) this.server = null;
+        done(0);
+      });
+      proc.once('exit', () => {
+        if (this.server === proc) this.server = null;
+        this.serverPort = 0;
+        done(0);
+      });
+      waitForPort(port, 8000).then((ok) => {
+        if (ok && this.active && !this.server?.killed) {
+          this.serverPort = port;
+          markTiming(this.timingId, 'server-ready', { port, model: info.key });
+          done(port);
+        } else {
+          try { proc.kill(); } catch {}
+          done(0);
+        }
+      });
+    }).finally(() => {
+      this.serverStarting = null;
+    });
+    return this.serverStarting;
+  }
+
+  stopServer() {
+    const proc = this.server;
+    this.server = null;
+    this.serverPort = 0;
+    this.serverStarting = null;
+    if (proc) {
+      try { proc.kill(); } catch {}
+    }
+  }
+
+  serverRecognize(file, language, prompt) {
+    return this.ensureServer().then((port) => {
+      if (!port) throw new Error('Whisper server unavailable');
+      const audio = fs.readFileSync(file);
+      const boundary = `----screenlens${Date.now().toString(16)}`;
+      const fields = {
+        response_format: 'json',
+        language,
+        temperature: '0',
+      };
+      if (prompt) fields.prompt = prompt;
+      const chunks = [];
+      for (const [key, value] of Object.entries(fields)) {
+        chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`));
+      }
+      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${path.basename(file)}"\r\nContent-Type: audio/wav\r\n\r\n`));
+      chunks.push(audio);
+      chunks.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+      const body = Buffer.concat(chunks);
+      return new Promise((resolve, reject) => {
+        const req = http.request({
+          host: '127.0.0.1',
+          port,
+          path: '/inference',
+          method: 'POST',
+          timeout: 20000,
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            'Content-Length': body.length,
+          },
+        }, (res) => {
+          let data = '';
+          res.setEncoding('utf8');
+          res.on('data', (chunk) => { data += chunk; });
+          res.on('end', () => {
+            if (res.statusCode !== 200) {
+              reject(new Error(`Whisper server ${res.statusCode}`));
+              return;
+            }
+            try {
+              const parsed = JSON.parse(data);
+              resolve(String(parsed.text || '').trim());
+            } catch (err) {
+              reject(err);
+            }
+          });
+        });
+        req.on('timeout', () => req.destroy(new Error('Whisper server timeout')));
+        req.on('error', reject);
+        req.end(body);
+      });
+    });
+  }
+
+  dispose() {
+    this.stopServer();
+    if (this.proc) {
+      try { this.proc.kill(); } catch {}
+      this.proc = null;
+    }
   }
 
   send(payload) {
@@ -235,6 +429,11 @@ class AudioController {
   }
 
   refreshSettings() {
+    const model = this.settings.get().audio.model;
+    if (model !== this.modelSetting) {
+      this.modelSetting = model;
+      this.stopServer();
+    }
     const language = this.settings.get().audio.language;
     if (language !== this.languageSetting) {
       this.languageSetting = language;
@@ -261,6 +460,10 @@ class AudioController {
     this.firstChunkStats = null;
     this.detectedLang = '';
     this.languageSetting = this.settings.get().audio.language;
+    this.modelSetting = this.settings.get().audio.model;
+    this.server = null;
+    this.serverPort = 0;
+    this.serverStarting = null;
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;
@@ -350,12 +553,13 @@ class AudioController {
           source,
           chunkMs: settings.audio.chunkMs,
           overlapMs: settings.audio.overlapMs,
-          firstChunkMs: 3000,
+          firstChunkMs: 2000,
           timingId,
         });
         markTiming(timingId, 'capture-init-sent');
       });
       this.capture.loadFile(path.join(__dirname, '..', 'renderer', 'audio-capture', 'index.html'));
+      this.ensureServer().catch(() => {});
     } catch (err) {
       const message = String(err.message || '音频捕获初始化失败');
       markTiming(timingId, 'start-error', { message: message.slice(0, 160) });
@@ -570,7 +774,25 @@ class AudioController {
       });
   }
 
-  recognize(file) {
+  async recognize(file) {
+    const settings = this.settings.get();
+    const configured = settings.audio.language;
+    const auto = configured === 'auto' && !this.detectedLang;
+    const language = configured === 'auto' ? (this.detectedLang || 'auto') : audioLanguage(configured);
+    const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
+    if (!auto) {
+      try {
+        const text = await this.serverRecognize(file, meta.whisper, meta.prompt);
+        markTiming(this.timingId, 'recognize-server', { chars: text.length, language: meta.whisper });
+        return { text, language: meta.whisper };
+      } catch (err) {
+        markTiming(this.timingId, 'server-fallback', { message: String(err.message || '').slice(0, 120) });
+      }
+    }
+    return this.recognizeCli(file);
+  }
+
+  recognizeCli(file) {
     const info = this.modelInfo();
     if (!info.ready) throw new Error('本地 Whisper 模型不可用');
     const settings = this.settings.get();

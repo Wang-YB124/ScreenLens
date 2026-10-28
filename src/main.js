@@ -941,5 +941,6 @@ app.on('before-quit', () => {
   try { globalShortcut.unregisterAll(); } catch {}
   try { realtime?.stop({ silent: true }); } catch {}
   try { audio?.stop({ silent: true }); } catch {}
+  try { audio?.dispose(); } catch {}
   try { ocr?.stop(); } catch {}
 });

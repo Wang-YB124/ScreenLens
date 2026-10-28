@@ -41,8 +41,9 @@ const DEFAULTS = {
   audio: {
     source: 'system',
     language: 'zh',
-    chunkMs: 6000,
-    overlapMs: 1200,
+    model: 'base',
+    chunkMs: 4000,
+    overlapMs: 2000,
   },
 };
 
@@ -111,9 +112,14 @@ function sanitize(data) {
   out.historyPaused = Boolean(out.historyPaused);
   out.audio = isObject(out.audio) ? out.audio : {};
   out.audio.source = ['system', 'microphone'].includes(out.audio.source) ? out.audio.source : 'system';
+  if (out.audio.chunkMs === 6000 && out.audio.overlapMs === 1200) {
+    out.audio.chunkMs = 4000;
+    out.audio.overlapMs = 2000;
+  }
   out.audio.language = ['auto', 'zh', 'en', 'ja', 'ko', 'ru', 'fr', 'de', 'es', 'pt', 'it'].includes(out.audio.language) ? out.audio.language : 'zh';
-  out.audio.chunkMs = Math.round(clamp(out.audio.chunkMs, 2500, 8000, 6000));
-  out.audio.overlapMs = Math.round(clamp(out.audio.overlapMs, 300, 1500, 1200));
+  out.audio.model = ['base', 'small'].includes(out.audio.model) ? out.audio.model : 'base';
+  out.audio.chunkMs = Math.round(clamp(out.audio.chunkMs, 2500, 8000, 4000));
+  out.audio.overlapMs = Math.round(clamp(out.audio.overlapMs, 300, 2500, 2000));
   return out;
 }
 

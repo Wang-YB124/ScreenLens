@@ -421,6 +421,7 @@ function syncSettingsForm(force) {
   setValue('realtime-engine', s.realtime.engine);
   setValue('realtime-lines', String(s.realtime.maxLines));
   setValue('audio-source', s.audio.source);
+  setValue('audio-model', s.audio.model);
   setValue('audio-language', s.audio.language);
   const audioInfo = state.audio || {};
   const audioStatus = $('audio-model-status');
@@ -431,7 +432,7 @@ function syncSettingsForm(force) {
   const audioDetail = $('audio-model-detail');
   if (audioDetail) {
     audioDetail.textContent = audioInfo.ready
-      ? `${audioInfo.name || 'Whisper'} · 首个约 3 秒，之后约每 6 秒更新一次`
+      ? `${audioInfo.name || 'Whisper'} · 首个约 2 秒，之后约每 2 秒更新一次`
       : (audioInfo.reason || '未找到本地 Whisper 模型');
   }
 
@@ -751,6 +752,13 @@ function bindEvents() {
       showToast('音频来源已更改', '请停止后重新开启音频字幕以应用', 'warn');
     }
   });
+  $('audio-model').addEventListener('change', (event) => {
+    saveSettings({ audio: { model: event.target.value } });
+    if (state?.audio?.active) {
+      showToast('识别模式已更改', '请重新开启音频字幕以应用新模型', 'warn');
+    }
+  });
+
   $('audio-language').addEventListener('change', (event) => {
     saveSettings({ audio: { language: event.target.value } });
   });

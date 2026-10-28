@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-28",
+  "scope": "Low-latency audio subtitle cadence after whisper-server + short sliding window",
+  "base": {
+    "serverReadyMs": 289,
+    "firstChunkMs": 2732,
+    "recognizeMs": 355,
+    "firstTextMs": 3088,
+    "firstSubtitleMs": 3088,
+    "updates": [
+      3190,
+      5842,
+      8319,
+      10785,
+      13427
+    ],
+    "intervalsMs": [
+      2261,
+      418,
+      2652,
+      2477,
+      2466,
+      2642
+    ],
+    "note": "same-language zh target; base model"
+  },
+  "small": {
+    "serverReadyMs": 431,
+    "firstChunkMs": 2729,
+    "recognizeMs": 1203,
+    "firstOriginalMs": 4107,
+    "firstTranslatedMs": 5717,
+    "note": "zh->fr; small model; better Chinese accuracy"
+  },
+  "conclusion": "base mode first text about 3.1 s and updates every ~2 s; small mode about 4.1 s to original and 5.7 s to translated, with higher accuracy.",
+  "evidence": [
+    "test/tmp/audio-realtime.log",
+    "test/tmp/audio-realtime/summary.json",
+    "test/tmp/audio-realtime/realtime-audio.png"
+  ],
+  "release_zip_sha256": "374104ED3D64C6CF3324BC244BBC9FB2A511C3DACF5DC7352D61C1DFBC252AB3",
+  "final_artifact_verified": "Final packaged build: base server ready 289 ms, first chunk 2732 ms, first subtitle 3088 ms; updates about every 2.5 s."
+}

@@ -46,13 +46,11 @@ if (Test-Path $whisper) {
     if (Test-Path $srcModels) {
         $modelTarget = Join-Path $target 'models'
         New-Item -ItemType Directory -Path $modelTarget -Force | Out-Null
-        $preferred = Join-Path $srcModels 'ggml-small-q5_1.bin'
-        $fallback = Join-Path $srcModels 'ggml-base-q5_1.bin'
-        if (Test-Path $preferred) {
-            Copy-Item -LiteralPath $preferred -Destination $modelTarget -Force
-        }
-        elseif (Test-Path $fallback) {
-            Copy-Item -LiteralPath $fallback -Destination $modelTarget -Force
+        foreach ($name in @('ggml-base-q5_1.bin', 'ggml-small-q5_1.bin')) {
+            $file = Join-Path $srcModels $name
+            if (Test-Path $file) {
+                Copy-Item -LiteralPath $file -Destination $modelTarget -Force
+            }
         }
     }
 }

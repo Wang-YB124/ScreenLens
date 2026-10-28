@@ -1,7 +1,24 @@
 {
   "date": "2026-10-28",
-  "scope": "Audio subtitle recognition: 10 source languages + auto detection, faster Whisper decoding, subtitle-bar language wiring",
-  "model": "Whisper small q5_1 (ggml-small-q5_1.bin)",
+  "scope": "Audio subtitles: low-latency persistent whisper-server + short sliding window; 10 source languages + auto; base (real-time) and small (accurate) models; subtitle-bar language wiring",
+  "passed": 5,
+  "total": 5,
+  "architecture": {
+    "server": "whisper-server.exe (persistent, model loaded once per audio session)",
+    "models": {
+      "base": "ggml-base-q5_1.bin (default, real-time)",
+      "small": "ggml-small-q5_1.bin (accurate option)"
+    },
+    "firstChunkMs": 2000,
+    "windowMs": 4000,
+    "overlapMs": 2000,
+    "updateInterval": "about 2 s",
+    "decodeFlags": [
+      "-sns",
+      "-bo 1",
+      "-bs 1"
+    ]
+  },
   "languages": [
     "auto",
     "zh",
@@ -15,108 +32,94 @@
     "pt",
     "it"
   ],
-  "decodeBenchmark": {
-    "zh-4.5s": {
-      "default_ms": [
-        1631,
-        2012
-      ],
-      "fast_bo1_bs1_sns_ms": [
-        1413,
-        1453
-      ],
-      "text_equal": true
-    },
-    "en-12.1s": {
-      "default_ms": [
-        1764,
-        1894
-      ],
-      "fast_bo1_bs1_sns_ms": [
-        1532,
-        1615
-      ],
-      "text_equal": true
-    },
-    "flags": [
-      "-bo 1",
-      "-bs 1",
-      "-sns"
-    ]
-  },
   "cases": [
     {
       "name": "zh-explicit",
       "language": "zh",
       "target": "fr",
       "pass": true,
-      "subtitleVisibleMs": 126,
-      "listeningMs": 592,
-      "firstChunkMs": 3728,
-      "rms": 0.1490387251843009,
-      "activeRatio": 0.7377048068576388,
-      "whisperDoneMs": 5620,
-      "firstSubtitleMs": 7007,
+      "serverReadyMs": 268,
+      "serverModel": "base",
+      "subtitleVisibleMs": 127,
+      "listeningMs": 597,
+      "firstChunkMs": 2712,
+      "rms": 0.16699927310964505,
+      "activeRatio": 0.7667744954427084,
+      "recognizeMs": 3081,
+      "whisperDoneMs": 3082,
+      "firstSubtitleMs": 4175,
       "detected": null,
-      "text": "实时\n音频\n简体中文 → Français\nFREE\nCtrl + Alt + R 停止\n是系统音频识别的中文语音\nC'est de la reconnaissance vocale en chinois du système audio"
+      "text": "实时\n音频\n简体中文 → Français\nFREE\nCtrl + Alt + R 停止\n其别的中文语音。\nSon autre voix chinoise."
     },
     {
       "name": "en-explicit",
       "language": "en",
       "target": "fr",
       "pass": true,
-      "subtitleVisibleMs": 123,
-      "listeningMs": 229,
-      "firstChunkMs": 3312,
-      "rms": 0.22325402520515317,
-      "activeRatio": 0.8142768012152778,
-      "whisperDoneMs": 4742,
-      "firstSubtitleMs": 5659,
+      "serverReadyMs": 244,
+      "serverModel": "base",
+      "subtitleVisibleMs": 118,
+      "listeningMs": 237,
+      "firstChunkMs": 2292,
+      "rms": 0.22950730025046198,
+      "activeRatio": 0.7946268717447916,
+      "recognizeMs": 2653,
+      "whisperDoneMs": 2653,
+      "firstSubtitleMs": 3480,
       "detected": null,
-      "text": "实时\n音频\nEnglish → Français\nFREE\nCtrl + Alt + R 停止\nTime audio subtitles. The system audio\nSous-titres audio temporels. L'audio du système"
+      "text": "实时\n音频\nEnglish → Français\nFREE\nCtrl + Alt + R 停止\nThe system audio is\nL'audio du système est"
     },
     {
       "name": "zh-auto",
       "language": "auto",
       "target": "zh-CN",
       "pass": true,
-      "subtitleVisibleMs": 125,
-      "listeningMs": 220,
-      "firstChunkMs": 3298,
-      "rms": 0.09161211416277168,
-      "activeRatio": 0.5575086805555556,
-      "whisperDoneMs": 5676,
-      "firstSubtitleMs": 5676,
+      "serverReadyMs": 260,
+      "serverModel": "base",
+      "subtitleVisibleMs": 135,
+      "listeningMs": 247,
+      "firstChunkMs": 2303,
+      "rms": 0.10141635269813062,
+      "activeRatio": 0.5168965657552084,
+      "recognizeMs": null,
+      "whisperDoneMs": 3092,
+      "firstSubtitleMs": 3092,
       "detected": "zh",
-      "text": "实时\n音频\n简体中文\nORIG\nCtrl + Alt + R 停止\n这是一段用于测试系统音频"
+      "text": "实时\n音频\n简体中文\nORIG\nCtrl + Alt + R 停止\n这是一段用于测"
     },
     {
       "name": "en-auto",
       "language": "auto",
       "target": "zh-CN",
       "pass": true,
-      "subtitleVisibleMs": 120,
-      "listeningMs": 219,
-      "firstChunkMs": 3309,
-      "rms": 0.13828104488677428,
-      "activeRatio": 0.7486775716145834,
-      "whisperDoneMs": 5656,
-      "firstSubtitleMs": 6865,
+      "serverReadyMs": 240,
+      "serverModel": "base",
+      "subtitleVisibleMs": 121,
+      "listeningMs": 232,
+      "firstChunkMs": 2291,
+      "rms": 0.2079844409355027,
+      "activeRatio": 0.6028951009114584,
+      "recognizeMs": null,
+      "whisperDoneMs": 3072,
+      "firstSubtitleMs": 3981,
       "detected": "en",
-      "text": "实时\n音频\nEnglish → 简体中文\nFREE\nCtrl + Alt + R 停止\nThis is a test of real-time audio subtitle.\n这是实时音频字幕的测试。"
+      "text": "实时\n音频\nEnglish → 简体中文\nFREE\nCtrl + Alt + R 停止\nThis is a test of real time\n这是实时测试"
     },
     {
       "name": "bar-language",
       "language": "zh -> ja -> auto",
       "target": "fr",
       "pass": true,
-      "subtitleVisibleMs": 138,
-      "listeningMs": 232,
-      "firstChunkMs": 3317,
-      "rms": 0.07248895861802189,
-      "activeRatio": 0.5328708224826388,
-      "whisperDoneMs": 4791,
-      "firstSubtitleMs": 5919,
+      "serverReadyMs": 251,
+      "serverModel": "base",
+      "subtitleVisibleMs": 127,
+      "listeningMs": 245,
+      "firstChunkMs": 2324,
+      "rms": 0.10852933767433942,
+      "activeRatio": 0.4975382486979167,
+      "recognizeMs": 2676,
+      "whisperDoneMs": 2676,
+      "firstSubtitleMs": 3894,
       "detected": null,
       "text": "",
       "bar": {
@@ -141,22 +144,20 @@
       }
     }
   ],
-  "passed": 5,
-  "total": 5,
   "notes": [
-    "Only Chinese and English speech samples are installed locally; Japanese/Korean/Russian/French/German/Spanish/Portuguese/Italian use the same Whisper language flag, native prompt and source-code mapping but were not physically recorded.",
-    "Auto detection runs on the first spoken chunk and then locks the detected language for the session; the first auto chunk is about 1 s slower because of language detection.",
-    "Recognition language is also editable from the audio subtitle bar; changing it writes settings.audio.language and refreshes the bar.",
-    "Free translation only; no paid AI quota used. QA used an isolated user-data-dir/TEMP."
+    "The server path produced first text at ~3.1 s and updates every ~2.1–2.7 s for base; small mode was ~4.1 s to first original and ~5.7 s to first translated subtitle.",
+    "Base is faster but can make minor character errors; the UI lets the user choose 准确 · small.",
+    "Only zh/en TTS is installed locally; the other eight languages share the same server/CLI language and prompt path but were not physically recorded.",
+    "Free translation only; no paid AI quota used."
   ],
   "evidence": [
     "test/tmp/audio-lang.log",
     "test/tmp/audio-lang/summary.json",
+    "test/tmp/audio-realtime.log",
+    "test/tmp/audio-realtime/summary.json",
     "test/tmp/audio-lang/audio-zh-explicit.png",
-    "test/tmp/audio-lang/audio-en-explicit.png",
-    "test/tmp/audio-lang/audio-zh-auto.png",
-    "test/tmp/audio-lang/audio-en-auto.png"
+    "test/tmp/audio-lang/audio-en-explicit.png"
   ],
-  "release_zip_sha256": "DB0393BB2DB6B2695E1384A03CF27C94DA696A0E28BF0CAC492A3DF369AFEC98",
-  "final_artifact_verified": "Audio 5/5 on the final packaged build; screenshot language round 1/1 and realtime 2/2 regression also passed."
+  "release_zip_sha256": "374104ED3D64C6CF3324BC244BBC9FB2A511C3DACF5DC7352D61C1DFBC252AB3",
+  "final_artifact_verified": "Audio 5/5 on the final 366.9 MB packaged build (base real-time server); screenshot 1/1 and realtime-subtitle 2/2 regression also passed."
 }

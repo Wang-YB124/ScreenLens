@@ -427,6 +427,13 @@
                 </select>
               </div>
               <div class="row">
+                <div class="row-copy"><strong>识别模式</strong><span>实时用 base，准确用 small；切换后重新开启音频字幕</span></div>
+                <select class="select compact" id="audio-model">
+                  <option value="base">实时 · base</option>
+                  <option value="small">准确 · small</option>
+                </select>
+              </div>
+              <div class="row">
                 <div class="row-copy"><strong>识别语言</strong><span>支持 10 种语言，自动检测会在首段锁定</span></div>
                 <select class="select compact" id="audio-language">
                   <option value="auto">自动检测（首段锁定）</option>
@@ -443,7 +450,7 @@
                 </select>
               </div>
               <div class="row">
-                <div class="row-copy"><strong>本地模型</strong><span id="audio-model-detail">Whisper 本地模型 · 首个约 3 秒，之后约每 6 秒更新一次</span></div>
+                <div class="row-copy"><strong>本地模型</strong><span id="audio-model-detail">Whisper 本地模型 · 首个约 2 秒，之后约每 2 秒更新一次</span></div>
                 <span class="chip" id="audio-model-status">检查中</span>
               </div>
               <p class="setting-note">识别在本地运行，不上传音频；字幕翻译仍使用免费通道或已配置的 AI 模型。支持中文、English、日本語、한국어、Русский、Français、Deutsch、Español、Português、Italiano 及自动检测；切换音频来源后请重新开启音频字幕。</p>
