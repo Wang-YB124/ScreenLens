@@ -229,3 +229,18 @@
   - **CJK 目标判断**：结果窗 `isCjkTarget()` 读取了不存在的 `record.targetLang`，改为 `record.meta.targetLang`。
   - **语言切换与 OCR 竞争**：OCR 未完成时切换结果语言不再触发新的框选；只保存目标语言，等待当前 OCR 完成。
 - 证据：截图 `test/tmp/ten-round/r1-before.png`…`r10-after.png`；逐帧 `test/tmp/visual-hide/frame-*.png`、恢复截图 `test/tmp/fade-restored.png`；日志 `test/tmp/ten-round.log`、`test/tmp/fade-test.log`。
+
+## 音频识别完善（2026-10-28）
+
+- 数据：[audio-lang-2026-10-28.json](audio-lang-2026-10-28.json)。
+- 语言：识别语言从中文/English 扩展到 **10 种 + 自动检测**（中文、English、日本語、한국어、Русский、Français、Deutsch、Español、Português、Italiano）；每种语言使用对应的 Whisper 语言码、原生提示词与译文源语言标签；中文仍做繁转简，其他语言不做转换。
+- 自动检测：首个有语音的分块用 `-l auto` 检测并锁定语言，后续分块使用锁定的语言；首块因语言检测约慢 1 秒。设置或字幕条切回自动时会重新检测。
+- 字幕条联动：音频模式下的「原文语言」现在修改的是 `settings.audio.language`，不再误改实时字幕设置；自动/中文/日本語切换已验证会更新设置与字幕条。
+- 解码提速：Whisper 增加 `-bo 1 -bs 1 -sns`。同一段中文 4.5 秒样本从 1.63–2.01 秒降到 1.41–1.47 秒；英文 12.1 秒样本从 1.76–1.89 秒降到 1.53–1.62 秒，识别文本一致。
+- 端到端（打包版，系统回环 + 本地 TTS，5/5 通过）：
+  - 中文显式：字幕窗 126 ms、聆听 592 ms、首块 3728 ms（RMS 0.149、active 0.74）、Whisper 5620 ms、首条译文 7007 ms；方向「简体中文 → Français」。
+  - 英文显式：123 / 229 / 3312 ms（RMS 0.223）、Whisper 4742 ms、首条译文 5659 ms；方向「English → Français」。
+  - 中文自动：检测 `zh`，首条字幕 5676 ms，方向「简体中文」并显示原文。
+  - 英文自动：检测 `en`，首条译文 6865 ms，方向「English → 简体中文」。
+  - 字幕条原文语言：zh-CN → ja → auto，设置值分别变为 ja、auto，字幕条芯片显示 日本語、自动。
+- 说明：本机只安装了中文/英文 TTS，其他 8 种语言走同一条 Whisper `-l`/提示词/源语言映射链路，但未逐种录制真人语音；识别质量仍受模型、音量、噪声、口音影响。全程免费翻译，未使用付费 AI 额度。最终发布包上复测音频 5/5，并回归截图语言 1/1、实时字幕 2/2。

@@ -427,17 +427,26 @@
                 </select>
               </div>
               <div class="row">
-                <div class="row-copy"><strong>识别语言</strong><span>切换后对下一个音频分块生效</span></div>
+                <div class="row-copy"><strong>识别语言</strong><span>支持 10 种语言，自动检测会在首段锁定</span></div>
                 <select class="select compact" id="audio-language">
+                  <option value="auto">自动检测（首段锁定）</option>
                   <option value="zh">中文</option>
                   <option value="en">English</option>
+                  <option value="ja">日本語</option>
+                  <option value="ko">한국어</option>
+                  <option value="ru">Русский</option>
+                  <option value="fr">Français</option>
+                  <option value="de">Deutsch</option>
+                  <option value="es">Español</option>
+                  <option value="pt">Português</option>
+                  <option value="it">Italiano</option>
                 </select>
               </div>
               <div class="row">
-                <div class="row-copy"><strong>本地模型</strong><span id="audio-model-detail">Whisper base (q5_1) · 首个约 3 秒，之后约每 6 秒更新一次</span></div>
+                <div class="row-copy"><strong>本地模型</strong><span id="audio-model-detail">Whisper 本地模型 · 首个约 3 秒，之后约每 6 秒更新一次</span></div>
                 <span class="chip" id="audio-model-status">检查中</span>
               </div>
-              <p class="setting-note">识别在本地运行，不上传音频；字幕翻译仍使用免费通道或已配置的 AI 模型。切换音频来源后请重新开启音频字幕。</p>
+              <p class="setting-note">识别在本地运行，不上传音频；字幕翻译仍使用免费通道或已配置的 AI 模型。支持中文、English、日本語、한국어、Русский、Français、Deutsch、Español、Português、Italiano 及自动检测；切换音频来源后请重新开启音频字幕。</p>
             </section>
 
             <section class="setting-card card-general">

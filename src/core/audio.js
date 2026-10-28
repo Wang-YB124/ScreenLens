@@ -18,6 +18,41 @@ const HALLUCINATION_PATTERNS = [
   /^\((x|×)\s*\d+\)$/i,
 ];
 
+
+const AUDIO_LANG_META = {
+  zh: { whisper: 'zh', source: 'zh-CN', prompt: '以下是普通话的句子。', script: 'han' },
+  en: { whisper: 'en', source: 'en', prompt: 'The following is an English sentence.', script: 'latin' },
+  ja: { whisper: 'ja', source: 'ja', prompt: '以下は日本語の文です。', script: 'japanese' },
+  ko: { whisper: 'ko', source: 'ko', prompt: '다음은 한국어 문장입니다.', script: 'korean' },
+  ru: { whisper: 'ru', source: 'ru', prompt: 'Ниже приведено предложение на русском языке.', script: 'cyrillic' },
+  fr: { whisper: 'fr', source: 'fr', prompt: 'Voici une phrase en français.', script: 'latin' },
+  de: { whisper: 'de', source: 'de', prompt: 'Es folgt ein deutscher Satz.', script: 'latin' },
+  es: { whisper: 'es', source: 'es', prompt: 'A continuación, una frase en español.', script: 'latin' },
+  pt: { whisper: 'pt', source: 'pt', prompt: 'A seguir, uma frase em português.', script: 'latin' },
+  it: { whisper: 'it', source: 'it', prompt: 'Di seguito una frase in italiano.', script: 'latin' },
+};
+
+function audioLanguage(value) {
+  return AUDIO_LANG_META[value] ? value : 'zh';
+}
+
+function sourceLabel(source) {
+  return LANG_NAMES[source] || source;
+}
+
+function normalizeDetectedLanguage(code, text) {
+  const raw = String(code || '').toLowerCase();
+  if (AUDIO_LANG_META[raw]) return raw;
+  if (raw.startsWith('zh')) return 'zh';
+  const sample = String(text || '');
+  if (/[Ѐ-ӿ]/.test(sample)) return 'ru';
+  if (/[぀-ヿ]/.test(sample)) return 'ja';
+  if (/[가-힯]/.test(sample)) return 'ko';
+  if (/[㐀-鿿]/.test(sample)) return 'zh';
+  if (/[A-Za-z]/.test(sample)) return 'en';
+  return 'zh';
+}
+
 function toSimplified(value) {
   let output = '';
   for (const char of String(value || '')) output += T2S[char] || char;
@@ -97,11 +132,17 @@ function looksLikeHallucination(text, language = 'zh') {
   if (HALLUCINATION_PATTERNS.some((pattern) => pattern.test(text))) return true;
   const spoken = text.replace(/[^\p{L}\p{N}]+/gu, '');
   if (spoken.length < 1) return true;
-  const hasCjk = /[㐀-鿿]/.test(text);
+  const hasHan = /[㐀-鿿]/.test(text);
+  const hasKana = /[぀-ヿ]/.test(text);
+  const hasHangul = /[가-힯]/.test(text);
   const hasLatin = /[A-Za-z]/.test(text);
-  if (language === 'zh' && !hasCjk && hasLatin) return true;
-  if (language === 'en' && !hasLatin) return true;
-  return false;
+  const hasCyrillic = /[Ѐ-ӿ]/.test(text);
+  const script = (AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh).script;
+  if (script === 'han') return !hasHan && (hasLatin || hasKana || hasHangul);
+  if (script === 'japanese') return !hasHan && !hasKana && (hasLatin || hasHangul);
+  if (script === 'korean') return !hasHangul && (hasLatin || hasHan);
+  if (script === 'cyrillic') return !hasCyrillic && (hasLatin || hasHan);
+  return !hasLatin && (hasHan || hasKana || hasHangul || hasCyrillic);
 }
 
 class AudioController {
@@ -135,6 +176,8 @@ class AudioController {
     this.firstTextSent = false;
     this.firstChunkAt = 0;
     this.firstChunkStats = null;
+    this.detectedLang = '';
+    this.languageSetting = this.settings.get().audio.language;
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;
@@ -192,6 +235,12 @@ class AudioController {
   }
 
   refreshSettings() {
+    const language = this.settings.get().audio.language;
+    if (language !== this.languageSetting) {
+      this.languageSetting = language;
+      this.detectedLang = '';
+      this.prevRaw = '';
+    }
     if (this.win && !this.win.isDestroyed()) {
       sendRealtimeInit(this.win, this.settings.get());
     }
@@ -210,6 +259,8 @@ class AudioController {
     this.firstTextSent = false;
     this.firstChunkAt = 0;
     this.firstChunkStats = null;
+    this.detectedLang = '';
+    this.languageSetting = this.settings.get().audio.language;
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;
@@ -489,13 +540,13 @@ class AudioController {
       markTiming(this.timingId, 'whisper-start', { queue: this.queue.length + 1 });
     }
     this.recognize(item.file)
-      .then((text) => {
+      .then(({ text, language }) => {
         if (!this.active) return;
         if (!this.whisperDone) {
           this.whisperDone = true;
-          markTiming(this.timingId, 'whisper-done', { chars: String(text || '').length });
+          markTiming(this.timingId, 'whisper-done', { chars: String(text || '').length, language });
         }
-        this.handleText(text);
+        this.handleText(text, language);
       })
       .catch((err) => {
         if (!this.active) return;
@@ -523,21 +574,29 @@ class AudioController {
     const info = this.modelInfo();
     if (!info.ready) throw new Error('本地 Whisper 模型不可用');
     const settings = this.settings.get();
-    const language = settings.audio.language === 'en' ? 'en' : 'zh';
-    const prompt = language === 'zh' ? '以下是普通话的句子。' : 'The following is an English sentence.';
+    const configured = settings.audio.language;
+    const auto = configured === 'auto' && !this.detectedLang;
+    const language = configured === 'auto'
+      ? (this.detectedLang || 'auto')
+      : audioLanguage(configured);
+    const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
+    const prompt = auto ? '' : meta.prompt;
     const threads = Math.max(4, Math.min(8, (os.cpus() || []).length || 4));
     const base = file.replace(/\.wav$/i, '');
     const output = `${base}-out`;
     const args = [
       '-m', info.model,
       '-f', file,
-      '-l', language,
+      '-l', auto ? 'auto' : meta.whisper,
       '-t', String(threads),
       '-nt',
-      '-otxt',
+      auto ? '-oj' : '-otxt',
       '-of', output,
-      '--prompt', prompt,
+      '-bo', '1',
+      '-bs', '1',
+      '-sns',
     ];
+    if (prompt) args.push('--prompt', prompt);
     return new Promise((resolve, reject) => {
       let stderr = '';
       let settled = false;
@@ -574,54 +633,76 @@ class AudioController {
         settled = true;
         clearTimeout(timer);
         if (this.proc === proc) this.proc = null;
+        const textPath = `${output}.txt`;
+        const jsonPath = `${output}.json`;
         try {
-          const text = fs.readFileSync(`${output}.txt`, 'utf8');
-          resolve(text.replace(/^\uFEFF/, '').trim());
+          if (auto) {
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+            const text = (Array.isArray(data.transcription) ? data.transcription : [])
+              .map((item) => String(item?.text || ''))
+              .join(' ')
+              .trim();
+            const detected = normalizeDetectedLanguage(data.result?.language, text);
+            if (text) this.detectedLang = detected;
+            markTiming(this.timingId, 'language-detected', {
+              detected,
+              requested: 'auto',
+              chars: text.length,
+            });
+            resolve({ text, language: detected });
+          } else {
+            const text = fs.readFileSync(textPath, 'utf8').replace(/^﻿/, '').trim();
+            resolve({ text, language: meta.whisper });
+          }
         } catch {
           if (code !== 0) {
             reject(new Error(stderr.trim() || `Whisper 退出 ${code}`));
           } else {
-            resolve('');
+            resolve({ text: '', language: auto ? (this.detectedLang || 'zh') : meta.whisper });
           }
         } finally {
-          try { fs.unlink(`${output}.txt`, () => {}); } catch {}
+          try { fs.unlink(textPath, () => {}); } catch {}
+          try { fs.unlink(jsonPath, () => {}); } catch {}
         }
       });
     });
   }
 
-  handleText(raw) {
+  handleText(raw, language) {
     const settings = this.settings.get();
-    const language = settings.audio.language === 'en' ? 'en' : 'zh';
-    const cleaned = toSimplified(tidySpeech(raw));
-    if (!cleaned || looksLikeHallucination(cleaned, language)) return;
+    const lang = audioLanguage(language || (settings.audio.language === 'auto'
+      ? (this.detectedLang || 'zh')
+      : settings.audio.language));
+    const meta = AUDIO_LANG_META[lang] || AUDIO_LANG_META.zh;
+    const cleaned = lang === 'zh' ? toSimplified(tidySpeech(raw)) : tidySpeech(raw);
+    if (!cleaned || looksLikeHallucination(cleaned, lang)) return;
     const display = trimOverlap(this.prevRaw, cleaned);
     this.prevRaw = cleaned;
-    if (!display || looksLikeHallucination(display, language)) return;
+    if (!display || looksLikeHallucination(display, lang)) return;
     this.uiText = display;
     if (!this.firstTextSent) {
       this.firstTextSent = true;
-      markTiming(this.timingId, 'first-text', { chars: display.length });
+      markTiming(this.timingId, 'first-text', { chars: display.length, language: lang });
     }
-    const sourceCode = language === 'en' ? 'en' : 'zh-CN';
+    const sourceCode = meta.source;
     const realtime = settings.realtime || {};
     const target = realtime.targetLang && realtime.targetLang !== 'auto'
       ? realtime.targetLang
       : settings.targetLang;
-    const same = (sourceCode === 'zh-CN' && String(target).startsWith('zh'))
-      || (sourceCode === 'en' && target === 'en');
+    const same = sourceCode === target
+      || (sourceCode === 'zh-CN' && String(target).startsWith('zh'));
     if (same) {
       this.send({
         status: 'done',
         original: '',
         translated: display,
-        direction: sourceCode === 'zh-CN' ? '中文' : 'EN',
+        direction: sourceLabel(sourceCode),
         provider: '原文',
         domain: 'general',
       });
       return;
     }
-    const directionLabel = `${sourceCode === 'zh-CN' ? '中文' : 'EN'} → ${LANG_NAMES[target] || target}`;
+    const directionLabel = `${sourceLabel(sourceCode)} → ${LANG_NAMES[target] || target}`;
     this.send({
       status: 'loading',
       original: display,

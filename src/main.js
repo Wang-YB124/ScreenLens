@@ -531,9 +531,23 @@ function registerIpc() {
       clean.boxWidth = width;
       clean.boxHeight = height;
     }
-    if (!Object.keys(clean).length) return { ok: true, realtime: settings.get().realtime };
+    const audioWindow = Boolean(audio && audio.win === win);
+    let audioLanguage = '';
+    if (audioWindow && clean.sourceLang !== undefined) {
+      const mapped = clean.sourceLang === 'zh-CN' ? 'zh' : clean.sourceLang;
+      delete clean.sourceLang;
+      if (['auto', 'zh', 'en', 'ja', 'ko', 'ru', 'fr', 'de', 'es', 'pt', 'it'].includes(mapped)) {
+        audioLanguage = mapped;
+      }
+    }
+    if (!Object.keys(clean).length && !audioLanguage) {
+      return { ok: true, realtime: settings.get().realtime };
+    }
     const before = settings.get().realtime;
-    const next = settings.update({ realtime: clean });
+    const settingsPatch = { realtime: clean };
+    if (audioLanguage) settingsPatch.audio = { language: audioLanguage };
+    const next = settings.update(settingsPatch);
+    if (audioLanguage) audio.refreshSettings();
     if (
       before.sourceLang !== next.realtime.sourceLang ||
       before.targetLang !== next.realtime.targetLang
@@ -541,7 +555,7 @@ function registerIpc() {
       realtime.invalidate();
     }
     broadcastState();
-    return { ok: true, realtime: next.realtime };
+    return { ok: true, realtime: next.realtime, audioLanguage: audioLanguage || undefined };
   });
 
   ipcMain.handle('app:state', () => state());

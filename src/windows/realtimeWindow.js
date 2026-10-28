@@ -46,16 +46,21 @@ function raiseRealtimeWindow(win) {
 
 function buildRealtimeInit(settings, win) {
   const placement = win && win.__screenlensPlacement;
+  const scope = (win && win.__screenlensScope) || '';
+  const audioLanguage = (settings.audio && settings.audio.language) || 'zh';
+  const sourceLang = scope === '音频'
+    ? (audioLanguage === 'zh' ? 'zh-CN' : audioLanguage)
+    : settings.realtime.sourceLang;
   return {
     fontSize: settings.realtime.fontSize,
     opacity: settings.realtime.opacity,
     maxLines: settings.realtime.maxLines,
-    sourceLang: settings.realtime.sourceLang,
+    sourceLang,
     targetLang: settings.realtime.targetLang,
     hotkey: settings.hotkeys.realtime,
     below: placement ? placement.below : true,
     windowTitle: (win && win.__screenlensWindowTitle) || '',
-    scope: (win && win.__screenlensScope) || '',
+    scope,
     boxWidth: settings.realtime.boxWidth,
     boxHeight: settings.realtime.boxHeight,
   };

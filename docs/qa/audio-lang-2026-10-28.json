@@ -1,0 +1,162 @@
+{
+  "date": "2026-10-28",
+  "scope": "Audio subtitle recognition: 10 source languages + auto detection, faster Whisper decoding, subtitle-bar language wiring",
+  "model": "Whisper small q5_1 (ggml-small-q5_1.bin)",
+  "languages": [
+    "auto",
+    "zh",
+    "en",
+    "ja",
+    "ko",
+    "ru",
+    "fr",
+    "de",
+    "es",
+    "pt",
+    "it"
+  ],
+  "decodeBenchmark": {
+    "zh-4.5s": {
+      "default_ms": [
+        1631,
+        2012
+      ],
+      "fast_bo1_bs1_sns_ms": [
+        1413,
+        1453
+      ],
+      "text_equal": true
+    },
+    "en-12.1s": {
+      "default_ms": [
+        1764,
+        1894
+      ],
+      "fast_bo1_bs1_sns_ms": [
+        1532,
+        1615
+      ],
+      "text_equal": true
+    },
+    "flags": [
+      "-bo 1",
+      "-bs 1",
+      "-sns"
+    ]
+  },
+  "cases": [
+    {
+      "name": "zh-explicit",
+      "language": "zh",
+      "target": "fr",
+      "pass": true,
+      "subtitleVisibleMs": 126,
+      "listeningMs": 592,
+      "firstChunkMs": 3728,
+      "rms": 0.1490387251843009,
+      "activeRatio": 0.7377048068576388,
+      "whisperDoneMs": 5620,
+      "firstSubtitleMs": 7007,
+      "detected": null,
+      "text": "实时\n音频\n简体中文 → Français\nFREE\nCtrl + Alt + R 停止\n是系统音频识别的中文语音\nC'est de la reconnaissance vocale en chinois du système audio"
+    },
+    {
+      "name": "en-explicit",
+      "language": "en",
+      "target": "fr",
+      "pass": true,
+      "subtitleVisibleMs": 123,
+      "listeningMs": 229,
+      "firstChunkMs": 3312,
+      "rms": 0.22325402520515317,
+      "activeRatio": 0.8142768012152778,
+      "whisperDoneMs": 4742,
+      "firstSubtitleMs": 5659,
+      "detected": null,
+      "text": "实时\n音频\nEnglish → Français\nFREE\nCtrl + Alt + R 停止\nTime audio subtitles. The system audio\nSous-titres audio temporels. L'audio du système"
+    },
+    {
+      "name": "zh-auto",
+      "language": "auto",
+      "target": "zh-CN",
+      "pass": true,
+      "subtitleVisibleMs": 125,
+      "listeningMs": 220,
+      "firstChunkMs": 3298,
+      "rms": 0.09161211416277168,
+      "activeRatio": 0.5575086805555556,
+      "whisperDoneMs": 5676,
+      "firstSubtitleMs": 5676,
+      "detected": "zh",
+      "text": "实时\n音频\n简体中文\nORIG\nCtrl + Alt + R 停止\n这是一段用于测试系统音频"
+    },
+    {
+      "name": "en-auto",
+      "language": "auto",
+      "target": "zh-CN",
+      "pass": true,
+      "subtitleVisibleMs": 120,
+      "listeningMs": 219,
+      "firstChunkMs": 3309,
+      "rms": 0.13828104488677428,
+      "activeRatio": 0.7486775716145834,
+      "whisperDoneMs": 5656,
+      "firstSubtitleMs": 6865,
+      "detected": "en",
+      "text": "实时\n音频\nEnglish → 简体中文\nFREE\nCtrl + Alt + R 停止\nThis is a test of real-time audio subtitle.\n这是实时音频字幕的测试。"
+    },
+    {
+      "name": "bar-language",
+      "language": "zh -> ja -> auto",
+      "target": "fr",
+      "pass": true,
+      "subtitleVisibleMs": 138,
+      "listeningMs": 232,
+      "firstChunkMs": 3317,
+      "rms": 0.07248895861802189,
+      "activeRatio": 0.5328708224826388,
+      "whisperDoneMs": 4791,
+      "firstSubtitleMs": 5919,
+      "detected": null,
+      "text": "",
+      "bar": {
+        "before": {
+          "source": "zh-CN",
+          "active": "中文"
+        },
+        "st1": {
+          "lang": "ja"
+        },
+        "bar1": {
+          "source": "ja",
+          "active": "日本語"
+        },
+        "st2": {
+          "lang": "auto"
+        },
+        "bar2": {
+          "source": "auto",
+          "active": "自动"
+        }
+      }
+    }
+  ],
+  "passed": 5,
+  "total": 5,
+  "notes": [
+    "Only Chinese and English speech samples are installed locally; Japanese/Korean/Russian/French/German/Spanish/Portuguese/Italian use the same Whisper language flag, native prompt and source-code mapping but were not physically recorded.",
+    "Auto detection runs on the first spoken chunk and then locks the detected language for the session; the first auto chunk is about 1 s slower because of language detection.",
+    "Recognition language is also editable from the audio subtitle bar; changing it writes settings.audio.language and refreshes the bar.",
+    "Free translation only; no paid AI quota used. QA used an isolated user-data-dir/TEMP."
+  ],
+  "evidence": [
+    "test/tmp/audio-lang.log",
+    "test/tmp/audio-lang/summary.json",
+    "test/tmp/audio-lang/audio-zh-explicit.png",
+    "test/tmp/audio-lang/audio-en-explicit.png",
+    "test/tmp/audio-lang/audio-zh-auto.png",
+    "test/tmp/audio-lang/audio-en-auto.png"
+  ],
+  "release_zip_sha256": "DB0393BB2DB6B2695E1384A03CF27C94DA696A0E28BF0CAC492A3DF369AFEC98",
+  "final_artifact_verified": "Audio 5/5 on the final packaged build; screenshot language round 1/1 and realtime 2/2 regression also passed."
+}
