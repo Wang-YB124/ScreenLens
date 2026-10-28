@@ -11,7 +11,7 @@
 - 相关知识：按原文、译文与领域提取关键词，提供维基百科、必应/百度、Google Scholar、Stack Overflow、GitHub、PubMed 等真实搜索链接，点击用默认浏览器打开。
 - 代码 / 数学 / 科普：领域提示词、KaTeX 公式、highlight.js 代码高亮与复制。
 - 实时字幕：置顶、顶部整条区域可拖动、右下角可缩放字幕框、字幕内设置（字号 / 背景透明度 / 多语言互译）、可框选区域或单击指定窗口并跟随窗口、字幕不进入截图/录屏、点击穿透、领域识别、AI/免费引擎自动选择。
-- 音频字幕：系统声音回环或麦克风 → 本地 Whisper 识别（不上传音频），默认均衡（首条约 2–3 秒、约 1.3 秒一更，文本更完整），可切极速（首条约 2 秒、约 1 秒一更，短句更碎）或准确 small，支持 10 种识别语言与自动检测；识别文字复用免费/AI 翻译并在同一字幕条显示，字幕条内可直接切换识别语言；每次停止自动保存原文/译文 TXT 记录，记录目录可在设置中更改。
+- 音频字幕：系统声音回环或麦克风 → 本地识别（不上传音频）。中/英/日/韩使用 SenseVoice，俄/法/德/西/葡/意使用 Whisper；默认均衡（首条约 2–3 秒、约 1.3 秒一更，文本更完整），可切极速（中/英/日/韩首条约 1.4 秒、约 1 秒一更）或准确。支持 10 种识别语言与自动检测；识别文字复用免费/AI 翻译并在同一字幕条显示，字幕条内可直接切换识别语言；每次停止自动保存原文/译文 TXT 记录，记录目录可在设置中更改。
 - 隐私：截图默认不出本机；API Key 使用 Windows DPAPI 加密保存。
 
 ## 界面截图
@@ -29,13 +29,13 @@
 
 ![选择窗口识别](docs/screenshots/window-pick.png)
 
-音频字幕（本地 Whisper，系统声音回环）：
+音频字幕（本地 SenseVoice + Whisper，系统声音回环）：
 
 ![音频字幕](docs/screenshots/audio.png)
 
 ## 直接使用
 
-从 GitHub Releases 下载 `ScreenLens-1.1.0-win64.zip`，解压后运行 `ScreenLens.exe`。源码仓库不包含 Electron 运行时和构建产物。
+从 GitHub Releases 下载 `ScreenLens-1.1.1-win64.zip`，解压后运行 `ScreenLens.exe`。源码仓库不包含 Electron 运行时和构建产物。
 
 - `Ctrl+Alt+Q`：框选翻译
 - `Ctrl+Alt+R`：实时字幕
@@ -72,11 +72,19 @@ powershell -ExecutionPolicy Bypass -File build-release.ps1
 
 `build-portable.ps1` 只生成目录；`build-release.ps1` 同时打包并计算哈希。`vendor/rcedit.exe`（MIT，electron/rcedit）仅用于构建时写入图标和版本信息；缺失时构建会跳过并保留 Electron 默认图标。
 
+音频混合识别需要先准备模型与服务（发布包已内置，源码构建时需要）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/fetch-whisper.ps1
+powershell -ExecutionPolicy Bypass -File scripts/fetch-sensevoice.ps1
+powershell -ExecutionPolicy Bypass -File scripts/build-sensevoice-server.ps1
+```
+
 ## 发布到 GitHub
 
 - 源码：提交本仓库即可。默认 `.gitignore` 排除 `vendor/electron/`、`dist/`、测试截图与运行缓存。
-- 便携包：把 `dist/ScreenLens-1.1.0-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 367 MB，超过 GitHub 单文件限制）。
-- 首次克隆后运行 `scripts/fetch-electron.ps1`，无需把 Electron 提交进仓库。
+- 便携包：把 `dist/ScreenLens-1.1.1-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 550 MB，超过 GitHub 单文件限制）。
+- 首次克隆后运行 `scripts/fetch-electron.ps1`、`scripts/fetch-whisper.ps1`、`scripts/fetch-sensevoice.ps1`，并构建 SenseVoice 服务；无需把 Electron、模型或服务提交进仓库。
 
 ## 测试
 

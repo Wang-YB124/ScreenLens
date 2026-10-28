@@ -1,4 +1,4 @@
-屏译 ScreenLens 1.1.0 第三方组件与服务声明
+屏译 ScreenLens 1.1.1 第三方组件与服务声明
 ==========================================
 
 一、运行时与界面组件
@@ -53,7 +53,7 @@
 AI 与第三方翻译服务的输出可能不准确；使用者需自行核对并承担使用风险。
 具体责任限制以《许可证.txt》为准。
 
-五、音频字幕（本地 Whisper）
+五、音频字幕（本地 Whisper，其他语言）
 ----------------------------
 1. whisper.cpp
    - 用途：本地语音识别运行程序（whisper-cli）。
@@ -69,3 +69,24 @@ AI 与第三方翻译服务的输出可能不准确；使用者需自行核对�
    - 完整许可：licenses/OpenCC-LICENSE.txt。
 
 说明：音频字幕的识别完全在本机运行，音频不会上传；系统声音回环使用 Electron 38/Chromium 的 display-media loopback（audio:'loopback'），屏幕视频轨在开始后立即停止；字幕翻译仍使用免费翻译通道或已配置的 AI 模型，识别出的文字会按翻译链路发送。Windows 输出设备的静音/音量查询仅在本机通过 Core Audio 完成。
+
+六、SenseVoice 本地识别（中/英/日/韩）
+-----------------------------------
+1. SenseVoiceSmall 模型（sherpa-onnx 格式，int8）
+   - 用途：中/英/日/韩/粤语本地语音识别模型。
+   - 来源：FunAudioLLM/SenseVoice，经 k2-fsa/sherpa-onnx 发布。
+   - 许可：MIT（FunASR 项目许可）。
+   - 完整许可：licenses/sensevoice-LICENSE.txt。
+2. sherpa-onnx 2.0.1
+   - 用途：本地语音识别运行时与 C API。
+   - 许可：Apache-2.0。
+   - 完整许可：licenses/sherpa-onnx-LICENSE.txt。
+3. ONNX Runtime
+   - 用途：执行 SenseVoice ONNX 模型。
+   - 许可：MIT。
+   - 完整许可：licenses/onnxruntime-LICENSE.txt。
+4. Python 运行时与 PyInstaller
+   - 用途：打包 SenseVoice 常驻服务（sensevoice-server.exe）。
+   - Python 许可：PSF；PyInstaller 许可：GPL-2.0（含 bootloader exception）。
+   - 完整许可：licenses/python-LICENSE.txt、licenses/pyinstaller-LICENSE.txt。
+5. SenseVoice 服务源码：scripts/sensevoice-server.py；构建脚本：scripts/build-sensevoice-server.ps1。

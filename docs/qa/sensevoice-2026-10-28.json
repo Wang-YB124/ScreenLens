@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-28",
+  "engine": "SenseVoice int8 + Whisper hybrid",
+  "model": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17 int8",
+  "runtime": "sherpa-onnx 2.0.1 + onnxruntime, packaged via PyInstaller",
+  "sensevoice": {
+    "load_ms": 835,
+    "full_208s_ms": 442,
+    "chunks_2s_ms": [
+      51,
+      51,
+      51,
+      51,
+      52,
+      52,
+      52,
+      52
+    ],
+    "languages": [
+      "zh",
+      "en",
+      "ja",
+      "ko",
+      "yue"
+    ]
+  },
+  "routing": {
+    "zh_fast_packaged": {
+      "firstChunkMs": 1574,
+      "firstSubtitleMs": 1628,
+      "engine": "sensevoice"
+    },
+    "zh_balanced_packaged": {
+      "firstChunkMs": 1960,
+      "firstSubtitleMs": 2017,
+      "engine": "sensevoice"
+    },
+    "en_source": {
+      "firstChunkMs": 1516,
+      "firstSubtitleMs": 2434,
+      "firstTranslateMs": 2434,
+      "engine": "sensevoice"
+    },
+    "fr_packaged": {
+      "firstChunkMs": 1471,
+      "firstSubtitleMs": 2570,
+      "engine": "whisper"
+    },
+    "auto_source": {
+      "detected": "zh",
+      "whisperAutoChunks": 1,
+      "sensevoiceChunks": 12,
+      "firstSubtitleMs": 2536,
+      "engine": "whisper-auto -> sensevoice"
+    }
+  },
+  "hallucination_filter": {
+    "passed": 9,
+    "failed": 0,
+    "cases": [
+      "字幕by李宗智",
+      "字幕 by 李宗智",
+      "字幕由李宗智提供",
+      "字幕制作：李宗智",
+      "字幕：测试",
+      "字幕显示有问题（保留）",
+      "今天天气很好（保留）",
+      "谢谢观看",
+      "English sentence（保留）"
+    ]
+  },
+  "record_header": "识别模型：SenseVoice + Whisper（混合）",
+  "package": {
+    "file": "ScreenLens-1.1.1-win64.zip",
+    "size_bytes": 576515990,
+    "sha256": "B27A6CA61F47FCA664FA72236FE44223081AE36B78EE72BF669B16EF0C62B357",
+    "folder_mb": 903.6,
+    "zip_mb": 549.8
+  },
+  "notes": [
+    "Only zh/en TTS available locally; ja/ko/fr share the same routing path.",
+    "Zh/En use SenseVoice; ru/fr/de/es/pt/it continue Whisper.",
+    "Auto detection uses Whisper on the first voiced chunk, then switches to SenseVoice for zh/en/ja/ko."
+  ]
+}

@@ -130,6 +130,11 @@ function notify(title, body) {
 function state() {
   const publicSettings = settings.getPublic();
   const audioInfo = audio ? audio.modelInfo() : { ready: false, name: 'Whisper', reason: '音频服务未初始化' };
+  const senseInfo = audio ? audio.senseVoiceInfo() : { ready: false, name: 'SenseVoice int8', reason: '音频服务未初始化' };
+  const audioReady = Boolean(audioInfo.ready || senseInfo.ready);
+  const audioName = senseInfo.ready
+    ? (audioInfo.ready ? 'SenseVoice + Whisper' : senseInfo.name)
+    : audioInfo.name;
   const recordInfo = audio ? audio.recordInfo() : { dir: '', custom: false };
   const modeInfo = audio ? audio.modeInfo() : { key: 'fast', label: '极速', hint: '', firstChunkMs: 1000, chunkMs: 2000, overlapMs: 1000 };
   return {
@@ -140,9 +145,11 @@ function state() {
     realtime: realtimeState,
     audio: {
       active: audioState.active,
-      ready: audioInfo.ready,
-      name: audioInfo.name,
-      reason: audioInfo.reason,
+      ready: audioReady,
+      name: audioName,
+      reason: audioInfo.reason || senseInfo.reason,
+      whisper: { ready: audioInfo.ready, name: audioInfo.name },
+      sensevoice: { ready: senseInfo.ready, name: senseInfo.name, reason: senseInfo.reason },
       recordDir: recordInfo.dir,
       recordCustom: recordInfo.custom,
       mode: modeInfo.key,

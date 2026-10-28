@@ -438,9 +438,14 @@ function syncSettingsForm(force) {
   if (audioDetail) {
     const modeHint = audioInfo.modeHint
       || (s.audio.speed === 'accurate' ? '准确 · small 模型' : (s.audio.speed === 'balanced' ? '均衡 · 默认 · 约 1.3 秒更新' : '极速 · 约 1 秒更新'));
+    const sense = audioInfo.sensevoice || {};
+    const whisper = audioInfo.whisper || {};
+    const engineText = sense.ready && whisper.ready
+      ? '中/英/日/韩：SenseVoice · 其他语言：Whisper'
+      : (sense.ready ? '中/英/日/韩：SenseVoice · Whisper 未安装' : `${whisper.name || 'Whisper'} · SenseVoice 未安装`);
     audioDetail.textContent = audioInfo.ready
-      ? `${audioInfo.name || 'Whisper'} · ${modeHint}`
-      : (audioInfo.reason || '未找到本地 Whisper 模型');
+      ? `${engineText} · ${modeHint}`
+      : (audioInfo.reason || '未找到本地识别模型');
   }
 
   const launch = $('launch-at-login');

@@ -55,6 +55,18 @@ if (Test-Path $whisper) {
     }
 }
 
+$sensevoice = Join-Path $root 'vendor\sensevoice'
+if (Test-Path $sensevoice) {
+    $target = Join-Path $appDir 'vendor\sensevoice'
+    New-Item -ItemType Directory -Path $target -Force | Out-Null
+    foreach ($name in @('server', 'models')) {
+        $source = Join-Path $sensevoice $name
+        if (Test-Path $source) {
+            Copy-Item -LiteralPath $source -Destination $target -Recurse -Force
+        }
+    }
+}
+
 $licenses = Join-Path $root 'licenses'
 if (Test-Path $licenses) {
     $target = Join-Path $dist 'licenses'
@@ -71,8 +83,8 @@ $rcedit = Join-Path $root 'vendor\rcedit.exe'
 if (Test-Path $rcedit) {
     & $rcedit (Join-Path $dist 'ScreenLens.exe') `
         --set-icon (Join-Path $root 'assets\icon.ico') `
-        --set-file-version '1.1.0.0' `
-        --set-product-version '1.1.0.0' `
+        --set-file-version '1.1.1.0' `
+        --set-product-version '1.1.1.0' `
         --set-version-string 'ProductName' 'ScreenLens' `
         --set-version-string 'FileDescription' 'ScreenLens - instant screen translation and explanation' `
         --set-version-string 'CompanyName' 'ScreenLens' `

@@ -29,3 +29,13 @@ test/*.json
 Thumbs.db
 .vscode/
 .idea/
+
+# SenseVoice model/runtime (fetch with scripts/fetch-sensevoice.ps1)
+vendor/sensevoice/
+
+# SenseVoice build venv
+.venv-sensevoice/
+
+# Python cache
+__pycache__/
+*.pyc

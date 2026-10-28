@@ -11,6 +11,7 @@ const { providerLabel } = require('./llm');
 const { startTiming, markTiming, finishTiming } = require('./timing');
 const { getOutputDeviceState } = require('./audio-device');
 const { AUDIO_MODES } = require('./settings');
+const { SenseVoiceService, SENSE_LANGS } = require('./sensevoice');
 const T2S = require('./t2s.json');
 
 function findFreePort() {
@@ -52,7 +53,7 @@ function waitForPort(port, timeout = 8000) {
 
 
 const HALLUCINATION_PATTERNS = [
-  /^(谢谢观看|感谢观看|请不吝点赞|请订阅|订阅频道|字幕由|字幕组|訂閱|订阅|小铃铛|明镜与点点)/,
+  /^(谢谢观看|感谢观看|请不吝点赞|请订阅|订阅频道|字幕\s*(?:by|由|组|制作|提供|翻译|校对|整理|上传|[:：])|訂閱|订阅|小铃铛|明镜与点点)/i,
   /^(thanks?\s+for\s+watching|thank\s+you\s+for\s+watching|please\s+subscribe|amara\.org|subtitles\s+by)/i,
   /^[\(\[（【][\s\S]*[\)\]）】]$/,
   /^(\(|\[)?\s*(buzz|music|applause|laughter|silence|blank_audio|inaudible|no speech|the end)\s*(\)|\])?$/i,
@@ -276,6 +277,7 @@ class AudioController {
     this.settings = settings;
     this.tempDir = tempDir;
     this.rootDir = rootDir;
+    this.sense = new SenseVoiceService({ rootDir });
     this.onStateChange = onStateChange || (() => {});
     this.notify = notify || (() => {});
     this.minimizeHome = minimizeHome || (async () => false);
@@ -375,6 +377,18 @@ class AudioController {
       key: '',
       reason: '未找到本地 Whisper 运行文件或模型，请先运行 scripts/fetch-whisper.ps1',
     };
+  }
+
+  senseVoiceInfo() {
+    return this.sense ? this.sense.info() : {
+      ready: false,
+      name: 'SenseVoice int8',
+      reason: 'SenseVoice 服务未初始化',
+    };
+  }
+
+  ensureSense(language) {
+    return this.sense ? this.sense.ensure(language) : Promise.resolve(false);
   }
 
   modeInfo() {
@@ -549,6 +563,7 @@ class AudioController {
 
   dispose() {
     this.stopServer();
+    if (this.sense) this.sense.stop();
     if (this.proc) {
       try { this.proc.kill(); } catch {}
       this.proc = null;
@@ -594,12 +609,18 @@ class AudioController {
     this.recordFinished = false;
     this.recordErrorNotified = false;
     const preset = AUDIO_MODES[this.settings.get().audio.speed] || AUDIO_MODES.fast;
+    const whisperInfo = this.modelInfo();
+    const senseInfo = this.senseVoiceInfo();
+    const usesSense = language === 'auto' || SENSE_LANGS.has(language);
+    const engine = usesSense && senseInfo.ready
+      ? (whisperInfo.ready ? 'SenseVoice + Whisper（混合）' : 'SenseVoice int8')
+      : (whisperInfo.ready ? whisperInfo.name : 'SenseVoice int8');
     this.recordMeta = {
       startedAt: now,
       source: source === 'microphone' ? '麦克风' : '系统声音',
       language: language === 'auto' ? '自动检测' : sourceLabel(meta.source),
       target: LANG_NAMES[target] || target || '',
-      model: this.modelInfo().name,
+      model: engine,
       mode: preset.label,
     };
   }
@@ -745,6 +766,8 @@ class AudioController {
       this.languageSetting = language;
       this.detectedLang = '';
       this.prevRaw = '';
+      this.sense.stop();
+      if (this.active && SENSE_LANGS.has(language)) this.ensureSense(language).catch(() => {});
     }
     if (this.win && !this.win.isDestroyed()) {
       sendRealtimeInit(this.win, this.settings.get());
@@ -796,11 +819,19 @@ class AudioController {
     markTiming(timingId, 'begin-work');
 
     const info = this.modelInfo();
-    markTiming(timingId, 'model-check', { ready: info.ready, name: info.name });
-    if (!info.ready) {
-      this.notify('音频字幕无法启动', info.reason);
+    const senseInfo = this.senseVoiceInfo();
+    const configuredLanguage = this.settings.get().audio.language;
+    const senseOnly = SENSE_LANGS.has(configuredLanguage) && senseInfo.ready;
+    markTiming(timingId, 'model-check', {
+      ready: info.ready || senseOnly,
+      whisper: info.ready,
+      sensevoice: senseInfo.ready,
+    });
+    if (!info.ready && !senseOnly) {
+      const reason = info.reason || senseInfo.reason || '本地识别模型不可用';
+      this.notify('音频字幕无法启动', reason);
       finishTiming(timingId, { outcome: 'model-unavailable' });
-      return { ok: false, error: info.reason };
+      return { ok: false, error: reason };
     }
 
     const settings = this.settings.get();
@@ -812,6 +843,7 @@ class AudioController {
       ? Math.max(preset.firstChunkMs, 1500)
       : preset.firstChunkMs;
     this.beginRecord({ source, settings });
+    if (SENSE_LANGS.has(configuredLanguage)) this.ensureSense(configuredLanguage).catch(() => {});
     this.homeMinimized = await this.minimizeHome();
     markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
 
@@ -894,9 +926,11 @@ class AudioController {
         });
       });
       this.capture.loadFile(path.join(__dirname, '..', 'renderer', 'audio-capture', 'index.html'));
-      this.ensureServer()
-        .then((port) => { if (port) this.warmServer(); })
-        .catch(() => {});
+      if (configuredLanguage === 'auto' || !SENSE_LANGS.has(configuredLanguage) || !senseInfo.ready) {
+        this.ensureServer()
+          .then((port) => { if (port) this.warmServer(); })
+          .catch(() => {});
+      }
     } catch (err) {
       const message = String(err.message || '音频捕获初始化失败');
       markTiming(timingId, 'start-error', { message: message.slice(0, 160) });
@@ -908,7 +942,11 @@ class AudioController {
     }
 
     const label = source === 'microphone' ? '麦克风' : '系统声音';
-    this.notify('音频字幕已开启', `正在聆听${label} · 本地 Whisper 识别 · 点击按钮或字幕 × 停止`);
+    const usesSense = configuredLanguage === 'auto' || SENSE_LANGS.has(configuredLanguage);
+    const engineNote = usesSense && senseInfo.ready
+      ? (info.ready ? '本地混合识别（SenseVoice / Whisper）' : '本地 SenseVoice 识别')
+      : '本地 Whisper 识别';
+    this.notify('音频字幕已开启', `正在聆听${label} · ${engineNote} · 点击按钮或字幕 × 停止`);
     return { ok: true, active: true };
   }
 
@@ -1109,6 +1147,17 @@ class AudioController {
       });
   }
 
+  async recognizeSense(data, language) {
+    const file = path.join(this.tempDir, `asr-sense-${process.pid}-${Date.now()}-${++this.seq}.wav`);
+    try {
+      fs.writeFileSync(file, Buffer.isBuffer(data) ? data : Buffer.from(data));
+      const result = await this.sense.recognize(file, language, 15000);
+      return { text: String(result.text || '').trim(), language };
+    } finally {
+      try { fs.unlink(file, () => {}); } catch {}
+    }
+  }
+
   async recognize(data) {
     const settings = this.settings.get();
     const preset = AUDIO_MODES[settings.audio.speed] || AUDIO_MODES.fast;
@@ -1136,10 +1185,12 @@ class AudioController {
             chars: result.text.length,
             ms: Date.now() - started,
           });
+          if (SENSE_LANGS.has(detected)) this.ensureSense(detected).catch(() => {});
           markTiming(this.spanTimingId, 'recognize-server', {
             chars: result.text.length,
             language: detected,
             mode: preset.key,
+            engine: 'whisper-auto',
             auto: true,
             ms: Date.now() - started,
           });
@@ -1155,6 +1206,26 @@ class AudioController {
     }
     const language = configured === 'auto' ? (this.detectedLang || 'auto') : audioLanguage(configured);
     const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
+    const senseLang = SENSE_LANGS.has(audioLanguage(language)) ? audioLanguage(language) : '';
+    if (senseLang && this.senseVoiceInfo().ready) {
+      const started = Date.now();
+      try {
+        const result = await this.recognizeSense(data, senseLang);
+        markTiming(this.spanTimingId, 'recognize-server', {
+          chars: result.text.length,
+          language: senseLang,
+          mode: preset.key,
+          engine: 'sensevoice',
+          ms: Date.now() - started,
+        });
+        return { text: result.text, language: senseLang };
+      } catch (err) {
+        markTiming(this.timingId, 'sense-fallback', {
+          language: senseLang,
+          message: String(err.message || '').slice(0, 120),
+        });
+      }
+    }
     try {
       const started = Date.now();
       const result = await this.serverRecognize(data, {
@@ -1166,6 +1237,7 @@ class AudioController {
         chars: result.text.length,
         language: meta.whisper,
         mode: preset.key,
+        engine: 'whisper',
         ms: Date.now() - started,
       });
       return { text: result.text, language: meta.whisper };
@@ -1479,6 +1551,7 @@ class AudioController {
       try { this.proc.kill(); } catch {}
       this.proc = null;
     }
+    if (this.sense) this.sense.stop();
     this.queue = [];
     if (this.capture && !this.capture.isDestroyed()) {
       try { this.capture.destroy(); } catch {}
@@ -1500,4 +1573,4 @@ class AudioController {
   }
 }
 
-module.exports = { AudioController };
+module.exports = { AudioController, looksLikeHallucination };
