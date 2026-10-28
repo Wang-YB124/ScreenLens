@@ -437,7 +437,7 @@ function syncSettingsForm(force) {
   const audioDetail = $('audio-model-detail');
   if (audioDetail) {
     audioDetail.textContent = audioInfo.ready
-      ? `${audioInfo.name || 'Whisper'} · 首个约 2 秒，之后约每 2 秒更新一次`
+      ? `${audioInfo.name || 'Whisper'} · 首个约 2 秒，之后约每 1.5 秒更新一次`
       : (audioInfo.reason || '未找到本地 Whisper 模型');
   }
 

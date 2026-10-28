@@ -15,7 +15,7 @@
     "subtitleBarButton": true,
     "crossLanguage": {
       "target": "fr",
-      "file": "qa-audio-record-userdata/audio-records/音频记录-20261028-102536.txt",
+      "file": "qa-audio-record-userdata/audio-records/音频记录-20261028-115341.txt",
       "segmentsDuringSession": 3,
       "segmentsAfterStop": 3,
       "hasOriginal": true,
@@ -24,7 +24,7 @@
     },
     "sameLanguage": {
       "target": "zh-CN",
-      "file": "qa-audio-record-userdata/audio-records/音频记录-20261028-102550.txt",
+      "file": "qa-audio-record-userdata/audio-records/音频记录-20261028-115355.txt",
       "segmentsDuringSession": 2,
       "segmentsAfterStop": 2,
       "sample": "[00:02] 原文：这是一段用于测。 译文：（同原文）"
@@ -39,7 +39,7 @@
     "test/tmp/audio-record.log",
     "test/tmp/audio-record-test.js"
   ],
-  "release_zip_sha256": "60214F5777FB2A50F6E60DB53B41B6397654D9B2D9CD12FDB944E4A6C22A5472",
+  "release_zip_sha256": "7A1710ED145AAB404961ECB6D4CB93138CCB5E45BA0155036E6FAC22F0FCBDBB",
   "final_artifact_verified": true,
   "storageConfigurable": true,
   "storageDefault": "%APPDATA%\\ScreenLens\\audio-records"

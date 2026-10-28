@@ -370,7 +370,6 @@ class AudioController {
         language,
         temperature: '0',
       };
-      if (prompt) fields.prompt = prompt;
       const chunks = [];
       for (const [key, value] of Object.entries(fields)) {
         chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`));
@@ -978,7 +977,6 @@ class AudioController {
       ? (this.detectedLang || 'auto')
       : audioLanguage(configured);
     const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
-    const prompt = auto ? '' : meta.prompt;
     const threads = Math.max(4, Math.min(8, (os.cpus() || []).length || 4));
     const base = file.replace(/\.wav$/i, '');
     const output = `${base}-out`;
@@ -994,7 +992,6 @@ class AudioController {
       '-bs', '1',
       '-sns',
     ];
-    if (prompt) args.push('--prompt', prompt);
     return new Promise((resolve, reject) => {
       let stderr = '';
       let settled = false;

@@ -14,7 +14,7 @@
     "configuredCustom": true,
     "stateRecordDirMatchedCustom": true,
     "fileWrittenToCustom": true,
-    "file": "test/tmp/qa-custom-records/我的记录/音频记录-20261028-105122.txt",
+    "file": "test/tmp/qa-custom-records/我的记录/音频记录-20261028-115326.txt",
     "resetOk": true,
     "resetStateRecordDirDefault": true,
     "customFilePreservedAfterReset": true
@@ -28,6 +28,6 @@
     "test/tmp/audio-record-dir-test.js",
     "test/tmp/audio-settings.png"
   ],
-  "release_zip_sha256": "60214F5777FB2A50F6E60DB53B41B6397654D9B2D9CD12FDB944E4A6C22A5472",
+  "release_zip_sha256": "7A1710ED145AAB404961ECB6D4CB93138CCB5E45BA0155036E6FAC22F0FCBDBB",
   "final_artifact_verified": true
 }

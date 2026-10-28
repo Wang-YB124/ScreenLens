@@ -128,7 +128,7 @@ function setupGraph(audioTracks, info) {
   ctx.resume().catch(() => {});
   sampleRate = ctx.sampleRate || 48000;
   const chunkMs = Math.max(2500, Math.min(8000, Number(config.chunkMs) || 6000));
-  const firstMs = Math.max(2000, Math.min(chunkMs, Number(config.firstChunkMs) || 3000));
+  const firstMs = Math.max(1000, Math.min(chunkMs, Number(config.firstChunkMs) || 2000));
   const overlapMs = Math.max(300, Math.min(1500, Number(config.overlapMs) || 800));
   fullChunkSamples = Math.max(1, Math.round((sampleRate * chunkMs) / 1000));
   firstChunkSamples = Math.max(1, Math.round((sampleRate * firstMs) / 1000));
