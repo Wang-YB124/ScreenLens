@@ -91,6 +91,7 @@ const showHome = () => {
     return;
   }
   if (homeWin.isMinimized()) homeWin.restore();
+  try { homeWin.setOpacity(1); } catch {}
   try { homeWin.setSkipTaskbar(false); } catch {}
   homeWin.show();
   try { homeWin.moveTop(); } catch {}
@@ -235,6 +236,7 @@ async function minimizeHomeForSelection() {
   }
   if (!win.isVisible()) return homeMinimizedForSelection;
   homeMinimizedForSelection = true;
+  try { win.setOpacity(0); } catch {}
   try { win.setSkipTaskbar(true); } catch {}
   win.hide();
   return true;
@@ -248,6 +250,7 @@ function restoreHomeAfterSelection() {
   if (!win || win.isDestroyed()) return;
   try {
     if (win.isMinimized()) win.restore();
+    win.setOpacity(1);
     win.setSkipTaskbar(false);
     win.show();
     win.focus();
@@ -599,6 +602,15 @@ function registerIpc() {
   ipcMain.handle('action:retranslate', (event, options) => {
     session.retranslate(options || {});
     return { ok: true };
+  });
+
+  ipcMain.handle('action:set-target', (event, targetLang) => {
+    if (!targetLang) return { ok: false, error: '无效的译文语言' };
+    const next = applySettingsPatch({ targetLang });
+    const record = session.current?.record;
+    if (record?.source) session.retranslate().catch(() => {});
+    broadcastState();
+    return { ok: true, targetLang: next.targetLang, deferred: !record?.source };
   });
 
   ipcMain.handle('action:explain', (event, options) => {

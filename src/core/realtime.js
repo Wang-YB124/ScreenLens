@@ -1,6 +1,6 @@
 const path = require('path');
 const { captureDisplaysFast, dipToPhysicalRect } = require('./capture');
-const { selectRegion } = require('../windows/overlay');
+const { selectRegion, cancelSelection } = require('../windows/overlay');
 const { createRealtimeWindow, sendRealtimeInit } = require('../windows/realtimeWindow');
 const { resolveRealtimeDirection, translateFree, translateAI, LANG_NAMES } = require('./translate');
 const { providerLabel } = require('./llm');
@@ -60,6 +60,7 @@ class RealtimeController {
 
   async start(options = {}) {
     if (this.active || this.selecting) return;
+    this.cancelRequested = false;
     this.selecting = true;
     this.onStateChange({ selecting: true });
     const timingId = startTiming('realtime', {
@@ -91,6 +92,12 @@ class RealtimeController {
         windowsProvider: () => this.ocr.listWindows({ excludePid: process.pid }),
       });
       markTiming(timingId, 'selection-result', { hasSelection: Boolean(selection) });
+      if (this.cancelRequested) {
+        this.cancelRequested = false;
+        this.releaseHome();
+        finishTiming(timingId, { outcome: 'cancelled' });
+        return;
+      }
       if (!selection) {
         this.releaseHome();
         if (hadResult) this.restoreResult();
@@ -442,6 +449,13 @@ class RealtimeController {
   }
 
   stop({ silent = false } = {}) {
+    if (this.selecting) {
+      this.cancelRequested = true;
+      cancelSelection();
+      this.releaseHome();
+      this.onStateChange({ realtimeActive: false });
+      return;
+    }
     if (!this.active && !this.win) {
       this.releaseHome();
       return;

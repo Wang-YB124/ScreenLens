@@ -95,6 +95,49 @@ body {
   white-space: nowrap;
 }
 
+.target-pick {
+  height: 21px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 5px 0 7px;
+  border-radius: 999px;
+  background: rgba(139, 243, 208, 0.055);
+  border: 1px solid rgba(139, 243, 208, 0.14);
+  color: #86cdb9;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex: none;
+}
+
+.target-pick select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #c8f7e8;
+  font: inherit;
+  padding: 0 2px;
+  max-width: 88px;
+  cursor: pointer;
+  outline: none;
+}
+
+.target-pick select:focus {
+  color: var(--text);
+}
+
+.target-pick select option {
+  background: #141a24;
+  color: var(--text);
+}
+
+.target-pick select:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .top-actions {
   margin-left: auto;
   display: flex;

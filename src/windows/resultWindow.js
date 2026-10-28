@@ -101,7 +101,7 @@ class ResultWindow {
       height: target.height,
     });
     const send = () => {
-      if (!win.isDestroyed()) win.webContents.send('result:show', record);
+      if (!win.isDestroyed()) win.webContents.send('result:show', this.record);
     };
     if (win.webContents.isLoadingMainFrame()) {
       win.webContents.once('did-finish-load', send);

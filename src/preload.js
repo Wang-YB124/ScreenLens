@@ -9,6 +9,7 @@ const INVOKE_CHANNELS = new Set([
   'action:realtime',
   'action:stop-realtime',
   'action:retranslate',
+  'action:set-target',
   'action:explain',
   'action:set-domain',
   'action:related',

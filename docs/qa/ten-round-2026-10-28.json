@@ -1,0 +1,695 @@
+{
+  "date": "2026-10-28",
+  "rounds": 10,
+  "passed": 10,
+  "failed": 0,
+  "realtime": [
+    {
+      "round": 1,
+      "pass": true,
+      "issues": [],
+      "startResult": {
+        "ok": true
+      },
+      "homeHiddenAt1700": true,
+      "timing": {}
+    },
+    {
+      "round": 2,
+      "pass": true,
+      "issues": [],
+      "startResult": {
+        "ok": true
+      },
+      "homeHiddenAt1700": true,
+      "timing": {}
+    }
+  ],
+  "release": {
+    "app": "C:\\Users\\HP\\Documents\\Qoder\\2026-10-27\\19892f7e\\dist\\release\\ScreenLens\\ScreenLens.exe",
+    "port": 9489
+  },
+  "roundsDetail": [
+    {
+      "round": 1,
+      "start": "zh-CN",
+      "switchTo": "fr",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdme7vmjndb",
+        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "字幕在你观看视频时始终显示在视频顶部。\n第3句，每2.5秒切换",
+        "textLen": 31,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 24,
+        "overlayVisible": 213,
+        "overlayFirstFrame": 226
+      },
+      "hiddenMs": 24,
+      "overlayMs": 213,
+      "switched": {
+        "id": "mvrdme7vmjndb",
+        "source": "The subtitle stays 0 n top of the video while YO u watch.\n第 3 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "Le sous-titre reste en haut de la vidéo pendant que vous regardez. \n3ᵉ phrase. Changement toutes les 2,5 secondes",
+        "textLen": 113,
+        "targetLang": "fr",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → FR",
+        "selectValue": "fr",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "fr",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 2,
+      "start": "zh-CN",
+      "switchTo": "ja",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdmka0d3k12",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 26,
+        "overlayVisible": 170,
+        "overlayFirstFrame": 178
+      },
+      "hiddenMs": 26,
+      "overlayMs": 170,
+      "switched": {
+        "id": "mvrdmka0d3k12",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "リアルタイム翻訳は、あらゆる動画をあなたの言語に変えます。\n第1文．2.5秒ごとに切り替え",
+        "textLen": 45,
+        "targetLang": "ja",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 日文",
+        "selectValue": "ja",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "ja",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 3,
+      "start": "zh-CN",
+      "switchTo": "de",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdmqih06xsq",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 26,
+        "overlayVisible": 174,
+        "overlayFirstFrame": 179
+      },
+      "hiddenMs": 26,
+      "overlayMs": 174,
+      "switched": {
+        "id": "mvrdmqih06xsq",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "Echtzeitübersetzung verwandelt jedes Video in Ihre Sprache. Satz 1. Wechselt alle 2,5 Sekunden",
+        "textLen": 94,
+        "targetLang": "de",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → DE",
+        "selectValue": "de",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "de",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 4,
+      "start": "zh-CN",
+      "switchTo": "es",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdmws0soua8",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 29,
+        "overlayVisible": 173,
+        "overlayFirstFrame": 179
+      },
+      "hiddenMs": 29,
+      "overlayMs": 173,
+      "switched": {
+        "id": "mvrdmws0soua8",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "La traducción en tiempo real convierte cualquier video a tu idioma.  \nFrase 1. Cambia cada 2.5 segundos",
+        "textLen": 103,
+        "targetLang": "es",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → ES",
+        "selectValue": "es",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "es",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 5,
+      "start": "zh-CN",
+      "switchTo": "pt",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdn2ubqcxos",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 28,
+        "overlayVisible": 171,
+        "overlayFirstFrame": 177
+      },
+      "hiddenMs": 28,
+      "overlayMs": 171,
+      "switched": {
+        "id": "mvrdn2ubqcxos",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "A tradução em tempo real transforma qualquer vídeo no seu idioma.\nFrase 1. Troca a cada 2,5 segundos",
+        "textLen": 100,
+        "targetLang": "pt",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → PT",
+        "selectValue": "pt",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "pt",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 6,
+      "start": "zh-CN",
+      "switchTo": "it",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdn93ylxsu2",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "实时翻译将任何视频转换成你的语言。\n第1句。每2.5秒切换",
+        "textLen": 29,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 29,
+        "overlayVisible": 169,
+        "overlayFirstFrame": 173
+      },
+      "hiddenMs": 29,
+      "overlayMs": 169,
+      "switched": {
+        "id": "mvrdn93ylxsu2",
+        "source": "Real-time translation turns any video intO your language.\n第 1 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "La traduzione in tempo reale trasforma qualsiasi video nella tua lingua.  \nFrase 1. Cambia ogni 2,5 secondi",
+        "textLen": 107,
+        "targetLang": "it",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → IT",
+        "selectValue": "it",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "it",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 7,
+      "start": "zh-CN",
+      "switchTo": "ru",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdnfcgd9zll",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
+        "textLen": 43,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 25,
+        "overlayVisible": 166,
+        "overlayFirstFrame": 176
+      },
+      "hiddenMs": 25,
+      "overlayMs": 166,
+      "switched": {
+        "id": "mvrdnfcgd9zll",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "Выберите область, и ScreenLens будет продолжать считывать её для вас. \nПредложение 2. Меняется каждые 2,5 секунды",
+        "textLen": 113,
+        "targetLang": "ru",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → RU",
+        "selectValue": "ru",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "ru",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 8,
+      "start": "zh-CN",
+      "switchTo": "ko",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdnlmmjl98r",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
+        "textLen": 43,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 25,
+        "overlayVisible": 175,
+        "overlayFirstFrame": 182
+      },
+      "hiddenMs": 25,
+      "overlayMs": 175,
+      "switched": {
+        "id": "mvrdnlmmjl98r",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "영역을 선택하면 ScreenLens가 그것을 계속 읽어줍니다. \n두 번째 문장. 2.5초마다 전환",
+        "textLen": 54,
+        "targetLang": "ko",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 韩文",
+        "selectValue": "ko",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "ko",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 9,
+      "start": "zh-CN",
+      "switchTo": "en",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdnry7hlz4m",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
+        "textLen": 43,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 30,
+        "overlayVisible": 178,
+        "overlayFirstFrame": 183
+      },
+      "hiddenMs": 30,
+      "overlayMs": 178,
+      "switched": {
+        "id": "mvrdnry7hlz4m",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "Select a region, and ScreenLens keeps reading it for you. \nSentence 2. Switches every 2.5 seconds",
+        "textLen": 97,
+        "targetLang": "en",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → EN",
+        "selectValue": "en",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "en",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    },
+    {
+      "round": 10,
+      "start": "en",
+      "switchTo": "zh-CN",
+      "pass": true,
+      "issues": [],
+      "prehide": true,
+      "homeHiddenAt1700": true,
+      "initial": {
+        "id": "mvrdny8hrdzea",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "Select a region, and ScreenLens keeps reading it for you. \nSentence 2. Switches every 2.5 seconds",
+        "textLen": 97,
+        "targetLang": "en",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → EN",
+        "selectValue": "en",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "timing": {
+        "homeHidden": 24,
+        "overlayVisible": 170,
+        "overlayFirstFrame": 179
+      },
+      "hiddenMs": 24,
+      "overlayMs": 170,
+      "switched": {
+        "id": "mvrdny8hrdzea",
+        "source": "SeIect a region, and ScreenLens keeps reading it for you.\n第 2 句 ． 每 2 ． 5 秒切换",
+        "sourceLen": 77,
+        "status": "done",
+        "provider": "微软翻译",
+        "error": "",
+        "text": "选择一个区域，ScreenLens 会为你持续读取它。\n第 2 句．每 2.5 秒切换",
+        "textLen": 43,
+        "targetLang": "zh-CN",
+        "sourceLang": "zh-CN",
+        "dir": "中文 → 中文",
+        "selectValue": "zh-CN",
+        "selectOptions": 10,
+        "selectDisabled": false
+      },
+      "restored": {
+        "quick": "zh-CN",
+        "prehide": false,
+        "info": {
+          "hwnd": 2885606,
+          "w": 1322,
+          "visible": true,
+          "y": 90,
+          "x": 194,
+          "topmost": false,
+          "iconic": false,
+          "h": 842
+        }
+      }
+    }
+  ],
+  "scope": "10 consecutive screenshot translation rounds with result-window target language switching (all 10 languages), plus 2 realtime hide rounds",
+  "fixes": [
+    "Main window bypasses the Windows/DWM hide fade via setOpacity(0) before hide and setOpacity(1) before restore.",
+    "Result window header adds a 10-language target picker; switching persists targetLang and retranslates in place.",
+    "Result window now shows the latest record after page load (fixes a stale OCR-state overwrite race).",
+    "Realtime stop while the region overlay is open now cancels the overlay instead of leaving selecting=true (fixes next start returning busy).",
+    "CJK target detection reads record.meta.targetLang (previously always undefined).",
+    "action:set-target no longer starts a new selection when OCR is still pending; it only persists the target."
+  ],
+  "roundsSummary": {
+    "screenshot": "10/10 pass",
+    "realtime": "2/2 pass",
+    "languagesCovered": [
+      "简体中文",
+      "English",
+      "日本語",
+      "한국어",
+      "Русский",
+      "Français",
+      "Deutsch",
+      "Español",
+      "Português",
+      "Italiano"
+    ],
+    "homeHiddenMsRange": [
+      24,
+      30
+    ],
+    "overlayVisibleMsRange": [
+      166,
+      213
+    ],
+    "homeHiddenAt1700ms": "10/10"
+  },
+  "evidence": {
+    "summary": "docs/qa/ten-round-2026-10-28.json",
+    "screenshots": "test/tmp/ten-round/r*-before.png / r*-after.png",
+    "log": "test/tmp/ten-round.log",
+    "harness": "test/tmp/ten-round-qa.js"
+  },
+  "release_zip_sha256": "4BBBB79DF5AC2576BA4BC2D40DF833682C00667CD100AD9509B9CA2DD5E783FE"
+}

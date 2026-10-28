@@ -2,6 +2,19 @@ const api = window.screenlens;
 const $ = (id) => document.getElementById(id);
 
 const LANG_LABEL = { 'zh-CN': '中文', en: 'EN', ja: '日文', ko: '韩文', ru: 'RU', fr: 'FR', de: 'DE', es: 'ES', pt: 'PT', it: 'IT', auto: 'AUTO' };
+const TARGET_LANGS = [
+  ['zh-CN', '简体中文'],
+  ['en', 'English'],
+  ['ja', '日本語'],
+  ['ko', '한국어'],
+  ['ru', 'Русский'],
+  ['fr', 'Français'],
+  ['de', 'Deutsch'],
+  ['es', 'Español'],
+  ['pt', 'Português'],
+  ['it', 'Italiano'],
+];
+let targetPending = '';
 const DOMAIN_LABELS = {
   auto: '自动',
   general: '通用',
@@ -99,6 +112,8 @@ async function copyText(text, message = '已复制到剪贴板') {
 }
 
 function show(rec) {
+  if (record && rec && record.id === rec.id
+    && record.translation?.status === 'done' && rec.translation?.status === 'ocr') return;
   record = rec;
   activePane = 'translation';
   explainRequested = false;
@@ -157,6 +172,49 @@ function renderHeader() {
   const pin = $('pin-btn');
   pin.classList.toggle('pinned', pinned);
   pin.title = pinned ? '取消置顶' : '置顶窗口';
+  syncTargetSelect(meta.targetLang);
+}
+
+function syncTargetSelect(targetLang) {
+  const select = $('target-select');
+  if (!select) return;
+  const target = targetLang || record?.meta?.targetLang || record?.targetLang || 'zh-CN';
+  if (targetPending && target === targetPending) targetPending = '';
+  if (document.activeElement !== select && !targetPending) select.value = target;
+  select.disabled = !record?.source;
+}
+
+function initTargetSelect() {
+  const select = $('target-select');
+  if (!select) return;
+  select.replaceChildren(...TARGET_LANGS.map(([value, label]) => new Option(label, value)));
+  select.addEventListener('change', async () => {
+    const value = select.value;
+    targetPending = value;
+    select.disabled = true;
+    cardToast('正在切换译文语言…');
+    try {
+      const res = await api.invoke('action:set-target', value);
+      if (!res?.ok) {
+        targetPending = '';
+        cardToast(res?.error || '切换语言失败');
+      } else {
+        cardToast(`已切换为 ${langLabel(value)}，正在重译`);
+        setTimeout(() => {
+          if (targetPending === value) {
+            targetPending = '';
+            syncTargetSelect();
+          }
+        }, 1800);
+      }
+    } catch (err) {
+      targetPending = '';
+      cardToast(err.message || '切换语言失败');
+    } finally {
+      select.disabled = !record?.source;
+      if (targetPending) syncTargetSelect(targetPending);
+    }
+  });
 }
 
 function renderSource() {
@@ -253,7 +311,7 @@ function emptyCard() {
 }
 
 function isCjkTarget() {
-  const target = String(record?.targetLang || '');
+  const target = String(record?.meta?.targetLang || record?.targetLang || '');
   return target.startsWith('zh') || target === 'ja' || target === 'ko';
 }
 
@@ -1113,6 +1171,7 @@ function bindEvents() {
 }
 
 (async function init() {
+  initTargetSelect();
   bindEvents();
   try {
     const current = await api.invoke('result:get');

@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-28",
+  "issue": "Main window visibly faded for about 100-140 ms after starting capture; IsWindowVisible was already false at 6-30 ms, but DWM kept compositing a fade.",
+  "method": "22 fps GDI full-screen capture around a real/synthetic pointerdown; compare the home crop against the pre-click frame.",
+  "beforeFix": {
+    "build": "release before setOpacity change",
+    "homeHiddenMs": 22,
+    "firstVisualChangeMs": 115.4,
+    "homeDeltaSequence": [
+      0.2224,
+      0.6128,
+      0.8807,
+      0.4548,
+      0.1615
+    ],
+    "note": "Home remained visible and faded across several frames; frame at +130 ms still showed the home over the desktop."
+  },
+  "afterFix": {
+    "homeHiddenMs": 34,
+    "firstVisualChangeMs": 82.5,
+    "homeDeltaSequence": [
+      0.0755,
+      0.0755,
+      0.0755,
+      0.0755
+    ],
+    "note": "No multi-frame fade; the first captured frame after hide already shows the desktop/overlay. Frame at +30 ms shows the home fully gone.",
+    "restoredOpacity": "fully opaque after cancel (fade-restored.png)"
+  },
+  "fix": "BrowserWindow.setOpacity(0) before hide(); setOpacity(1) before show()/restore().",
+  "frames": "test/tmp/visual-hide/frame-*.png",
+  "restoredScreenshot": "test/tmp/fade-restored.png",
+  "release_zip_sha256": "4BBBB79DF5AC2576BA4BC2D40DF833682C00667CD100AD9509B9CA2DD5E783FE"
+}

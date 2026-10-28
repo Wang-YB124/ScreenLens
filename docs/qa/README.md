@@ -212,3 +212,19 @@
 - 稳定性：截图 overlay 保持 1.8 s 后主界面仍隐藏；模拟悬停聚焦（`window:focus`）后仍隐藏；取消框选/停止实时后恢复可见且 `pre-hide` 清除。
 - 最小化回归：用户原本最小化的主界面，框选期间与取消后都保持最小化（`iconic=true`），未被强行弹出。
 - 证据：`test/tmp/pkg-hide.log`、`test/tmp/pkg-hide-overlay.png`；QA 使用独立 userData/TEMP。
+
+## 10 轮截图语言切换、主界面收起与实时回归（2026-10-28）
+
+- 数据：[ten-round-2026-10-28.json](ten-round-2026-10-28.json)、[fade-2026-10-28.json](fade-2026-10-28.json)。
+- 环境：打包版 `dist/release/ScreenLens`，独立 `--user-data-dir`/TEMP；翻译引擎固定为免费（微软翻译），未使用付费 AI 额度。
+- 结果：**截图翻译 10/10 通过**，**实时字幕收起 2/2 通过**。
+- 每轮流程：在首页选目标语言 → 开始截屏 → 选区（文本面板）→ 等待 OCR/翻译完成 → 在结果窗把译文语言切到下一语言并等待重译 → 关闭结果窗，校验首页目标语言已同步。
+- 语言覆盖：简体中文、English、日本語、한국어、Русский、Français、Deutsch、Español、Português、Italiano；结果窗下拉始终为 10 项。
+- 收起时序（点击→，10 轮）：主界面隐藏 22–32 ms；overlay 可见 163–216 ms；+1.7 s 时主界面仍隐藏 10/10；关闭结果后恢复可见且 `pre-hide` 清除。
+- 逐帧视觉验证：修复前 `hide()` 后仍有约 115–138 ms 的多帧淡出（DWM）；加入 `setOpacity(0)` 后，点击后 30 ms 的帧里主界面已完全消失，无多帧淡出；取消后首页恢复为完全不透明。
+- 本轮修复的其他问题：
+  - **结果窗旧记录覆盖**：结果窗页面加载较慢时，旧的 OCR 初始记录会在 `result:show` 时覆盖已完成的译文，界面卡在“识别中…”。现在 `result:show` 发送主进程最新记录，渲染层也会忽略同 id 的 done→ocr 回退。
+  - **实时字幕框选阶段停止**：此前 `stop()` 在 overlay 仍打开时只恢复主界面，不取消框选，`selecting` 一直为 true，下一次启动返回 busy。现在停止会 `cancelSelection()`，并在选区返回后丢弃结果。
+  - **CJK 目标判断**：结果窗 `isCjkTarget()` 读取了不存在的 `record.targetLang`，改为 `record.meta.targetLang`。
+  - **语言切换与 OCR 竞争**：OCR 未完成时切换结果语言不再触发新的框选；只保存目标语言，等待当前 OCR 完成。
+- 证据：截图 `test/tmp/ten-round/r1-before.png`…`r10-after.png`；逐帧 `test/tmp/visual-hide/frame-*.png`、恢复截图 `test/tmp/fade-restored.png`；日志 `test/tmp/ten-round.log`、`test/tmp/fade-test.log`。
