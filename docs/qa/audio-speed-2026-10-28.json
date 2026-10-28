@@ -1,0 +1,587 @@
+{
+  "date": "2026-10-28",
+  "scope": "音频字幕极速/均衡/准确三档：首条延迟、更新节奏、文本质量与回归",
+  "build": {
+    "package": "dist/release/ScreenLens",
+    "zip": "dist/ScreenLens-1.1.0-win64.zip",
+    "sha256": "C42116CE0C8B866E3F02B459E773724162D0DFDD2CAC39FB26C981FEAC2EDAAD",
+    "model": "Whisper base q5_1 / small q5_1（准确档）",
+    "threads": "min(16, logical CPUs)",
+    "server": "whisper-server.exe, -sns -bo 1 -bs 1, temperature_inc 0（准确档 0.2）",
+    "prompt": "不传 Whisper prompt（避免短窗复读/长幻觉）",
+    "windows": "fast: 900ms 首块 + 2.0s 窗口/1.0s 重叠；balanced: 1.5s + 2.5s/1.2s；accurate: 2.0s + 3.0s/1.5s",
+    "smoke": "final artifact smoke: first text 2017 ms, first chunk 1773 ms, recognize 241 ms, intervals 943-2083 ms, RMS 0.181, active 0.567, final text 很好"
+  },
+  "environment": {
+    "app": "打包版 ScreenLens.exe，隔离 --user-data-dir 与独立 TEMP",
+    "audio": "Windows 系统回环（Electron 38 getDisplayMedia loopback）",
+    "source": "本机 TTS speech-zh-long.wav / speech-en-long.wav（22s / 21s，22.05kHz）",
+    "playback": "常驻 PowerShell SoundPlayer 主机，进入 listening 后立即播放",
+    "note": "测试机为 24 逻辑核；后台媒体已暂停；首段含播放启动前的少量静音，因此首片段可能不完整。"
+  },
+  "fast": {
+    "rounds": [
+      {
+        "source": "speed-fast-zh-r1",
+        "first_chunk_ms": 1752,
+        "warm_ms": 285,
+        "first_recognize_ms": 241,
+        "first_text_ms": 1997,
+        "first_subtitle_ms": 1997,
+        "updates": 16,
+        "intervals_ms": [
+          2079,
+          2083,
+          1033,
+          1058,
+          1964,
+          1040,
+          1046,
+          2079,
+          1039,
+          931,
+          1050,
+          1044,
+          1039,
+          1042,
+          938
+        ],
+        "rms": 0.184,
+        "active_ratio": 0.604,
+        "text_samples": {
+          "first": [
+            "人工智能",
+            "我们的生活",
+            "来聊"
+          ],
+          "final": "准确。"
+        }
+      },
+      {
+        "source": "speed-fast-zh-r2",
+        "first_chunk_ms": 1702,
+        "warm_ms": 267,
+        "first_recognize_ms": 250,
+        "first_text_ms": 1956,
+        "first_subtitle_ms": 1956,
+        "updates": 16,
+        "intervals_ms": [
+          2079,
+          2087,
+          937,
+          1038,
+          2091,
+          1033,
+          1042,
+          1970,
+          1046,
+          1041,
+          1042,
+          1041,
+          947,
+          1045,
+          1046
+        ],
+        "rms": 0.181,
+        "active_ratio": 0.574,
+        "text_samples": {
+          "first": [
+            "人空迟遇",
+            "我们的生活",
+            "来录"
+          ],
+          "final": "准确。"
+        }
+      },
+      {
+        "source": "speed-fast-zh-r3",
+        "first_chunk_ms": 1781,
+        "warm_ms": 279,
+        "first_recognize_ms": 248,
+        "first_text_ms": 2032,
+        "first_subtitle_ms": 2032,
+        "updates": 16,
+        "intervals_ms": [
+          2075,
+          1975,
+          1045,
+          1159,
+          1979,
+          1045,
+          933,
+          2088,
+          1041,
+          1042,
+          941,
+          1033,
+          1046,
+          1042,
+          1037
+        ],
+        "rms": 0.181,
+        "active_ratio": 0.565,
+        "text_samples": {
+          "first": [
+            "人工制作",
+            "我们的生活",
+            "来"
+          ],
+          "final": "保持准确。"
+        }
+      }
+    ],
+    "summary": {
+      "first_text_ms": [
+        1997,
+        1956,
+        2032
+      ],
+      "first_text_median_ms": 1997,
+      "first_chunk_ms": [
+        1752,
+        1702,
+        1781
+      ],
+      "recognize_ms": [
+        241,
+        250,
+        248
+      ],
+      "interval_median_ms": 1044,
+      "continuous_interval_median_ms": 1041,
+      "interval_p90_ms": 2079,
+      "interval_min_ms": 931,
+      "interval_max_ms": 2091,
+      "updates": [
+        16,
+        16,
+        16
+      ]
+    },
+    "observation": "首条 1.96–2.03 秒；连续语音时约 1.02 秒一更；句间停顿时会跳过无新内容的窗口，出现约 2.0 秒的可见间隔。短句更碎，但多数片段可读。"
+  },
+  "balanced": {
+    "rounds": [
+      {
+        "source": "speed-balanced-zh-r4",
+        "first_chunk_ms": 2361,
+        "warm_ms": 301,
+        "first_recognize_ms": 270,
+        "first_text_ms": 2633,
+        "first_subtitle_ms": 2633,
+        "updates": 14,
+        "intervals_ms": [
+          1157,
+          1251,
+          1456,
+          1460,
+          1150,
+          1475,
+          1371,
+          1153,
+          1255,
+          1387,
+          1350,
+          1250,
+          1345
+        ],
+        "rms": 0.206,
+        "active_ratio": 0.705,
+        "text_samples": {
+          "first": [
+            "摆监 我们的设计",
+            "系统英平时",
+            "音频实篇的中来聊一聊"
+          ],
+          "final": "同时保持准确"
+        }
+      },
+      {
+        "source": "speed-balanced-zh-r5",
+        "first_chunk_ms": 2346,
+        "warm_ms": 273,
+        "first_recognize_ms": 270,
+        "first_text_ms": 2619,
+        "first_subtitle_ms": 2620,
+        "updates": 13,
+        "intervals_ms": [
+          1264,
+          1353,
+          1244,
+          2702,
+          1358,
+          1352,
+          1252,
+          1362,
+          1346,
+          1350,
+          1354,
+          1258
+        ],
+        "rms": 0.21,
+        "active_ratio": 0.713,
+        "text_samples": {
+          "first": [
+            "改变我们的生活",
+            "金",
+            "来聊一聊"
+          ],
+          "final": "同时保持准确"
+        }
+      },
+      {
+        "source": "speed-balanced-zh-r6",
+        "first_chunk_ms": 2553,
+        "warm_ms": 417,
+        "first_recognize_ms": 377,
+        "first_text_ms": 2935,
+        "first_subtitle_ms": 2935,
+        "updates": 13,
+        "intervals_ms": [
+          2820,
+          1146,
+          1264,
+          1382,
+          1354,
+          1249,
+          1353,
+          1355,
+          1254,
+          1258,
+          1467,
+          1250
+        ],
+        "rms": 0.209,
+        "active_ratio": 0.704,
+        "text_samples": {
+          "first": [
+            "改变我们的生活",
+            "来聊一聊",
+            "别的中文也记住"
+          ],
+          "final": "同时保持准确"
+        }
+      }
+    ],
+    "summary": {
+      "first_text_ms": [
+        2633,
+        2619,
+        2935
+      ],
+      "first_text_median_ms": 2633,
+      "first_chunk_ms": [
+        2361,
+        2346,
+        2553
+      ],
+      "recognize_ms": [
+        270,
+        270,
+        377
+      ],
+      "interval_median_ms": 1350,
+      "continuous_interval_median_ms": 1346,
+      "interval_p90_ms": 1467,
+      "interval_min_ms": 1146,
+      "interval_max_ms": 2820,
+      "updates": [
+        14,
+        13,
+        13
+      ]
+    },
+    "spot_check": {
+      "source": "speed-balanced-zh-r7",
+      "first_chunk_ms": 2344,
+      "warm_ms": 294,
+      "first_recognize_ms": 254,
+      "first_text_ms": 2602,
+      "first_subtitle_ms": 2603,
+      "updates": 13,
+      "intervals_ms": [
+        1354,
+        1246,
+        1362,
+        2617,
+        1353,
+        1254,
+        1367,
+        1350,
+        1250,
+        1353,
+        1342,
+        1354
+      ],
+      "rms": 0.209,
+      "active_ratio": 0.707,
+      "text_samples": {
+        "first": [
+          "改变我们的生活",
+          "金",
+          "来聊一聊"
+        ],
+        "final": "同时保持准确"
+      }
+    },
+    "observation": "首条 2.60–2.94 秒；更新约 1.25–1.37 秒；文本比极速完整，仍有少量错字/重复。"
+  },
+  "accurate": {
+    "round": {
+      "source": "speed-accurate-zh-r1",
+      "first_chunk_ms": 2927,
+      "warm_ms": 932,
+      "first_recognize_ms": 851,
+      "first_text_ms": 3783,
+      "first_subtitle_ms": 3783,
+      "updates": 11,
+      "intervals_ms": [
+        1673,
+        1447,
+        1461,
+        1775,
+        1566,
+        3167,
+        1574,
+        1458,
+        1566,
+        1567
+      ],
+      "rms": 0.206,
+      "active_ratio": 0.711,
+      "text_samples": {
+        "first": [
+          "我们的生活",
+          "下次见!",
+          "来聊一聊语音识别节目。"
+        ],
+        "final": "同时保持准确。"
+      }
+    },
+    "observation": "首条 3.78 秒；更新约 1.45–1.78 秒；文本最完整，但观察到一次“下次见!”短幻觉（已被大致过滤策略覆盖的范围之外）。"
+  },
+  "cross_language": {
+    "zh_to_fr": {
+      "source": "speed-fast-zh-r1",
+      "first_chunk_ms": 1819,
+      "warm_ms": 267,
+      "first_recognize_ms": 259,
+      "first_text_ms": 2081,
+      "first_subtitle_ms": 3070,
+      "updates": 29,
+      "intervals_ms": [
+        934,
+        103,
+        931,
+        1035,
+        1047,
+        833,
+        312,
+        837,
+        104,
+        2095,
+        939,
+        103,
+        738,
+        212,
+        942,
+        1146,
+        833,
+        208,
+        832,
+        208,
+        951,
+        834,
+        210,
+        1048,
+        930,
+        106,
+        1039,
+        920
+      ],
+      "rms": 0.185,
+      "active_ratio": 0.587,
+      "text_samples": {
+        "first": [
+          "人空迟难",
+          "人空迟难",
+          "人工只能正在改变"
+        ],
+        "final": "持准确。"
+      },
+      "observation": "首条原文 2.08 秒；首条译文 3.07 秒（免费 Bing 首译约 +1.0 秒）；后续翻译通常紧跟在原文之后。"
+    },
+    "en_to_en": {
+      "source": "speed-fast-en-r1",
+      "first_chunk_ms": 1848,
+      "warm_ms": 309,
+      "first_recognize_ms": 243,
+      "first_text_ms": 2094,
+      "first_subtitle_ms": 2094,
+      "updates": 16,
+      "intervals_ms": [
+        1134,
+        933,
+        1042,
+        1041,
+        1037,
+        943,
+        1036,
+        1041,
+        1040,
+        940,
+        1055,
+        1148,
+        927,
+        1035,
+        1039
+      ],
+      "rms": 0.252,
+      "active_ratio": 0.672,
+      "text_samples": {
+        "first": [
+          "Artificial Internet",
+          "intelligence is changing.",
+          "our lives."
+        ],
+        "final": "and stay accurate."
+      }
+    },
+    "auto_zh": {
+      "source": "speed-fast-auto-r1",
+      "first_chunk_ms": 2355,
+      "warm_ms": 262,
+      "first_recognize_ms": 477,
+      "first_text_ms": 2836,
+      "first_subtitle_ms": 2836,
+      "updates": 17,
+      "intervals_ms": [
+        1050,
+        1042,
+        1042,
+        1037,
+        1042,
+        1970,
+        1151,
+        936,
+        1039,
+        1032,
+        1042,
+        1045,
+        1051,
+        933,
+        1037,
+        1041
+      ],
+      "rms": 0.207,
+      "active_ratio": 0.695,
+      "text_samples": {
+        "first": [
+          "改变我们的手",
+          "生活",
+          "今天我"
+        ],
+        "final": "同时保持准确"
+      },
+      "observation": "自动检测首窗 1.5 秒，verbose_json 检测 477ms，检测为 zh；首条文字 2.84 秒。自动检测比固定语言慢约 0.8 秒。"
+    }
+  },
+  "regression": {
+    "languages": {
+      "pass": 5,
+      "total": 5,
+      "options": [
+        "auto",
+        "zh",
+        "en",
+        "ja",
+        "ko",
+        "ru",
+        "fr",
+        "de",
+        "es",
+        "pt",
+        "it"
+      ],
+      "speeds": [
+        "fast",
+        "balanced",
+        "accurate"
+      ],
+      "cases": [
+        {
+          "name": "zh-explicit",
+          "pass": true,
+          "detected": null,
+          "text": "实时\n音频\n简体中文 → Français\nFREE\nCtrl + Alt + R 停止\n音\nson"
+        },
+        {
+          "name": "en-explicit",
+          "pass": true,
+          "detected": null,
+          "text": "实时\n音频\nEnglish → Français\nFREE\nCtrl + Alt + R 停止\nThe system audio\nL'audio du syst"
+        },
+        {
+          "name": "zh-auto",
+          "pass": true,
+          "detected": "zh",
+          "text": "实时\n音频\n简体中文\nORIG\nCtrl + Alt + R 停止\n这是一段用语"
+        },
+        {
+          "name": "en-auto",
+          "pass": true,
+          "detected": "en",
+          "text": "实时\n音频\nEnglish → 简体中文\nFREE\nCtrl + Alt + R 停止\nsubtitles.\n音频字幕制作"
+        },
+        {
+          "name": "bar-language",
+          "pass": true,
+          "detected": null,
+          "text": ""
+        }
+      ],
+      "note": "10 种语言 + 自动检测；zh/en 显式与自动共 4 例，字幕条原文语言 ja/auto 联动 1 例。"
+    },
+    "records": {
+      "default_dir": "test/tmp/qa-auto-1-userdata/audio-records/音频记录-20261028-160549.txt",
+      "default_sample": "识别语言：自动检测（简体中文）；识别模式：极速；记录条数：18；[00:02] 原文：人工只能正在",
+      "custom_dir": "test/tmp/qa-custom-records/我的记录",
+      "custom_pass": true,
+      "reset_pass": true,
+      "note": "自定义目录写入成功，恢复默认后 state/settings/UI 均回到默认。"
+    },
+    "silence": {
+      "pass": true,
+      "message": "正在聆听系统声音，但当前没有检测到播放声音；请播放音频或检查输出设备。"
+    },
+    "mute": {
+      "pass": true,
+      "message": "系统输出已静音或音量为 0，请取消静音/调高音量后再试。",
+      "restored": "{\"ok\":true,\"muted\":false,\"volume\":0.17}"
+    },
+    "stop_restore_home": {
+      "pass": true,
+      "evidence": "audio-record-dir-test.js 在停止后 waitHomeVisible 通过；主界面恢复。"
+    },
+    "single_instance": {
+      "pass": true,
+      "evidence": "同一 profile 启动第二个实例，5 秒内退出（exit code 0）；第一个实例 home document.visibilityState=visible、hasFocus=true（1322×842）。"
+    },
+    "screenshot_and_realtime": {
+      "flow_pass": true,
+      "content_ocr": "empty",
+      "note": "本轮测试机会话桌面捕获为全黑（显示器休眠/无桌面合成），选区内没有可识别文字；截图结果窗与实时字幕窗均能创建、布局、停止并恢复主界面。该路径未在本次音频改动中修改。",
+      "shots": [
+        "test/tmp/ui-smoke/portable-result.png",
+        "test/tmp/ui-smoke/realtime.png"
+      ]
+    }
+  },
+  "screenshots": [
+    "docs/screenshots/audio-fast.png",
+    "docs/screenshots/audio-balanced.png",
+    "docs/screenshots/audio-accurate.png",
+    "docs/screenshots/audio-modes.png"
+  ],
+  "conclusion": "默认极速把首条从旧版约 3 秒降到约 2.0 秒，连续语音更新约 1.02 秒；均衡约 2.62 秒/1.3 秒；准确约 3.78 秒/1.5 秒。短窗不传提示词后未再出现 200+ 字长复读；句间停顿会造成约 2 秒的可见空档，这是没有新文字的窗口被正确跳过。"
+}

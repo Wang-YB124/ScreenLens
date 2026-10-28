@@ -61,16 +61,16 @@ const HALLUCINATION_PATTERNS = [
 
 
 const AUDIO_LANG_META = {
-  zh: { whisper: 'zh', source: 'zh-CN', prompt: '以下是普通话的句子。', script: 'han' },
-  en: { whisper: 'en', source: 'en', prompt: 'The following is an English sentence.', script: 'latin' },
-  ja: { whisper: 'ja', source: 'ja', prompt: '以下は日本語の文です。', script: 'japanese' },
-  ko: { whisper: 'ko', source: 'ko', prompt: '다음은 한국어 문장입니다.', script: 'korean' },
-  ru: { whisper: 'ru', source: 'ru', prompt: 'Ниже приведено предложение на русском языке.', script: 'cyrillic' },
-  fr: { whisper: 'fr', source: 'fr', prompt: 'Voici une phrase en français.', script: 'latin' },
-  de: { whisper: 'de', source: 'de', prompt: 'Es folgt ein deutscher Satz.', script: 'latin' },
-  es: { whisper: 'es', source: 'es', prompt: 'A continuación, una frase en español.', script: 'latin' },
-  pt: { whisper: 'pt', source: 'pt', prompt: 'A seguir, uma frase em português.', script: 'latin' },
-  it: { whisper: 'it', source: 'it', prompt: 'Di seguito una frase in italiano.', script: 'latin' },
+  zh: { whisper: 'zh', source: 'zh-CN', script: 'han' },
+  en: { whisper: 'en', source: 'en', script: 'latin' },
+  ja: { whisper: 'ja', source: 'ja', script: 'japanese' },
+  ko: { whisper: 'ko', source: 'ko', script: 'korean' },
+  ru: { whisper: 'ru', source: 'ru', script: 'cyrillic' },
+  fr: { whisper: 'fr', source: 'fr', script: 'latin' },
+  de: { whisper: 'de', source: 'de', script: 'latin' },
+  es: { whisper: 'es', source: 'es', script: 'latin' },
+  pt: { whisper: 'pt', source: 'pt', script: 'latin' },
+  it: { whisper: 'it', source: 'it', script: 'latin' },
 };
 
 function audioLanguage(value) {
@@ -178,10 +178,6 @@ function trimOverlap(previous, next, lang = 'zh') {
     while (cut > 0 && /[\p{L}\p{N}]/u.test(next[cut - 1]) && /[\p{L}\p{N}]/u.test(next[cut] || ' ')) cut -= 1;
   }
   return tidySpeech(next.slice(cut));
-}
-
-function modePrompt(meta) {
-  return '';
 }
 
 function silenceWav(ms = 400, rate = 48000) {
@@ -490,7 +486,6 @@ class AudioController {
         temperature: '0',
         temperature_inc: String(options.temperatureInc ?? 0),
       };
-      if (options.prompt) fields.prompt = options.prompt;
       if (options.noLanguageProbabilities) fields.no_language_probabilities = 'true';
       const chunks = [];
       for (const [key, value] of Object.entries(fields)) {
@@ -1164,7 +1159,6 @@ class AudioController {
       const started = Date.now();
       const result = await this.serverRecognize(data, {
         language: meta.whisper,
-        prompt: modePrompt(meta),
         temperatureInc: preset.temperatureInc,
         timeoutMs: preset.key === 'accurate' ? 30000 : 15000,
       });
@@ -1220,8 +1214,6 @@ class AudioController {
       '-bs', '1',
       '-sns',
     ];
-    const prompt = modePrompt(meta);
-    if (prompt && !auto) args.push('--prompt', prompt);
     return new Promise((resolve, reject) => {
       let stderr = '';
       let settled = false;

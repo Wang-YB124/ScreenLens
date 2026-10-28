@@ -150,10 +150,7 @@ function setupGraph(audioTracks, info) {
   fullChunkSamples = Math.max(1, Math.round((sampleRate * chunkMs) / 1000));
   firstChunkSamples = Math.max(1, Math.round((sampleRate * firstMs) / 1000));
   chunkSamples = firstFlushDone ? fullChunkSamples : firstChunkSamples;
-  overlapSamples = Math.min(
-    chunkSamples - 1,
-    Math.max(0, Math.round((sampleRate * overlapMs) / 1000)),
-  );
+  overlapSamples = Math.max(0, Math.round((sampleRate * overlapMs) / 1000));
   segments = [];
   total = 0;
   newSamples = 0;

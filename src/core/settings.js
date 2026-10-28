@@ -8,7 +8,7 @@ const AUDIO_MODES = {
     key: 'fast',
     label: '极速',
     model: 'base',
-    firstChunkMs: 1000,
+    firstChunkMs: 900,
     chunkMs: 2000,
     overlapMs: 1000,
     temperatureInc: 0,
