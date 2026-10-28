@@ -10,6 +10,7 @@ const { translateAI, translateFree, LANG_NAMES } = require('./translate');
 const { providerLabel } = require('./llm');
 const { startTiming, markTiming, finishTiming } = require('./timing');
 const { getOutputDeviceState } = require('./audio-device');
+const { AUDIO_MODES } = require('./settings');
 const T2S = require('./t2s.json');
 
 function findFreePort() {
@@ -51,7 +52,7 @@ function waitForPort(port, timeout = 8000) {
 
 
 const HALLUCINATION_PATTERNS = [
-  /^(谢谢观看|感谢观看|请不吝点赞|字幕由|字幕组|訂閱|订阅|小铃铛|明镜与点点)/,
+  /^(谢谢观看|感谢观看|请不吝点赞|请订阅|订阅频道|字幕由|字幕组|訂閱|订阅|小铃铛|明镜与点点)/,
   /^(thanks?\s+for\s+watching|thank\s+you\s+for\s+watching|please\s+subscribe|amara\.org|subtitles\s+by)/i,
   /^[\(\[（【][\s\S]*[\)\]）】]$/,
   /^(\(|\[)?\s*(buzz|music|applause|laughter|silence|blank_audio|inaudible|no speech|the end)\s*(\)|\])?$/i,
@@ -80,9 +81,23 @@ function sourceLabel(source) {
   return LANG_NAMES[source] || source;
 }
 
+const WHISPER_LANG_NAMES = {
+  chinese: 'zh',
+  english: 'en',
+  japanese: 'ja',
+  korean: 'ko',
+  russian: 'ru',
+  french: 'fr',
+  german: 'de',
+  spanish: 'es',
+  portuguese: 'pt',
+  italian: 'it',
+};
+
 function normalizeDetectedLanguage(code, text) {
   const raw = String(code || '').toLowerCase();
   if (AUDIO_LANG_META[raw]) return raw;
+  if (WHISPER_LANG_NAMES[raw]) return WHISPER_LANG_NAMES[raw];
   if (raw.startsWith('zh')) return 'zh';
   const sample = String(text || '');
   if (/[Ѐ-ӿ]/.test(sample)) return 'ru';
@@ -109,17 +124,83 @@ function tidySpeech(value) {
   return text;
 }
 
-function trimOverlap(previous, next) {
-  if (!previous || !next) return next;
-  if (previous === next) return '';
-  const max = Math.min(previous.length, next.length);
-  const floor = /[\u3400-\u9fff]/.test(next) ? 3 : 8;
-  for (let size = max; size >= floor; size -= 1) {
-    if (previous.slice(-size) === next.slice(0, size)) {
-      return next.slice(size).trim();
+function isCjkText(text) {
+  return /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(text);
+}
+
+function speechChars(text, lang) {
+  let value = String(text || '');
+  if (lang === 'zh') value = toSimplified(value);
+  const chars = [];
+  const map = [];
+  for (let i = 0; i < value.length; i += 1) {
+    const ch = value[i];
+    if (/[\p{L}\p{N}]/u.test(ch)) {
+      chars.push(ch.toLowerCase());
+      map.push(i);
     }
   }
-  return next;
+  return { text: value, norm: chars.join(''), map };
+}
+
+function longestCommonSubstring(a, b) {
+  let best = { len: 0, ai: 0, bi: 0 };
+  for (let i = 0; i < a.length; i += 1) {
+    for (let j = 0; j < b.length; j += 1) {
+      let size = 0;
+      while (i + size < a.length && j + size < b.length && a[i + size] === b[j + size]) size += 1;
+      if (size > best.len) best = { len: size, ai: i, bi: j };
+    }
+  }
+  return best;
+}
+
+function trimOverlap(previous, next, lang = 'zh') {
+  if (!previous || !next) return next;
+  if (previous === next) return '';
+  const isCjk = isCjkText(next);
+  const floor = isCjk ? 2 : 6;
+  const prev = speechChars(previous, lang).norm.slice(-28);
+  const cur = speechChars(next, lang);
+  if (!prev || !cur.norm) return next;
+  const head = cur.norm.slice(0, 32);
+  let best = { len: 0, end: 0 };
+  for (let start = 0; start < Math.min(3, head.length); start += 1) {
+    const found = longestCommonSubstring(prev, head.slice(start));
+    if (found.len < floor) continue;
+    const end = start + found.bi + found.len;
+    if (end > best.end || (end === best.end && found.len > best.len)) best = { len: found.len, end };
+  }
+  if (best.len < floor) return next;
+  if (best.end >= cur.norm.length) return '';
+  let cut = best.end < cur.map.length ? cur.map[best.end] : next.length;
+  if (!isCjk) {
+    while (cut > 0 && /[\p{L}\p{N}]/u.test(next[cut - 1]) && /[\p{L}\p{N}]/u.test(next[cut] || ' ')) cut -= 1;
+  }
+  return tidySpeech(next.slice(cut));
+}
+
+function modePrompt(meta) {
+  return '';
+}
+
+function silenceWav(ms = 400, rate = 48000) {
+  const count = Math.max(1, Math.round((rate * ms) / 1000));
+  const buffer = Buffer.alloc(44 + count * 2);
+  buffer.write('RIFF', 0);
+  buffer.writeUInt32LE(36 + count * 2, 4);
+  buffer.write('WAVE', 8);
+  buffer.write('fmt ', 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(rate, 24);
+  buffer.writeUInt32LE(rate * 2, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write('data', 36);
+  buffer.writeUInt32LE(count * 2, 40);
+  return buffer;
 }
 
 function wavStats(buffer) {
@@ -167,9 +248,18 @@ function wavStats(buffer) {
   }
 }
 
+function looksDegenerate(text) {
+  const compact = String(text || '').replace(/[^\p{L}\p{N}]+/gu, '');
+  if (compact.length < 8) return false;
+  if (/(.)\1{5,}/u.test(compact)) return true;
+  if (/(.{1,6})\1{3,}/u.test(compact)) return true;
+  return false;
+}
+
 function looksLikeHallucination(text, language = 'zh') {
   if (!text) return true;
   if (HALLUCINATION_PATTERNS.some((pattern) => pattern.test(text))) return true;
+  if (looksDegenerate(text)) return true;
   const spoken = text.replace(/[^\p{L}\p{N}]+/gu, '');
   if (spoken.length < 1) return true;
   const hasHan = /[㐀-鿿]/.test(text);
@@ -211,6 +301,7 @@ class AudioController {
     this.fallbackNotified = false;
     this.startCount = 0;
     this.timingId = '';
+    this.spanTimingId = '';
     this.firstOriginalSent = false;
     this.firstSubtitleSent = false;
     this.firstTextSent = false;
@@ -219,9 +310,11 @@ class AudioController {
     this.detectedLang = '';
     this.languageSetting = this.settings.get().audio.language;
     this.modelSetting = this.settings.get().audio.model;
+    this.speedSetting = this.settings.get().audio.speed;
     this.server = null;
     this.serverPort = 0;
     this.serverStarting = null;
+    this.serverWarmed = false;
     this.recordDir = this.resolveRecordDir();
     this.recordFile = '';
     this.recordSegments = [];
@@ -288,6 +381,20 @@ class AudioController {
     };
   }
 
+  modeInfo() {
+    const key = this.settings.get().audio.speed;
+    const preset = AUDIO_MODES[key] || AUDIO_MODES.fast;
+    return {
+      key: preset.key,
+      label: preset.label,
+      hint: preset.hint,
+      model: preset.model,
+      firstChunkMs: preset.firstChunkMs,
+      chunkMs: preset.chunkMs,
+      overlapMs: preset.overlapMs,
+    };
+  }
+
   async ensureServer() {
     if (this.server && this.serverPort) return this.serverPort;
     if (this.serverStarting) return this.serverStarting;
@@ -295,7 +402,7 @@ class AudioController {
     if (!info.ready || !info.server) return 0;
     const port = await findFreePort();
     if (!port) return 0;
-    const threads = Math.max(4, Math.min(8, (os.cpus() || []).length || 4));
+    const threads = Math.max(4, Math.min(16, (os.cpus() || []).length || 4));
     const args = [
       '-m', info.model,
       '-t', String(threads),
@@ -318,7 +425,13 @@ class AudioController {
         return;
       }
       this.server = proc;
-      try { proc.stderr.on('data', () => {}); } catch {}
+      let stderr = '';
+      try {
+        proc.stderr.on('data', (chunk) => {
+          stderr = (stderr + String(chunk)).slice(-800);
+        });
+      } catch {}
+      this.serverError = '';
       let settled = false;
       const done = (value) => {
         if (settled) return;
@@ -329,12 +442,14 @@ class AudioController {
         if (this.server === proc) this.server = null;
         done(0);
       });
-      proc.once('exit', () => {
+      proc.once('exit', (code) => {
         if (this.server === proc) this.server = null;
         this.serverPort = 0;
+        this.serverError = stderr.trim().slice(0, 300);
+        markTiming(this.spanTimingId, 'server-exit', { code, message: this.serverError.slice(0, 160) });
         done(0);
       });
-      waitForPort(port, 8000).then((ok) => {
+      waitForPort(port, 15000).then((ok) => {
         if (ok && this.active && !this.server?.killed) {
           this.serverPort = port;
           markTiming(this.timingId, 'server-ready', { port, model: info.key });
@@ -360,22 +475,29 @@ class AudioController {
     }
   }
 
-  serverRecognize(file, language, prompt) {
+  serverRecognize(audio, options = {}) {
     return this.ensureServer().then((port) => {
-      if (!port) throw new Error('Whisper server unavailable');
-      const audio = fs.readFileSync(file);
+      if (!port) {
+        throw new Error(this.serverError
+          ? `Whisper server 未启动：${this.serverError}`
+          : 'Whisper server unavailable');
+      }
+      const data = Buffer.isBuffer(audio) ? audio : Buffer.from(audio);
       const boundary = `----screenlens${Date.now().toString(16)}`;
       const fields = {
-        response_format: 'json',
-        language,
+        response_format: options.responseFormat || 'json',
+        language: options.language || 'auto',
         temperature: '0',
+        temperature_inc: String(options.temperatureInc ?? 0),
       };
+      if (options.prompt) fields.prompt = options.prompt;
+      if (options.noLanguageProbabilities) fields.no_language_probabilities = 'true';
       const chunks = [];
       for (const [key, value] of Object.entries(fields)) {
         chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${key}"\r\n\r\n${value}\r\n`));
       }
-      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${path.basename(file)}"\r\nContent-Type: audio/wav\r\n\r\n`));
-      chunks.push(audio);
+      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="chunk.wav"\r\nContent-Type: audio/wav\r\n\r\n`));
+      chunks.push(data);
       chunks.push(Buffer.from(`\r\n--${boundary}--\r\n`));
       const body = Buffer.concat(chunks);
       return new Promise((resolve, reject) => {
@@ -384,23 +506,26 @@ class AudioController {
           port,
           path: '/inference',
           method: 'POST',
-          timeout: 20000,
+          timeout: options.timeoutMs || 20000,
           headers: {
             'Content-Type': `multipart/form-data; boundary=${boundary}`,
             'Content-Length': body.length,
           },
         }, (res) => {
-          let data = '';
+          let text = '';
           res.setEncoding('utf8');
-          res.on('data', (chunk) => { data += chunk; });
+          res.on('data', (chunk) => { text += chunk; });
           res.on('end', () => {
             if (res.statusCode !== 200) {
               reject(new Error(`Whisper server ${res.statusCode}`));
               return;
             }
             try {
-              const parsed = JSON.parse(data);
-              resolve(String(parsed.text || '').trim());
+              const parsed = JSON.parse(text);
+              resolve({
+                text: String(parsed.text || '').trim(),
+                language: String(parsed.detected_language || parsed.language || ''),
+              });
             } catch (err) {
               reject(err);
             }
@@ -411,6 +536,20 @@ class AudioController {
         req.end(body);
       });
     });
+  }
+
+  async warmServer() {
+    if (this.serverWarmed) return;
+    this.serverWarmed = true;
+    const settings = this.settings.get();
+    const language = settings.audio.language === 'auto'
+      ? 'zh'
+      : (AUDIO_LANG_META[audioLanguage(settings.audio.language)] || AUDIO_LANG_META.zh).whisper;
+    try {
+      const started = Date.now();
+      await this.serverRecognize(silenceWav(400), { language, timeoutMs: 8000 });
+      markTiming(this.timingId, 'server-warm', { ms: Date.now() - started });
+    } catch {}
   }
 
   dispose() {
@@ -459,12 +598,14 @@ class AudioController {
     this.recordTimer = null;
     this.recordFinished = false;
     this.recordErrorNotified = false;
+    const preset = AUDIO_MODES[this.settings.get().audio.speed] || AUDIO_MODES.fast;
     this.recordMeta = {
       startedAt: now,
       source: source === 'microphone' ? '麦克风' : '系统声音',
       language: language === 'auto' ? '自动检测' : sourceLabel(meta.source),
       target: LANG_NAMES[target] || target || '',
       model: this.modelInfo().name,
+      mode: preset.label,
     };
   }
 
@@ -521,6 +662,7 @@ class AudioController {
       `识别语言：${meta.language || ''}`,
       `译文语言：${meta.target || ''}`,
       `识别模型：${meta.model || ''}`,
+      `识别模式：${meta.mode || ''}`,
       `记录条数：${this.recordSegments.length}`,
       '----------------------------------------',
     ];
@@ -594,12 +736,16 @@ class AudioController {
   }
 
   refreshSettings() {
-    const model = this.settings.get().audio.model;
-    if (model !== this.modelSetting) {
-      this.modelSetting = model;
+    const audio = this.settings.get().audio;
+    if (audio.speed !== this.speedSetting) {
+      this.speedSetting = audio.speed;
+      this.serverWarmed = false;
+    }
+    if (audio.model !== this.modelSetting) {
+      this.modelSetting = audio.model;
       this.stopServer();
     }
-    const language = this.settings.get().audio.language;
+    const language = audio.language;
     if (language !== this.languageSetting) {
       this.languageSetting = language;
       this.detectedLang = '';
@@ -618,6 +764,11 @@ class AudioController {
       round: ++this.startCount,
     });
     this.timingId = timingId;
+    this.spanTimingId = startTiming('audio-span', {
+      source: options.source || 'unknown',
+      clickedAt: options.clickedAt,
+      round: this.startCount,
+    });
     this.firstOriginalSent = false;
     this.firstSubtitleSent = false;
     this.firstTextSent = false;
@@ -626,9 +777,11 @@ class AudioController {
     this.detectedLang = '';
     this.languageSetting = this.settings.get().audio.language;
     this.modelSetting = this.settings.get().audio.model;
+    this.speedSetting = this.settings.get().audio.speed;
     this.server = null;
     this.serverPort = 0;
     this.serverStarting = null;
+    this.serverWarmed = false;
     this.recordDir = this.resolveRecordDir();
     this.recordFile = '';
     this.recordSegments = [];
@@ -657,6 +810,12 @@ class AudioController {
 
     const settings = this.settings.get();
     const source = settings.audio.source === 'microphone' ? 'microphone' : 'system';
+    const preset = AUDIO_MODES[settings.audio.speed] || AUDIO_MODES.fast;
+    const chunkMs = preset.chunkMs;
+    const overlapMs = preset.overlapMs;
+    const firstChunkMs = settings.audio.language === 'auto'
+      ? Math.max(preset.firstChunkMs, 1500)
+      : preset.firstChunkMs;
     this.beginRecord({ source, settings });
     this.homeMinimized = await this.minimizeHome();
     markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
@@ -726,15 +885,23 @@ class AudioController {
         if (!this.active || !this.capture || this.capture.isDestroyed()) return;
         this.capture.webContents.send('audio:init', {
           source,
-          chunkMs: settings.audio.chunkMs,
-          overlapMs: settings.audio.overlapMs,
-          firstChunkMs: 2000,
+          chunkMs,
+          overlapMs,
+          firstChunkMs,
+          speed: preset.key,
           timingId,
         });
-        markTiming(timingId, 'capture-init-sent');
+        markTiming(timingId, 'capture-init-sent', {
+          speed: preset.key,
+          chunkMs,
+          overlapMs,
+          firstChunkMs,
+        });
       });
       this.capture.loadFile(path.join(__dirname, '..', 'renderer', 'audio-capture', 'index.html'));
-      this.ensureServer().catch(() => {});
+      this.ensureServer()
+        .then((port) => { if (port) this.warmServer(); })
+        .catch(() => {});
     } catch (err) {
       const message = String(err.message || '音频捕获初始化失败');
       markTiming(timingId, 'start-error', { message: message.slice(0, 160) });
@@ -825,17 +992,16 @@ class AudioController {
       });
     }
     this.seq += 1;
-    const file = path.join(this.tempDir, `asr-${process.pid}-${Date.now()}-${this.seq}.wav`);
-    try {
-      fs.writeFileSync(file, data);
-    } catch {
-      return;
-    }
-    this.queue.push({ file, at: Date.now() });
-    while (this.queue.length > 3) {
-      const dropped = this.queue.shift();
-      try { fs.unlink(dropped.file, () => {}); } catch {}
-    }
+    const stats = wavStats(data);
+    markTiming(this.spanTimingId, 'chunk', {
+      bytes: data.length,
+      seq: this.seq,
+      queue: this.queue.length + 1,
+      rms: stats ? stats.rms : null,
+      activeRatio: stats ? stats.activeRatio : null,
+    });
+    this.queue.push({ data, at: Date.now() });
+    while (this.queue.length > 4) this.queue.shift();
     this.pump();
   }
 
@@ -882,7 +1048,7 @@ class AudioController {
     }
     if (payload.status === 'silence') {
       this.silentChunks += 1;
-      markTiming(this.timingId, 'silence', {
+      markTiming(this.spanTimingId, 'silence', {
         rms: payload.rms,
         activeRatio: payload.activeRatio,
         count: this.silentChunks,
@@ -918,7 +1084,7 @@ class AudioController {
       this.whisperStarted = true;
       markTiming(this.timingId, 'whisper-start', { queue: this.queue.length + 1 });
     }
-    this.recognize(item.file)
+    this.recognize(item.data)
       .then(({ text, language }) => {
         if (!this.active) return;
         if (!this.whisperDone) {
@@ -943,43 +1109,105 @@ class AudioController {
         }
       })
       .finally(() => {
-        try { fs.unlink(item.file, () => {}); } catch {}
         this.busy = false;
         if (this.active) this.pump();
       });
   }
 
-  async recognize(file) {
+  async recognize(data) {
     const settings = this.settings.get();
+    const preset = AUDIO_MODES[settings.audio.speed] || AUDIO_MODES.fast;
     const configured = settings.audio.language;
-    const auto = configured === 'auto' && !this.detectedLang;
+    if (configured === 'auto' && !this.detectedLang) {
+      const started = Date.now();
+      try {
+        const result = await this.serverRecognize(data, {
+          language: 'auto',
+          responseFormat: 'verbose_json',
+          noLanguageProbabilities: true,
+          temperatureInc: 0,
+          timeoutMs: 15000,
+        });
+        if (result.text) {
+          const detected = normalizeDetectedLanguage(result.language, result.text);
+          this.detectedLang = detected;
+          if (this.recordMeta) {
+            const detectedMeta = AUDIO_LANG_META[detected] || AUDIO_LANG_META.zh;
+            this.recordMeta.language = `自动检测（${sourceLabel(detectedMeta.source)}）`;
+          }
+          markTiming(this.timingId, 'language-detected', {
+            detected,
+            requested: 'auto',
+            chars: result.text.length,
+            ms: Date.now() - started,
+          });
+          markTiming(this.spanTimingId, 'recognize-server', {
+            chars: result.text.length,
+            language: detected,
+            mode: preset.key,
+            auto: true,
+            ms: Date.now() - started,
+          });
+          return { text: result.text, language: detected };
+        }
+        markTiming(this.timingId, 'auto-empty', { ms: Date.now() - started });
+      } catch (err) {
+        markTiming(this.timingId, 'auto-server-fallback', {
+          message: String(err.message || '').slice(0, 120),
+        });
+      }
+      return this.recognizeCli(data);
+    }
     const language = configured === 'auto' ? (this.detectedLang || 'auto') : audioLanguage(configured);
     const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
-    if (!auto) {
-      try {
-        const text = await this.serverRecognize(file, meta.whisper, meta.prompt);
-        markTiming(this.timingId, 'recognize-server', { chars: text.length, language: meta.whisper });
-        return { text, language: meta.whisper };
-      } catch (err) {
-        markTiming(this.timingId, 'server-fallback', { message: String(err.message || '').slice(0, 120) });
-      }
+    try {
+      const started = Date.now();
+      const result = await this.serverRecognize(data, {
+        language: meta.whisper,
+        prompt: modePrompt(meta),
+        temperatureInc: preset.temperatureInc,
+        timeoutMs: preset.key === 'accurate' ? 30000 : 15000,
+      });
+      markTiming(this.spanTimingId, 'recognize-server', {
+        chars: result.text.length,
+        language: meta.whisper,
+        mode: preset.key,
+        ms: Date.now() - started,
+      });
+      return { text: result.text, language: meta.whisper };
+    } catch (err) {
+      markTiming(this.timingId, 'server-fallback', { message: String(err.message || '').slice(0, 120) });
     }
-    return this.recognizeCli(file);
+    return this.recognizeCli(data);
   }
 
-  recognizeCli(file) {
+  recognizeCli(data) {
     const info = this.modelInfo();
     if (!info.ready) throw new Error('本地 Whisper 模型不可用');
     const settings = this.settings.get();
+    const preset = AUDIO_MODES[settings.audio.speed] || AUDIO_MODES.fast;
     const configured = settings.audio.language;
     const auto = configured === 'auto' && !this.detectedLang;
     const language = configured === 'auto'
       ? (this.detectedLang || 'auto')
       : audioLanguage(configured);
     const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
-    const threads = Math.max(4, Math.min(8, (os.cpus() || []).length || 4));
+    const threads = Math.max(4, Math.min(16, (os.cpus() || []).length || 4));
+    const file = path.join(this.tempDir, `asr-${process.pid}-${Date.now()}-${++this.seq}.wav`);
+    try {
+      fs.writeFileSync(file, Buffer.isBuffer(data) ? data : Buffer.from(data));
+    } catch (err) {
+      throw new Error(`音频写入失败：${String(err.message || '').slice(0, 80)}`);
+    }
     const base = file.replace(/\.wav$/i, '');
     const output = `${base}-out`;
+    const textPath = `${output}.txt`;
+    const jsonPath = `${output}.json`;
+    const cleanup = () => {
+      try { fs.unlink(file, () => {}); } catch {}
+      try { fs.unlink(textPath, () => {}); } catch {}
+      try { fs.unlink(jsonPath, () => {}); } catch {}
+    };
     const args = [
       '-m', info.model,
       '-f', file,
@@ -992,6 +1220,8 @@ class AudioController {
       '-bs', '1',
       '-sns',
     ];
+    const prompt = modePrompt(meta);
+    if (prompt && !auto) args.push('--prompt', prompt);
     return new Promise((resolve, reject) => {
       let stderr = '';
       let settled = false;
@@ -1003,6 +1233,7 @@ class AudioController {
           stdio: ['ignore', 'ignore', 'pipe'],
         });
       } catch (err) {
+        cleanup();
         reject(err);
         return;
       }
@@ -1011,6 +1242,7 @@ class AudioController {
         if (settled) return;
         settled = true;
         try { proc.kill(); } catch {}
+        cleanup();
         reject(new Error('语音识别超时'));
       }, 20000);
       proc.stderr.on('data', (chunk) => {
@@ -1021,6 +1253,7 @@ class AudioController {
         settled = true;
         clearTimeout(timer);
         if (this.proc === proc) this.proc = null;
+        cleanup();
         reject(err);
       });
       proc.on('close', (code) => {
@@ -1028,8 +1261,6 @@ class AudioController {
         settled = true;
         clearTimeout(timer);
         if (this.proc === proc) this.proc = null;
-        const textPath = `${output}.txt`;
-        const jsonPath = `${output}.json`;
         try {
           if (auto) {
             const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
@@ -1049,6 +1280,7 @@ class AudioController {
               detected,
               requested: 'auto',
               chars: text.length,
+              mode: preset.key,
             });
             resolve({ text, language: detected });
           } else {
@@ -1062,8 +1294,7 @@ class AudioController {
             resolve({ text: '', language: auto ? (this.detectedLang || 'zh') : meta.whisper });
           }
         } finally {
-          try { fs.unlink(textPath, () => {}); } catch {}
-          try { fs.unlink(jsonPath, () => {}); } catch {}
+          cleanup();
         }
       });
     });
@@ -1076,11 +1307,30 @@ class AudioController {
       : settings.audio.language));
     const meta = AUDIO_LANG_META[lang] || AUDIO_LANG_META.zh;
     const cleaned = lang === 'zh' ? toSimplified(tidySpeech(raw)) : tidySpeech(raw);
-    if (!cleaned || looksLikeHallucination(cleaned, lang)) return;
-    const display = trimOverlap(this.prevRaw, cleaned);
+    if (!cleaned || looksLikeHallucination(cleaned, lang)) {
+      markTiming(this.spanTimingId, 'text-skip', { reason: 'hallucination', chars: String(raw || '').length });
+      return;
+    }
+    const display = trimOverlap(this.prevRaw, cleaned, lang);
+    if (!display || looksLikeHallucination(display, lang)) {
+      markTiming(this.spanTimingId, 'text-skip', { reason: 'overlap', chars: cleaned.length });
+      return;
+    }
+    if (!speechChars(display, lang).norm) {
+      markTiming(this.spanTimingId, 'text-skip', { reason: 'punct', chars: display.length });
+      return;
+    }
+    if (display.length > (isCjkText(display) ? 80 : 240)) {
+      markTiming(this.spanTimingId, 'text-skip', { reason: 'long', chars: display.length });
+      return;
+    }
+    if (display === this.uiText && display.length < 12) {
+      markTiming(this.spanTimingId, 'text-skip', { reason: 'repeat', chars: display.length });
+      return;
+    }
     this.prevRaw = cleaned;
-    if (!display || looksLikeHallucination(display, lang)) return;
     this.uiText = display;
+    markTiming(this.spanTimingId, 'text', { chars: display.length, language: lang, mode: this.settings.get().audio.speed });
     if (!this.firstTextSent) {
       this.firstTextSent = true;
       markTiming(this.timingId, 'first-text', { chars: display.length, language: lang });
@@ -1246,6 +1496,10 @@ class AudioController {
       try { this.win.destroy(); } catch {}
     }
     this.win = null;
+    if (this.spanTimingId) {
+      finishTiming(this.spanTimingId, { outcome: 'stopped' });
+      this.spanTimingId = '';
+    }
     this.releaseHome();
     this.onStateChange({ audioActive: false });
     if (!silent) {

@@ -421,7 +421,7 @@ function syncSettingsForm(force) {
   setValue('realtime-engine', s.realtime.engine);
   setValue('realtime-lines', String(s.realtime.maxLines));
   setValue('audio-source', s.audio.source);
-  setValue('audio-model', s.audio.model);
+  setValue('audio-speed', s.audio.speed);
   setValue('audio-language', s.audio.language);
   const audioInfo = state.audio || {};
   const audioStatus = $('audio-model-status');
@@ -436,8 +436,10 @@ function syncSettingsForm(force) {
   }
   const audioDetail = $('audio-model-detail');
   if (audioDetail) {
+    const modeHint = audioInfo.modeHint
+      || (s.audio.speed === 'accurate' ? '准确 · small 模型' : (s.audio.speed === 'balanced' ? '均衡 · 约 1.3 秒更新' : '极速 · 约 1 秒更新'));
     audioDetail.textContent = audioInfo.ready
-      ? `${audioInfo.name || 'Whisper'} · 首个约 2 秒，之后约每 1.5 秒更新一次`
+      ? `${audioInfo.name || 'Whisper'} · ${modeHint}`
       : (audioInfo.reason || '未找到本地 Whisper 模型');
   }
 
@@ -788,10 +790,10 @@ function bindEvents() {
     }
   });
 
-  $('audio-model').addEventListener('change', (event) => {
-    saveSettings({ audio: { model: event.target.value } });
+  $('audio-speed').addEventListener('change', (event) => {
+    saveSettings({ audio: { speed: event.target.value } });
     if (state?.audio?.active) {
-      showToast('识别模式已更改', '请重新开启音频字幕以应用新模型', 'warn');
+      showToast('识别模式已更改', '请重新开启音频字幕以应用新的模式', 'warn');
     }
   });
 

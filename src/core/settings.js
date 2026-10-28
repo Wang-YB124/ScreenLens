@@ -3,6 +3,39 @@ const path = require('path');
 const { safeStorage } = require('electron');
 const { DOMAINS, normalizeDomain } = require('./domain');
 
+const AUDIO_MODES = {
+  fast: {
+    key: 'fast',
+    label: '极速',
+    model: 'base',
+    firstChunkMs: 1000,
+    chunkMs: 2000,
+    overlapMs: 1000,
+    temperatureInc: 0,
+    hint: '首条约 1–2 秒，之后约每 1 秒更新；短句更碎',
+  },
+  balanced: {
+    key: 'balanced',
+    label: '均衡',
+    model: 'base',
+    firstChunkMs: 1500,
+    chunkMs: 2500,
+    overlapMs: 1200,
+    temperatureInc: 0,
+    hint: '首条约 2 秒，之后约每 1.3 秒更新',
+  },
+  accurate: {
+    key: 'accurate',
+    label: '准确',
+    model: 'small',
+    firstChunkMs: 2000,
+    chunkMs: 3000,
+    overlapMs: 1500,
+    temperatureInc: 0.2,
+    hint: 'small 模型，首条约 3–4 秒，译文更完整',
+  },
+};
+
 const DEFAULTS = {
   targetLang: 'zh-CN',
   smartSwap: true,
@@ -42,9 +75,11 @@ const DEFAULTS = {
     source: 'system',
     language: 'zh',
     model: 'base',
+    speed: 'fast',
     recordDir: '',
-    chunkMs: 3000,
-    overlapMs: 2000,
+    firstChunkMs: 1000,
+    chunkMs: 2000,
+    overlapMs: 1000,
   },
 };
 
@@ -111,19 +146,20 @@ function sanitize(data) {
   }
   out.launchAtLogin = Boolean(out.launchAtLogin);
   out.historyPaused = Boolean(out.historyPaused);
+  const rawAudio = isObject(data?.audio) ? data.audio : {};
   out.audio = isObject(out.audio) ? out.audio : {};
   out.audio.source = ['system', 'microphone'].includes(out.audio.source) ? out.audio.source : 'system';
-  if ((out.audio.chunkMs === 6000 && out.audio.overlapMs === 1200)
-    || (out.audio.chunkMs === 4000 && out.audio.overlapMs === 2000)
-    || (out.audio.chunkMs === 4000 && out.audio.overlapMs === 3000)) {
-    out.audio.chunkMs = 3000;
-    out.audio.overlapMs = 2000;
-  }
   out.audio.language = ['auto', 'zh', 'en', 'ja', 'ko', 'ru', 'fr', 'de', 'es', 'pt', 'it'].includes(out.audio.language) ? out.audio.language : 'zh';
-  out.audio.model = ['base', 'small'].includes(out.audio.model) ? out.audio.model : 'base';
+  const speed = AUDIO_MODES[rawAudio.speed]
+    ? rawAudio.speed
+    : (rawAudio.model === 'small' ? 'accurate' : 'fast');
+  const preset = AUDIO_MODES[speed];
+  out.audio.speed = speed;
+  out.audio.model = preset.model;
+  out.audio.firstChunkMs = preset.firstChunkMs;
+  out.audio.chunkMs = preset.chunkMs;
+  out.audio.overlapMs = preset.overlapMs;
   out.audio.recordDir = typeof out.audio.recordDir === 'string' ? out.audio.recordDir.trim().slice(0, 260) : '';
-  out.audio.chunkMs = Math.round(clamp(out.audio.chunkMs, 2500, 8000, 3000));
-  out.audio.overlapMs = Math.round(clamp(out.audio.overlapMs, 300, 2500, 2000));
   return out;
 }
 
@@ -203,4 +239,4 @@ class SettingsStore {
   }
 }
 
-module.exports = { SettingsStore, DEFAULTS, TARGET_LANGS, REALTIME_LANG_CODES, DOMAINS };
+module.exports = { SettingsStore, DEFAULTS, TARGET_LANGS, REALTIME_LANG_CODES, DOMAINS, AUDIO_MODES };

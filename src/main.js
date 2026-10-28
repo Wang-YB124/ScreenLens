@@ -131,6 +131,7 @@ function state() {
   const publicSettings = settings.getPublic();
   const audioInfo = audio ? audio.modelInfo() : { ready: false, name: 'Whisper', reason: '音频服务未初始化' };
   const recordInfo = audio ? audio.recordInfo() : { dir: '', custom: false };
+  const modeInfo = audio ? audio.modeInfo() : { key: 'fast', label: '极速', hint: '', firstChunkMs: 1000, chunkMs: 2000, overlapMs: 1000 };
   return {
     settings: publicSettings,
     history: history.list(),
@@ -144,6 +145,12 @@ function state() {
       reason: audioInfo.reason,
       recordDir: recordInfo.dir,
       recordCustom: recordInfo.custom,
+      mode: modeInfo.key,
+      modeLabel: modeInfo.label,
+      modeHint: modeInfo.hint,
+      firstChunkMs: modeInfo.firstChunkMs,
+      chunkMs: modeInfo.chunkMs,
+      overlapMs: modeInfo.overlapMs,
     },
     selecting,
     provider: {
@@ -412,10 +419,12 @@ function applySettingsPatch(patch) {
   if (audio?.isActive() && JSON.stringify(before.audio) !== JSON.stringify(next.audio)) {
     if (
       before.audio.source !== next.audio.source ||
+      before.audio.speed !== next.audio.speed ||
+      before.audio.model !== next.audio.model ||
       before.audio.chunkMs !== next.audio.chunkMs ||
       before.audio.overlapMs !== next.audio.overlapMs
     ) {
-      notify('音频设置已更改', '请停止后重新开启音频字幕，以应用新的音频来源/分块设置');
+      notify('音频设置已更改', '请停止后重新开启音频字幕，以应用新的音频来源/识别模式');
     }
   }
   if (

@@ -41,7 +41,25 @@
     "test/tmp/audio-realtime/summary.json",
     "test/tmp/audio-realtime/realtime-audio.png"
   ],
-  "release_zip_sha256": "7A1710ED145AAB404961ECB6D4CB93138CCB5E45BA0155036E6FAC22F0FCBDBB",
-  "final_artifact_verified": true,
-  "architecture": "2 s first chunk + 3 s window / 2 s overlap; about 1.5 s updates; base server, no prompt in short windows"
+  "release_zip_sha256": "98B4E80740D7A1C453C2075A53698AF2E51191893BA76A106B150422823EEDCE",
+  "final_artifact_verified": "Final packaged build fast mode: first subtitle 2.01 s, updates ~1 s; UI verified 3 modes.",
+  "architecture": "Persistent whisper-server; modes fast/balanced/accurate: fast 1 s first + 2 s window/1 s overlap, balanced 1.5 s + 2.5/1.2, accurate small 2 s + 3/1.5.",
+  "modes": {
+    "fast": {
+      "firstMs": "1.7–2.3 s",
+      "updates": "~1 s",
+      "note": "text more fragmented"
+    },
+    "balanced": {
+      "firstMs": "2.2–3.0 s",
+      "updates": "~1.3 s",
+      "note": "more complete"
+    },
+    "accurate": {
+      "firstMs": "~3.5–4 s",
+      "updates": "~1.5 s",
+      "model": "small",
+      "note": "most complete"
+    }
+  }
 }

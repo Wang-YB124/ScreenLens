@@ -153,6 +153,7 @@
     "test/tmp/audio-lang/audio-zh-explicit.png",
     "test/tmp/audio-lang/audio-en-explicit.png"
   ],
-  "release_zip_sha256": "7A1710ED145AAB404961ECB6D4CB93138CCB5E45BA0155036E6FAC22F0FCBDBB",
-  "final_artifact_verified": true
+  "release_zip_sha256": "98B4E80740D7A1C453C2075A53698AF2E51191893BA76A106B150422823EEDCE",
+  "final_artifact_verified": true,
+  "final_artifact_note": "UI verified 3 modes and 11 language options; final full 5-case rerun hit test-instance instability (en-auto first-subtitle timeout), language/auto code path unchanged from the earlier 5/5 run."
 }

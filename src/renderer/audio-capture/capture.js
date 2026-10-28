@@ -23,6 +23,7 @@ let deviceBound = false;
 let startedAt = 0;
 let lastDeviceChange = 0;
 let restartAttempt = false;
+let newSamples = 0;
 
 function sendStatus(payload) {
   try { api.send('audio:status', payload); } catch {}
@@ -123,12 +124,28 @@ function trackInfo(audioTracks, source) {
   };
 }
 
+function audioStats(samples) {
+  let sum = 0;
+  let count = 0;
+  let active = 0;
+  for (let i = 0; i < samples.length; i += 4) {
+    const value = samples[i];
+    sum += value * value;
+    if (Math.abs(value) >= 0.012) active += 1;
+    count += 1;
+  }
+  return {
+    rms: Math.sqrt(sum / Math.max(1, count)),
+    activeRatio: active / Math.max(1, count),
+  };
+}
+
 function setupGraph(audioTracks, info) {
   ctx = new AudioContext();
   ctx.resume().catch(() => {});
   sampleRate = ctx.sampleRate || 48000;
-  const chunkMs = Math.max(2500, Math.min(8000, Number(config.chunkMs) || 6000));
-  const firstMs = Math.max(1000, Math.min(chunkMs, Number(config.firstChunkMs) || 2000));
+  const chunkMs = Math.max(1500, Math.min(8000, Number(config.chunkMs) || 6000));
+  const firstMs = Math.max(800, Math.min(chunkMs, Number(config.firstChunkMs) || 2000));
   const overlapMs = Math.max(300, Math.min(1500, Number(config.overlapMs) || 800));
   fullChunkSamples = Math.max(1, Math.round((sampleRate * chunkMs) / 1000));
   firstChunkSamples = Math.max(1, Math.round((sampleRate * firstMs) / 1000));
@@ -139,8 +156,9 @@ function setupGraph(audioTracks, info) {
   );
   segments = [];
   total = 0;
+  newSamples = 0;
   sourceNode = ctx.createMediaStreamSource(new MediaStream(audioTracks));
-  processor = ctx.createScriptProcessor(4096, 1, 1);
+  processor = ctx.createScriptProcessor(2048, 1, 1);
   sink = ctx.createGain();
   sink.gain.value = 0;
   sourceNode.connect(processor);
@@ -153,6 +171,7 @@ function setupGraph(audioTracks, info) {
     copy.set(input);
     segments.push(copy);
     total += copy.length;
+    newSamples += copy.length;
     if (total >= chunkSamples) flush();
   };
   sendStatus({
@@ -218,27 +237,28 @@ function flush() {
       combined.set(segment, offset);
       offset += segment.length;
     }
-    let sum = 0;
-    let count = 0;
-    let active = 0;
-    for (let i = 0; i < combined.length; i += 4) {
-      const value = combined[i];
-      sum += value * value;
-      if (Math.abs(value) >= 0.012) active += 1;
-      count += 1;
-    }
-    const rms = Math.sqrt(sum / Math.max(1, count));
-    const activeRatio = active / Math.max(1, count);
-    if (rms >= 0.0025 && activeRatio >= 0.05) {
+    const isFirst = !firstFlushDone;
+    const stats = audioStats(combined);
+    const freshCount = Math.min(newSamples, combined.length);
+    const fresh = freshCount > 0 && freshCount < combined.length
+      ? audioStats(combined.subarray(combined.length - freshCount))
+      : stats;
+    const voiced = isFirst
+      ? (stats.rms >= 0.0025 && stats.activeRatio >= 0.05)
+      : (fresh.rms >= 0.0025 && fresh.activeRatio >= 0.04);
+    if (voiced) {
       const wav = encodeWav(combined, sampleRate);
       api.send('audio:chunk', wav.buffer);
       statusTick += 1;
-      if (statusTick % 8 === 0) sendStatus({ status: 'listening', rms, activeRatio, sampleRate });
+      if (statusTick % 8 === 0) {
+        sendStatus({ status: 'listening', rms: fresh.rms, activeRatio: fresh.activeRatio, sampleRate });
+      }
     } else {
-      sendStatus({ status: 'silence', rms, activeRatio, sampleRate });
+      sendStatus({ status: 'silence', rms: fresh.rms, activeRatio: fresh.activeRatio, sampleRate });
     }
     firstFlushDone = true;
     chunkSamples = fullChunkSamples;
+    newSamples = 0;
     const keep = Math.min(overlapSamples, combined.length);
     const tail = keep ? combined.slice(combined.length - keep) : null;
     segments = tail ? [tail] : [];
