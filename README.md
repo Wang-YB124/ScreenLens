@@ -75,7 +75,7 @@ powershell -ExecutionPolicy Bypass -File build-release.ps1
 ## 发布到 GitHub
 
 - 源码：提交本仓库即可。默认 `.gitignore` 排除 `vendor/electron/`、`dist/`、测试截图与运行缓存。
-- 便携包：把 `dist/ScreenLens-1.1.0-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 121 MB，超过 GitHub 单文件限制）。
+- 便携包：把 `dist/ScreenLens-1.1.0-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 367 MB，超过 GitHub 单文件限制）。
 - 首次克隆后运行 `scripts/fetch-electron.ps1`，无需把 Electron 提交进仓库。
 
 ## 测试
