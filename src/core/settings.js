@@ -12,7 +12,7 @@ const AUDIO_MODES = {
     chunkMs: 2000,
     overlapMs: 1000,
     temperatureInc: 0,
-    hint: '首条约 1–2 秒，之后约每 1 秒更新；短句更碎',
+    hint: '首条约 2 秒，之后约每 1 秒更新；短句更碎',
   },
   balanced: {
     key: 'balanced',
@@ -22,7 +22,7 @@ const AUDIO_MODES = {
     chunkMs: 2500,
     overlapMs: 1200,
     temperatureInc: 0,
-    hint: '首条约 2 秒，之后约每 1.3 秒更新',
+    hint: '默认档，首条约 2–3 秒，之后约每 1.3 秒更新',
   },
   accurate: {
     key: 'accurate',
@@ -75,7 +75,7 @@ const DEFAULTS = {
     source: 'system',
     language: 'zh',
     model: 'base',
-    speed: 'fast',
+    speed: 'balanced',
     recordDir: '',
     firstChunkMs: 1000,
     chunkMs: 2000,
@@ -152,7 +152,7 @@ function sanitize(data) {
   out.audio.language = ['auto', 'zh', 'en', 'ja', 'ko', 'ru', 'fr', 'de', 'es', 'pt', 'it'].includes(out.audio.language) ? out.audio.language : 'zh';
   const speed = AUDIO_MODES[rawAudio.speed]
     ? rawAudio.speed
-    : (rawAudio.model === 'small' ? 'accurate' : 'fast');
+    : (rawAudio.model === 'small' ? 'accurate' : 'balanced');
   const preset = AUDIO_MODES[speed];
   out.audio.speed = speed;
   out.audio.model = preset.model;

@@ -4,13 +4,13 @@
   "build": {
     "package": "dist/release/ScreenLens",
     "zip": "dist/ScreenLens-1.1.0-win64.zip",
-    "sha256": "C42116CE0C8B866E3F02B459E773724162D0DFDD2CAC39FB26C981FEAC2EDAAD",
+    "sha256": "CB5C19661FCD088A653CE1756285912CE806700B596AE4BE79E3F52B3EE5FFA2",
     "model": "Whisper base q5_1 / small q5_1（准确档）",
     "threads": "min(16, logical CPUs)",
     "server": "whisper-server.exe, -sns -bo 1 -bs 1, temperature_inc 0（准确档 0.2）",
     "prompt": "不传 Whisper prompt（避免短窗复读/长幻觉）",
     "windows": "fast: 900ms 首块 + 2.0s 窗口/1.0s 重叠；balanced: 1.5s + 2.5s/1.2s；accurate: 2.0s + 3.0s/1.5s",
-    "smoke": "final artifact smoke: first text 2017 ms, first chunk 1773 ms, recognize 241 ms, intervals 943-2083 ms, RMS 0.181, active 0.567, final text 很好"
+    "smoke": "final artifact default round (fresh profile, no speed override): speed=balanced, first chunk 2380 ms, recognize 243 ms, first text 2627 ms, intervals 1250–1367 ms, RMS 0.210, active 0.714"
   },
   "environment": {
     "app": "打包版 ScreenLens.exe，隔离 --user-data-dir 与独立 TEMP",
@@ -583,5 +583,30 @@
     "docs/screenshots/audio-accurate.png",
     "docs/screenshots/audio-modes.png"
   ],
-  "conclusion": "默认极速把首条从旧版约 3 秒降到约 2.0 秒，连续语音更新约 1.02 秒；均衡约 2.62 秒/1.3 秒；准确约 3.78 秒/1.5 秒。短窗不传提示词后未再出现 200+ 字长复读；句间停顿会造成约 2 秒的可见空档，这是没有新文字的窗口被正确跳过。"
+  "conclusion": "默认均衡把首条稳定在约 2.6 秒、更新约 1.35 秒，首片段多数可直接读；极速仍可选，首条约 2.0 秒、连续语音约 1.04 秒一更，但短句更碎（3 轮首片段仅 1 轮可直接读）；准确约 3.78 秒、1.5 秒一更。三档均不传 Whisper 提示词。",
+  "default_mode": "balanced",
+  "default_choice": "极速首片段 3 轮中仅 1 轮可直接读；均衡 2/3 可直接读。为兼顾可用文本，默认改为均衡，极速保留给最低延迟场景。",
+  "default_round": {
+    "source": "speed-balanced-zh-r1",
+    "first_text_ms": 2627,
+    "first_chunk_ms": 2380,
+    "first_recognize_ms": 243,
+    "intervals_ms": [
+      1356,
+      1250,
+      1346,
+      2699,
+      1258,
+      1346,
+      1367
+    ],
+    "rms": 0.21,
+    "active_ratio": 0.714,
+    "settings": {
+      "speed": "balanced",
+      "firstChunkMs": 1500,
+      "chunkMs": 2500,
+      "overlapMs": 1200
+    }
+  }
 }

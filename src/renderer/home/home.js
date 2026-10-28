@@ -437,7 +437,7 @@ function syncSettingsForm(force) {
   const audioDetail = $('audio-model-detail');
   if (audioDetail) {
     const modeHint = audioInfo.modeHint
-      || (s.audio.speed === 'accurate' ? '准确 · small 模型' : (s.audio.speed === 'balanced' ? '均衡 · 约 1.3 秒更新' : '极速 · 约 1 秒更新'));
+      || (s.audio.speed === 'accurate' ? '准确 · small 模型' : (s.audio.speed === 'balanced' ? '均衡 · 默认 · 约 1.3 秒更新' : '极速 · 约 1 秒更新'));
     audioDetail.textContent = audioInfo.ready
       ? `${audioInfo.name || 'Whisper'} · ${modeHint}`
       : (audioInfo.reason || '未找到本地 Whisper 模型');
