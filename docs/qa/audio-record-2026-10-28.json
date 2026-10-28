@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-28",
+  "scope": "Persist audio subtitles as local TXT records and expose them from settings and the subtitle bar",
+  "behavior": [
+    "Every audio session accumulates original/translated segments with elapsed timestamps.",
+    "The TXT is auto-saved about 900 ms after updates and finalized when audio stops.",
+    "Header includes start time, source, recognition language (auto shows detected language), target language and model.",
+    "Settings → Audio subtitles has an “open records folder” button; the audio subtitle bar has a file button that opens the latest record."
+  ],
+  "storage": "%APPDATA%\\ScreenLens\\audio-records",
+  "test": {
+    "pass": true,
+    "homeButton": true,
+    "subtitleBarButton": true,
+    "crossLanguage": {
+      "target": "fr",
+      "file": "qa-audio-record-userdata/audio-records/音频记录-20261028-102536.txt",
+      "segmentsDuringSession": 3,
+      "segmentsAfterStop": 3,
+      "hasOriginal": true,
+      "hasTranslated": true,
+      "sample": "[00:05] 原文：这一段用于测试系统音频识别的中文语音。 / 译文：Ce passage est utilisé pour tester la reconnaissance vocale en chinois du système."
+    },
+    "sameLanguage": {
+      "target": "zh-CN",
+      "file": "qa-audio-record-userdata/audio-records/音频记录-20261028-102550.txt",
+      "segmentsDuringSession": 2,
+      "segmentsAfterStop": 2,
+      "sample": "[00:02] 原文：这是一段用于测。 译文：（同原文）"
+    },
+    "filesSeparated": true
+  },
+  "notes": [
+    "The first cross-language segment may retain only the original if a newer chunk aborts its pending translation; this is intentional so no speech is lost.",
+    "All records stay local; deleting the audio-records folder removes them."
+  ],
+  "evidence": [
+    "test/tmp/audio-record.log",
+    "test/tmp/audio-record-test.js"
+  ],
+  "release_zip_sha256": "3BCFE94B9E051C5B3458D3D686A141A52801EF60100FFA0C80BDB8128A004255",
+  "final_artifact_verified": true
+}

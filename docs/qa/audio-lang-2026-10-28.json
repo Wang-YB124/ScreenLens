@@ -158,6 +158,6 @@
     "test/tmp/audio-lang/audio-zh-explicit.png",
     "test/tmp/audio-lang/audio-en-explicit.png"
   ],
-  "release_zip_sha256": "374104ED3D64C6CF3324BC244BBC9FB2A511C3DACF5DC7352D61C1DFBC252AB3",
-  "final_artifact_verified": "Audio 5/5 on the final 366.9 MB packaged build (base real-time server); screenshot 1/1 and realtime-subtitle 2/2 regression also passed."
+  "release_zip_sha256": "3BCFE94B9E051C5B3458D3D686A141A52801EF60100FFA0C80BDB8128A004255",
+  "final_artifact_verified": true
 }

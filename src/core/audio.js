@@ -4,7 +4,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const http = require('http');
 const net = require('net');
-const { BrowserWindow, screen } = require('electron');
+const { BrowserWindow, screen, app } = require('electron');
 const { createRealtimeWindow, sendRealtimeInit } = require('../windows/realtimeWindow');
 const { translateAI, translateFree, LANG_NAMES } = require('./translate');
 const { providerLabel } = require('./llm');
@@ -222,6 +222,14 @@ class AudioController {
     this.server = null;
     this.serverPort = 0;
     this.serverStarting = null;
+    this.recordDir = path.join(app.getPath('userData'), 'audio-records');
+    this.recordFile = '';
+    this.recordSegments = [];
+    this.recordStartedAt = 0;
+    this.recordMeta = null;
+    this.recordTimer = null;
+    this.recordFinished = false;
+    this.lastRecordPath = '';
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;
@@ -413,7 +421,129 @@ class AudioController {
     }
   }
 
+  beginRecord({ source, settings }) {
+    const now = Date.now();
+    const date = new Date(now);
+    const pad = (value) => String(value).padStart(2, '0');
+    const stamp = `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    const realtime = settings.realtime || {};
+    const target = realtime.targetLang && realtime.targetLang !== 'auto'
+      ? realtime.targetLang
+      : settings.targetLang;
+    const language = settings.audio.language;
+    const meta = AUDIO_LANG_META[audioLanguage(language)] || AUDIO_LANG_META.zh;
+    this.recordDir = path.join(app.getPath('userData'), 'audio-records');
+    this.recordFile = path.join(this.recordDir, `音频记录-${stamp}.txt`);
+    this.recordSegments = [];
+    this.recordStartedAt = now;
+    this.recordTimer = null;
+    this.recordFinished = false;
+    this.recordMeta = {
+      startedAt: now,
+      source: source === 'microphone' ? '麦克风' : '系统声音',
+      language: language === 'auto' ? '自动检测' : sourceLabel(meta.source),
+      target: LANG_NAMES[target] || target || '',
+      model: this.modelInfo().name,
+    };
+  }
+
+  recordSegment({ original, translated, direction }) {
+    if (!this.recordStartedAt) return;
+    const sourceText = String(original || '').trim();
+    const targetText = String(translated || '').trim();
+    if (!sourceText && !targetText) return;
+    const last = this.recordSegments[this.recordSegments.length - 1];
+    if (last) {
+      if (sourceText && last.original === sourceText) {
+        if (targetText) last.translated = targetText;
+        if (direction) last.direction = direction;
+        this.scheduleRecordSave();
+        return;
+      }
+      if (!sourceText && last.same && last.original === targetText) return;
+      if (!sourceText && !last.original && last.translated === targetText) return;
+    }
+    this.recordSegments.push({
+      at: Date.now(),
+      original: sourceText || targetText,
+      translated: sourceText ? targetText : '',
+      direction: direction || '',
+      same: !sourceText,
+    });
+    this.scheduleRecordSave();
+  }
+
+  scheduleRecordSave() {
+    if (this.recordTimer || this.recordFinished) return;
+    this.recordTimer = setTimeout(() => {
+      this.recordTimer = null;
+      this.writeRecord();
+    }, 900);
+  }
+
+  formatElapsed(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  writeRecord() {
+    if (!this.recordStartedAt || !this.recordSegments.length) return '';
+    const meta = this.recordMeta || {};
+    const date = new Date(meta.startedAt || this.recordStartedAt);
+    const pad = (value) => String(value).padStart(2, '0');
+    const heading = [
+      'ScreenLens 音频字幕记录',
+      `开始时间：${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`,
+      `音频来源：${meta.source || ''}`,
+      `识别语言：${meta.language || ''}`,
+      `译文语言：${meta.target || ''}`,
+      `识别模型：${meta.model || ''}`,
+      `记录条数：${this.recordSegments.length}`,
+      '----------------------------------------',
+    ];
+    const lines = [];
+    for (const segment of this.recordSegments) {
+      const at = this.formatElapsed(segment.at - this.recordStartedAt);
+      lines.push(`[${at}] 原文：${segment.original}`);
+      if (segment.translated) lines.push(`        译文：${segment.translated}`);
+      else if (segment.same) lines.push('        译文：（同原文）');
+    }
+    const content = `\uFEFF${heading.join('\n')}\n${lines.join('\n')}\n`;
+    try {
+      fs.mkdirSync(this.recordDir, { recursive: true });
+      fs.writeFileSync(this.recordFile, content, 'utf8');
+      this.lastRecordPath = this.recordFile;
+      markTiming(this.timingId, 'record-saved', { chars: content.length, segments: this.recordSegments.length });
+      return this.recordFile;
+    } catch (err) {
+      markTiming(this.timingId, 'record-error', { message: String(err.message || '').slice(0, 120) });
+      return '';
+    }
+  }
+
+  finishRecord() {
+    if (this.recordTimer) {
+      clearTimeout(this.recordTimer);
+      this.recordTimer = null;
+    }
+    if (this.recordFinished) return this.lastRecordPath;
+    this.recordFinished = true;
+    if (!this.recordSegments.length) return '';
+    return this.writeRecord();
+  }
+
+  recordInfo() {
+    return { dir: this.recordDir, lastRecord: this.lastRecordPath || '' };
+  }
+
   send(payload) {
+    if (payload?.status === 'loading' && payload.original) {
+      this.recordSegment({ original: payload.original, translated: '', direction: payload.direction });
+    } else if (payload?.status === 'done' && (payload.original || payload.translated)) {
+      this.recordSegment({ original: payload.original || '', translated: payload.translated || '', direction: payload.direction });
+    }
     if (!this.firstOriginalSent && payload?.original) {
       this.firstOriginalSent = true;
       markTiming(this.timingId, 'first-original', { chars: String(payload.original).length });
@@ -464,6 +594,14 @@ class AudioController {
     this.server = null;
     this.serverPort = 0;
     this.serverStarting = null;
+    this.recordDir = path.join(app.getPath('userData'), 'audio-records');
+    this.recordFile = '';
+    this.recordSegments = [];
+    this.recordStartedAt = 0;
+    this.recordMeta = null;
+    this.recordTimer = null;
+    this.recordFinished = false;
+    this.lastRecordPath = '';
     this.silentChunks = 0;
     this.silenceNoticeKey = '';
     this.silenceQuerying = false;
@@ -483,6 +621,7 @@ class AudioController {
 
     const settings = this.settings.get();
     const source = settings.audio.source === 'microphone' ? 'microphone' : 'system';
+    this.beginRecord({ source, settings });
     this.homeMinimized = await this.minimizeHome();
     markTiming(timingId, 'home-hidden', { hidden: this.homeMinimized });
 
@@ -865,7 +1004,13 @@ class AudioController {
               .join(' ')
               .trim();
             const detected = normalizeDetectedLanguage(data.result?.language, text);
-            if (text) this.detectedLang = detected;
+            if (text) {
+              this.detectedLang = detected;
+              if (this.recordMeta) {
+                const detectedMeta = AUDIO_LANG_META[detected] || AUDIO_LANG_META.zh;
+                this.recordMeta.language = `自动检测（${sourceLabel(detectedMeta.source)}）`;
+              }
+            }
             markTiming(this.timingId, 'language-detected', {
               detected,
               requested: 'auto',

@@ -607,6 +607,25 @@ function registerIpc() {
     return audio.start({ clickedAt: payload?.clickedAt, source: payload?.source || 'home' });
   });
 
+  ipcMain.handle('audio:records-path', () => (audio ? audio.recordInfo() : { dir: '', lastRecord: '' }));
+
+  ipcMain.handle('audio:records-open', async () => {
+    if (!audio) return { ok: false, error: '音频服务未初始化' };
+    const info = audio.recordInfo();
+    try { fs.mkdirSync(info.dir, { recursive: true }); } catch {}
+    const error = await shell.openPath(info.dir);
+    return { ok: !error, path: info.dir, lastRecord: info.lastRecord, error };
+  });
+
+  ipcMain.handle('audio:records-open-file', async () => {
+    if (!audio) return { ok: false, error: '音频服务未初始化' };
+    const info = audio.recordInfo();
+    try { fs.mkdirSync(info.dir, { recursive: true }); } catch {}
+    const target = info.lastRecord && fs.existsSync(info.lastRecord) ? info.lastRecord : info.dir;
+    const error = await shell.openPath(target);
+    return { ok: !error, path: target, error };
+  });
+
   ipcMain.handle('action:stop-realtime', () => {
     if (audio.isActive()) audio.stop();
     realtime.stop();

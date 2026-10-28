@@ -32,6 +32,9 @@ const INVOKE_CHANNELS = new Set([
   'realtime:reset-size',
   'action:restart-ocr',
   'action:audio',
+  'audio:records-path',
+  'audio:records-open',
+  'audio:records-open-file',
 ]);
 
 const SEND_CHANNELS = new Set([

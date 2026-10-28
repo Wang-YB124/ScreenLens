@@ -38,6 +38,6 @@
     "test/tmp/audio-realtime/summary.json",
     "test/tmp/audio-realtime/realtime-audio.png"
   ],
-  "release_zip_sha256": "374104ED3D64C6CF3324BC244BBC9FB2A511C3DACF5DC7352D61C1DFBC252AB3",
-  "final_artifact_verified": "Final packaged build: base server ready 289 ms, first chunk 2732 ms, first subtitle 3088 ms; updates about every 2.5 s."
+  "release_zip_sha256": "3BCFE94B9E051C5B3458D3D686A141A52801EF60100FFA0C80BDB8128A004255",
+  "final_artifact_verified": true
 }

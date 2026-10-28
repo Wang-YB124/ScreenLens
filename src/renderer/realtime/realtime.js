@@ -9,6 +9,7 @@ const provider = $('provider');
 const hint = $('hint');
 const scope = $('scope');
 const panel = $('panel');
+const btnRecord = $('btn-record');
 const btnSettings = $('btn-settings');
 const btnClose = $('btn-close');
 const fontValue = $('font-value');
@@ -308,6 +309,7 @@ api.on('realtime:init', (config) => {
   sub.classList.toggle('manual-size', manualHeight);
   syncManualUi();
   const scopeLabel = config.scope || (config.windowTitle ? '窗口' : '');
+  btnRecord.classList.toggle('hidden', scopeLabel !== '音频');
   if (scopeLabel) {
     scope.textContent = scopeLabel;
     scope.title = config.windowTitle
@@ -451,6 +453,15 @@ sub.addEventListener('pointerup', endMove);
 sub.addEventListener('pointercancel', endMove);
 sub.addEventListener('lostpointercapture', () => {
   if (dragging) endMove(null);
+});
+
+btnRecord.addEventListener('click', async () => {
+  try {
+    const res = await api.invoke('audio:records-open-file');
+    flashHint(res?.ok ? '已打开最近记录' : '暂无音频记录');
+  } catch {
+    flashHint('无法打开记录');
+  }
 });
 
 btnSettings.addEventListener('click', () => setPanel(!panelOpen));

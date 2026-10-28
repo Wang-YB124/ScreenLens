@@ -752,6 +752,15 @@ function bindEvents() {
       showToast('音频来源已更改', '请停止后重新开启音频字幕以应用', 'warn');
     }
   });
+  $('open-audio-records').addEventListener('click', async () => {
+    try {
+      const res = await api.invoke('audio:records-open');
+      showToast(res?.ok ? '音频记录' : '无法打开记录', res?.ok ? (res.path || '已打开记录文件夹') : (res?.error || '请稍后重试'));
+    } catch (err) {
+      showToast('无法打开记录', err.message || '请稍后重试');
+    }
+  });
+
   $('audio-model').addEventListener('change', (event) => {
     saveSettings({ audio: { model: event.target.value } });
     if (state?.audio?.active) {
