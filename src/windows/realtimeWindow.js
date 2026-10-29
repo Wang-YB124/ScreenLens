@@ -261,7 +261,7 @@ function resizeRealtimeWindow(win, height) {
   const placement = win.__screenlensPlacement;
   if (!placement) return;
   if (win.__screenlensDragging || win.__screenlensResizing || win.__screenlensManualHeight) return;
-  const target = Math.round(clamp(Number(height) || 100, 92, 340));
+  const target = Math.round(clamp(Number(height) || 100, 92, 640));
   const bounds = win.getBounds();
   const width = placement.width || bounds.width;
   if (Math.abs(bounds.height - target) < 3) return;

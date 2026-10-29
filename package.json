@@ -1,7 +1,7 @@
 {
   "name": "screenlens",
   "productName": "ScreenLens",
-  "version": "1.1.6",
+  "version": "1.2.0",
   "description": "框选桌面内容，实时翻译与解释",
   "main": "src/main.js",
   "private": true,

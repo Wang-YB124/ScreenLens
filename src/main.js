@@ -39,8 +39,9 @@ const {
   endRealtimeResize,
   resetRealtimeSize,
 } = require('./windows/realtimeWindow');
-const { testProvider, providerLabel } = require('./core/llm');
-const { warmFreeTranslator } = require('./core/translate');
+const { testProvider, providerLabel, streamChat } = require('./core/llm');
+const { buildExplainSystem } = require('./core/prompts');
+const { warmFreeTranslator, LANG_NAMES } = require('./core/translate');
 const { isAllowedSearchUrl } = require('./core/search');
 
 app.setName('ScreenLens');
@@ -78,6 +79,7 @@ let audioState = { active: false };
 let selecting = false;
 let homeMinimizedForSelection = false;
 let screenSourcePromise = null;
+let realtimeExplainAbort = null;
 let bootstrappedResolve = null;
 const bootstrapped = new Promise((resolve) => { bootstrappedResolve = resolve; });
 
@@ -170,6 +172,87 @@ function state() {
     dataDir: app.getPath('userData'),
     platform: process.platform,
   };
+}
+
+function activeSubtitleWindow() {
+  if (audio && audio.isActive() && audio.win && !audio.win.isDestroyed()) return audio.win;
+  if (realtime && realtime.isActive() && realtime.win && !realtime.win.isDestroyed()) return realtime.win;
+  return null;
+}
+
+function sendRealtimeExplanation(payload) {
+  const win = activeSubtitleWindow();
+  if (!win) return false;
+  try {
+    win.webContents.send('realtime:explanation', payload);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function stopRealtimeExplanation() {
+  if (!realtimeExplainAbort) return;
+  try { realtimeExplainAbort.abort(); } catch {}
+  realtimeExplainAbort = null;
+}
+
+async function explainRealtimeSubtitle() {
+  const context = audio && audio.isActive()
+    ? audio.getExplainContext()
+    : (realtime && realtime.isActive() ? realtime.getExplainContext() : null);
+  if (!context?.text) {
+    sendRealtimeExplanation({ status: 'error', message: '当前没有可解释的字幕' });
+    return;
+  }
+  const current = settings.get();
+  if (!settings.hasProvider()) {
+    sendRealtimeExplanation({
+      status: 'unavailable',
+      message: '解释由 AI 生成。请先在 设置 → AI 模型 中配置模型，或使用本地 Ollama。',
+    });
+    return;
+  }
+  stopRealtimeExplanation();
+  const controller = new AbortController();
+  realtimeExplainAbort = controller;
+  const provider = providerLabel(current.provider);
+  sendRealtimeExplanation({ status: 'loading', provider });
+  const language = LANG_NAMES[current.explanationLanguage] || '简体中文';
+  const system = buildExplainSystem(language, context.domain, { realtime: true });
+  const userText = `实时字幕原文（可能包含识别误差）：\n<<<\n${String(context.text).slice(0, 3000)}\n>>>\n\n当前译文（供参考）：\n<<<\n${String(context.translation || '（暂无）').slice(0, 2000)}\n>>>`;
+  let output = '';
+  try {
+    const text = await streamChat({
+      provider: current.provider,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: userText },
+      ],
+      temperature: 0.45,
+      maxTokens: 700,
+      signal: controller.signal,
+      onDelta: (delta) => {
+        if (controller.signal.aborted) return;
+        output += delta;
+        sendRealtimeExplanation({ status: 'streaming', text: output, provider });
+      },
+    });
+    if (controller.signal.aborted) return;
+    sendRealtimeExplanation({
+      status: 'done',
+      text: String(text || output).trim(),
+      provider,
+    });
+  } catch (err) {
+    if (controller.signal.aborted) return;
+    sendRealtimeExplanation({
+      status: 'error',
+      message: `解释失败：${String(err.message || '请稍后重试').slice(0, 180)}`,
+    });
+  } finally {
+    if (realtimeExplainAbort === controller) realtimeExplainAbort = null;
+  }
 }
 
 function broadcastState() {
@@ -626,6 +709,7 @@ function registerIpc() {
 
   ipcMain.handle('action:audio', async (event, payload) => {
     if (audio.isActive()) {
+      stopRealtimeExplanation();
       audio.stop();
       return { ok: true, active: false };
     }
@@ -679,8 +763,23 @@ function registerIpc() {
   });
 
   ipcMain.handle('action:stop-realtime', () => {
+    stopRealtimeExplanation();
     if (audio.isActive()) audio.stop();
     realtime.stop();
+    return { ok: true };
+  });
+
+  ipcMain.handle('realtime:explain', (event, options = {}) => {
+    if (options?.action === 'stop') {
+      stopRealtimeExplanation();
+      return { ok: true };
+    }
+    if (!audio?.isActive() && !realtime?.isActive()) {
+      return { ok: false, error: '实时字幕未开启' };
+    }
+    explainRealtimeSubtitle().catch((err) => {
+      sendRealtimeExplanation({ status: 'error', message: String(err.message || '解释失败').slice(0, 180) });
+    });
     return { ok: true };
   });
 
@@ -885,7 +984,10 @@ async function bootstrap() {
     tempDir,
     onStateChange: (patch) => {
       if ('selecting' in patch) selecting = patch.selecting;
-      if ('realtimeActive' in patch) realtimeState = { active: patch.realtimeActive };
+      if ('realtimeActive' in patch) {
+        realtimeState = { active: patch.realtimeActive };
+        if (!patch.realtimeActive) stopRealtimeExplanation();
+      }
       broadcastState();
     },
     notify,
@@ -903,7 +1005,10 @@ async function bootstrap() {
     tempDir,
     rootDir: ROOT,
     onStateChange: (patch) => {
-      if ('audioActive' in patch) audioState = { active: patch.audioActive };
+      if ('audioActive' in patch) {
+        audioState = { active: patch.audioActive };
+        if (!patch.audioActive) stopRealtimeExplanation();
+      }
       broadcastState();
     },
     notify,

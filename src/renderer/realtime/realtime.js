@@ -23,6 +23,11 @@ const previewText = $('preview-text');
 const resizeGrip = $('resize-grip');
 const resetSizeBtn = $('reset-size');
 const btnAutoSize = $('btn-auto-size');
+const btnExplain = $('btn-explain');
+const explainPanel = $('explain');
+const explainState = $('explain-state');
+const explainBody = $('explain-body');
+const explainClose = $('explain-close');
 
 const LANGS = [
   { code: 'zh-CN', label: '中文' },
@@ -72,6 +77,11 @@ let currentDomain = 'general';
 let lastPreview = '';
 let panelOpen = false;
 let closing = false;
+let explainOpen = false;
+let explainFor = '';
+let explainText = '';
+let explainStatus = 'idle';
+let explainStale = false;
 
 let dragging = false;
 let dragPointer = null;
@@ -90,7 +100,7 @@ function sendHitZone() {
       height: Math.ceil(rect.height + 10),
     };
   }
-  api.send('realtime:hitzone', { metaBottom: Math.ceil(bottom + 6), panelOpen, grip: gripZone });
+  api.send('realtime:hitzone', { metaBottom: Math.ceil(bottom + 6), panelOpen: panelOpen || explainOpen, grip: gripZone });
 }
 
 function updateLineClamp() {
@@ -99,7 +109,8 @@ function updateLineClamp() {
     const meta = document.querySelector('.meta');
     const metaH = meta ? meta.offsetHeight : 18;
     const origH = original.offsetHeight;
-    const available = innerHeight - 14 - 22 - metaH - (origH ? origH + 4 : 0) - 6;
+    const explainH = explainOpen ? Math.min(210, explainPanel.offsetHeight) : 0;
+    const available = innerHeight - 14 - 22 - metaH - (origH ? origH + 4 : 0) - explainH - 6;
     const lineH = Math.max(8, rt.fontSize * 1.42);
     lines = Math.max(1, Math.min(12, Math.floor(available / lineH)));
   }
@@ -186,11 +197,12 @@ function scheduleResize() {
     const panelH = panelOpen ? panel.offsetHeight : 0;
     const origH = original.offsetHeight;
     const transH = translated.offsetHeight;
+    const explainH = explainOpen ? explainPanel.offsetHeight + 6 : 0;
     const body = panelOpen
       ? panelH + 8
       : (origH ? origH + 4 : 0) + transH + 6;
-    const total = 14 + 22 + metaH + body;
-    api.send('realtime:resize', Math.min(340, Math.max(96, Math.ceil(total))));
+    const total = 14 + 22 + metaH + body + explainH;
+    api.send('realtime:resize', Math.min(640, Math.max(96, Math.ceil(total))));
     sendHitZone();
   });
 }
@@ -205,6 +217,114 @@ function setLoading(text) {
 function updatePreview() {
   previewText.textContent = lastPreview || SAMPLE[rt.targetLang] || '字幕效果预览';
 }
+
+function currentSubtitleText() {
+  return (original.textContent || translated.textContent || '').trim();
+}
+
+function cleanExplanation(text) {
+  return String(text || '')
+    .replace(/```[\w-]*\s*/g, '')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[-*]\s+/gm, '• ')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .trim();
+}
+
+function setExplainState(text, error = false) {
+  explainState.textContent = text || '';
+  explainPanel.classList.toggle('error', Boolean(error));
+}
+
+function renderExplanation(streaming = false) {
+  const cleaned = cleanExplanation(explainText);
+  if (streaming || !cleaned) {
+    explainBody.textContent = cleaned;
+    return;
+  }
+  renderMath(explainBody, cleaned);
+}
+
+function setExplainPanel(open) {
+  explainOpen = open;
+  explainPanel.hidden = !open;
+  sub.classList.toggle('explain-open', open);
+  btnExplain.classList.toggle('active', open);
+  btnExplain.title = open ? '刷新 AI 解释' : 'AI 解释当前字幕';
+  scheduleResize();
+}
+
+function startExplain() {
+  const text = currentSubtitleText();
+  if (!text) {
+    flashHint('还没有可解释的字幕');
+    return;
+  }
+  explainFor = text;
+  explainText = '';
+  explainStatus = 'loading';
+  explainStale = false;
+  explainPanel.classList.remove('error', 'stale');
+  explainBody.textContent = '正在生成解释…';
+  setExplainState('正在生成解释…');
+  setExplainPanel(true);
+  api.invoke('realtime:explain', { action: 'start' }).then((res) => {
+    if (res?.ok) return;
+    explainStatus = 'error';
+    explainBody.textContent = res?.error || '解释不可用';
+    setExplainState('解释不可用', true);
+    scheduleResize();
+  }).catch((err) => {
+    explainStatus = 'error';
+    explainBody.textContent = String(err.message || '解释不可用');
+    setExplainState('解释不可用', true);
+    scheduleResize();
+  });
+}
+
+function closeExplain() {
+  if (!explainOpen) return;
+  explainOpen = false;
+  explainStatus = 'idle';
+  explainFor = '';
+  explainText = '';
+  explainPanel.hidden = true;
+  explainPanel.classList.remove('error', 'stale');
+  sub.classList.remove('explain-open');
+  btnExplain.classList.remove('active');
+  btnExplain.title = 'AI 解释当前字幕';
+  api.invoke('realtime:explain', { action: 'stop' }).catch(() => {});
+  scheduleResize();
+}
+
+api.on('realtime:explanation', (payload) => {
+  if (!explainOpen || !payload) return;
+  const status = String(payload.status || '');
+  if (status === 'loading') {
+    explainStatus = 'loading';
+    setExplainState(payload.provider ? `${payload.provider} 正在解释…` : '正在生成解释…');
+    explainBody.textContent = '正在生成解释…';
+  } else if (status === 'streaming') {
+    explainStatus = 'streaming';
+    explainText = String(payload.text || '');
+    setExplainState('生成中…');
+    renderExplanation(true);
+  } else if (status === 'done') {
+    explainStatus = 'done';
+    explainText = String(payload.text || '');
+    setExplainState(explainStale ? '字幕已更新，点「解释」刷新' : (payload.provider || 'AI'));
+    renderExplanation(false);
+    explainPanel.classList.remove('error');
+  } else if (status === 'error' || status === 'unavailable') {
+    explainStatus = 'error';
+    explainText = '';
+    explainBody.textContent = String(payload.message || '解释暂不可用');
+    setExplainState(status === 'unavailable' ? '需要配置 AI 模型' : '解释失败', true);
+  }
+  scheduleResize();
+});
 
 function makeChip(label, code, active, onPick) {
   const btn = document.createElement('button');
@@ -340,7 +460,17 @@ api.on('realtime:init', (config) => {
   scheduleResize();
 });
 
+function markExplainStale() {
+  if (!explainOpen || !explainFor) return;
+  const text = currentSubtitleText();
+  if (!text || text === explainFor || explainStale) return;
+  explainStale = true;
+  explainPanel.classList.add('stale');
+  if (explainStatus === 'done') setExplainState('字幕已更新，点「解释」刷新');
+}
+
 function renderUpdate(payload) {
+  if (explainOpen) setTimeout(markExplainStale, 0);
   if (payload.direction) dir.textContent = payload.direction;
   if (payload.provider) {
     provider.textContent = payload.provider === '免费翻译' || payload.provider === '微软翻译'
@@ -465,6 +595,11 @@ btnRecord.addEventListener('click', async () => {
 });
 
 btnSettings.addEventListener('click', () => setPanel(!panelOpen));
+btnExplain.addEventListener('click', startExplain);
+explainClose.addEventListener('click', (event) => {
+  event.stopPropagation();
+  closeExplain();
+});
 
 btnClose.addEventListener('click', () => {
   if (closing) return;

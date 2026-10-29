@@ -141,6 +141,20 @@ body.dragging .grip {
   background: rgba(139, 243, 208, 0.14);
 }
 
+.explain-btn {
+  width: auto;
+  padding: 0 6px;
+  gap: 3px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.explain-btn svg {
+  width: 10px;
+  height: 10px;
+}
+
 .rt-close:hover {
   color: #ffb4b4;
   background: rgba(255, 120, 120, 0.14);
@@ -349,6 +363,99 @@ body.dragging .grip {
 .sub.settings-open .original,
 .sub.settings-open .translated {
   display: none;
+}
+
+.explain {
+  flex: none;
+  min-height: 0;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.explain[hidden] {
+  display: none;
+}
+
+.explain-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 14px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.explain-tag {
+  color: var(--mint);
+}
+
+.explain-state {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8b95a4;
+  font-weight: 600;
+}
+
+.explain.stale .explain-state {
+  color: #fbbf24;
+}
+
+.explain.error .explain-state {
+  color: #ffb4b4;
+}
+
+.explain-close {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #7c8798;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.explain-close:hover {
+  color: #ffb4b4;
+  background: rgba(255, 120, 120, 0.12);
+}
+
+.explain-body {
+  max-height: 170px;
+  overflow-y: auto;
+  padding-right: 2px;
+  color: #cfd8e6;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+.explain.error .explain-body {
+  color: #ffb4b4;
+}
+
+.explain-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.explain-body::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.explain-body .katex {
+  font-size: 1em;
 }
 
 .panel {

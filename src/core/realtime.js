@@ -47,6 +47,8 @@ class RealtimeController {
     this.abort = null;
     this.cache = new Map();
     this.lastKey = '';
+    this.lastText = '';
+    this.lastTranslation = '';
     this.lastErrorAt = 0;
     this.lastWindowErrorAt = 0;
     this.targetWindow = null;
@@ -139,6 +141,7 @@ class RealtimeController {
       this.ocrLang = null;
       this.lastKey = '';
       this.lastText = '';
+      this.lastTranslation = '';
       this.emptyStreak = 0;
       this.aiFallbackNotified = false;
       this.cache.clear();
@@ -174,6 +177,9 @@ class RealtimeController {
   }
 
   send(payload) {
+    if (payload?.status === 'done' && payload.translated) {
+      this.lastTranslation = payload.translated;
+    }
     if (!this.firstOriginalSent && payload?.original) {
       this.firstOriginalSent = true;
       markTiming(this.timingId, 'first-original', { chars: String(payload.original).length });
@@ -269,6 +275,7 @@ class RealtimeController {
       if (key === this.lastKey) return;
       this.lastKey = key;
       this.lastText = text;
+      this.lastTranslation = '';
       const settings = this.settings.get();
       const mode = settings.contentDomain || 'auto';
       const domain = mode === 'auto' ? detectDomain(text) : mode;
@@ -334,6 +341,21 @@ class RealtimeController {
 
   refreshSettings() {
     sendRealtimeInit(this.win, this.settings.get());
+  }
+
+  getExplainContext() {
+    if (!this.active || !this.lastText) return null;
+    const settings = this.settings.get();
+    const mode = settings.contentDomain || 'auto';
+    const domain = mode === 'auto' ? detectDomain(this.lastText) : mode;
+    const direction = resolveRealtimeDirection(this.lastText, settings);
+    return {
+      text: this.lastText,
+      translation: this.lastTranslation || '',
+      sourceLang: direction.source,
+      targetLang: direction.target,
+      domain,
+    };
   }
 
   async translate(text, direction, settings, directionLabel, domain) {

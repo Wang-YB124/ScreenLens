@@ -295,6 +295,7 @@ class AudioController {
     this.cache = new Map();
     this.prevRaw = '';
     this.uiText = '';
+    this.lastExplain = null;
     this.lastErrorAt = 0;
     this.fallbackNotified = false;
     this.startCount = 0;
@@ -717,6 +718,11 @@ class AudioController {
     return this.writeRecord();
   }
 
+  getExplainContext() {
+    if (!this.active || !this.lastExplain?.text) return null;
+    return { ...this.lastExplain };
+  }
+
   recordInfo() {
     const dir = this.active && this.recordDir ? this.recordDir : this.resolveRecordDir();
     let last = this.lastRecordPath;
@@ -732,6 +738,10 @@ class AudioController {
   }
 
   send(payload) {
+    if (payload?.status === 'done' && payload.translated && this.lastExplain
+      && (!payload.original || payload.original === this.lastExplain.text)) {
+      this.lastExplain.translation = payload.translated;
+    }
     if (payload?.status === 'loading' && payload.original) {
       this.recordSegment({ original: payload.original, translated: '', direction: payload.direction });
     } else if (payload?.status === 'done' && (payload.original || payload.translated)) {
@@ -856,6 +866,7 @@ class AudioController {
     this.cache.clear();
     this.prevRaw = '';
     this.uiText = '';
+    this.lastExplain = null;
     this.lastErrorAt = 0;
     this.fallbackNotified = false;
     this.onStateChange({ audioActive: true });
@@ -1402,6 +1413,13 @@ class AudioController {
       : settings.targetLang;
     const same = sourceCode === target
       || (sourceCode === 'zh-CN' && String(target).startsWith('zh'));
+    this.lastExplain = {
+      text: display,
+      translation: same ? display : '',
+      sourceLang: sourceCode,
+      targetLang: target,
+      domain: 'general',
+    };
     if (same) {
       this.send({
         status: 'done',

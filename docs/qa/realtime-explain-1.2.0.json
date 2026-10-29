@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-29",
+  "version": "1.2.0",
+  "feature": "realtime AI explanation",
+  "mock": {
+    "settings": {
+      "provider": {
+        "label": "本地模型",
+        "hasKey": true,
+        "hasProvider": true,
+        "model": "mock"
+      },
+      "hasProvider": "http://127.0.0.1:11435/v1"
+    },
+    "start": {
+      "ok": true,
+      "active": true
+    },
+    "subtitle": {
+      "o": "",
+      "t": "人工智能正在改变我。"
+    },
+    "explanation": {
+      "open": true,
+      "state": "生成中…",
+      "body": "这是什么\n\n这段文字在描述实时翻译的工作方式：选区保持不变，画面里的文字一旦变化，就会自动重新识别并翻译。\n• 关键点一：识别与翻译分开进行，字幕只显示最新结果\n• 关键点二：字幕条始终置顶，不影响观看视频\n• 关键点三：重复内容会命中缓存，减少请求\n\nconst caption = await screenlens.capture(region);\ntranslate(caption.text, \"",
+      "stale": true,
+      "error": false,
+      "height": 288,
+      "explainH": 191,
+      "bodyScroll": 167,
+      "original": "",
+      "translated": "们的生活。"
+    },
+    "heightBefore": 96,
+    "afterUpdate": {
+      "open": true,
+      "stale": true,
+      "state": "字幕已更新，点「解释」刷新",
+      "bodyLen": 275,
+      "height": 288,
+      "bodyScroll": 223
+    },
+    "afterClose": {
+      "open": false,
+      "height": 96
+    }
+  },
+  "notes": [
+    "Test used isolated userData and a local mock OpenAI-compatible server; no paid AI was called.",
+    "Audio subtitles were used to produce a real subtitle, then the new 解释 button was clicked in the realtime bar.",
+    "The explanation streamed into the bar, increased the window height, marked itself stale when the next subtitle arrived, and closed cleanly.",
+    "The real user API key was not read or used.",
+    "Packaged 1.2.0 test repeated with the same isolated mock flow and passed."
+  ],
+  "packaged": {
+    "settings": {
+      "provider": {
+        "label": "本地模型",
+        "hasKey": true,
+        "hasProvider": true,
+        "model": "mock"
+      },
+      "hasProvider": "http://127.0.0.1:11435/v1"
+    },
+    "start": {
+      "ok": true,
+      "active": true
+    },
+    "subtitle": {
+      "o": "",
+      "t": "人工智能正在改变我。"
+    },
+    "explanation": {
+      "open": true,
+      "state": "生成中…",
+      "body": "这是什么\n\n这段文字在描述实时翻译的工作方式：选区保持不变，画面里的文字一旦变化，就会自动重新识别并翻译。\n• 关键点一：识别与翻译分开进行，字幕只显示最新结果\n• 关键点二：字幕条始终置顶，不影响观看视频\n• 关键点三：重复内容会命中缓存，减少请求\n\nconst caption = await screenlens.capture(region);\ntranslate(caption.text, \"zh-CN\");\n>",
+      "stale": true,
+      "error": false,
+      "height": 288,
+      "explainH": 194,
+      "bodyScroll": 186,
+      "original": "",
+      "translated": "们的生活。"
+    },
+    "heightBefore": 96,
+    "afterUpdate": {
+      "open": true,
+      "stale": true,
+      "state": "字幕已更新，点「解释」刷新",
+      "bodyLen": 275,
+      "height": 288,
+      "bodyScroll": 223
+    },
+    "afterClose": {
+      "open": false,
+      "height": 96
+    }
+  }
+}
