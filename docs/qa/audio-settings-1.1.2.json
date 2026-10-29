@@ -1,0 +1,313 @@
+{
+  "date": "2026-10-29",
+  "version": "1.1.2",
+  "settings": {
+    "apiKeyReveal": {
+      "before": {
+        "type": "password",
+        "value": ""
+      },
+      "shown": {
+        "type": "text",
+        "value": "sk-qa-reveal-1234567890",
+        "on": true
+      },
+      "hidden": {
+        "type": "password",
+        "value": "sk-qa-reveal-1234567890",
+        "on": false
+      }
+    },
+    "dropdown": {
+      "active": "audio-speed",
+      "hasFocus": false,
+      "opened": {
+        "active": "audio-speed",
+        "hasFocus": true,
+        "blurs": 0
+      },
+      "afterMove": {
+        "active": "audio-speed",
+        "hasFocus": true,
+        "blurs": 0,
+        "value": "balanced"
+      },
+      "afterSelect": {
+        "value": "accurate",
+        "speed": "accurate",
+        "firstChunkMs": 2400
+      }
+    },
+    "errors": []
+  },
+  "packaged": {
+    "zhBalanced": {
+      "firstChunkMs": 2624,
+      "firstTextMs": 2696,
+      "listeningMs": 645,
+      "sampleRate": 16000,
+      "engine": [
+        "sensevoice"
+      ],
+      "decodeMs": [
+        68,
+        80,
+        87,
+        85,
+        66,
+        74,
+        67,
+        81,
+        76,
+        78,
+        66,
+        81,
+        82,
+        89,
+        66
+      ],
+      "samples": [
+        {
+          "atMs": 534,
+          "text": "将选区对准字幕或文字区域"
+        },
+        {
+          "atMs": 1054,
+          "text": "正在聆听系统声音…"
+        },
+        {
+          "atMs": 3118,
+          "text": "人工智能正在改变。"
+        },
+        {
+          "atMs": 4406,
+          "text": "我们的生活。"
+        },
+        {
+          "atMs": 5958,
+          "text": "今天我们来。"
+        },
+        {
+          "atMs": 7509,
+          "text": "聊一聊语音识别。"
+        },
+        {
+          "atMs": 8291,
+          "text": "技术。"
+        },
+        {
+          "atMs": 9859,
+          "text": "窗外的天气。"
+        },
+        {
+          "atMs": 10901,
+          "text": "很好。"
+        },
+        {
+          "atMs": 12455,
+          "text": "适合出去散步。"
+        },
+        {
+          "atMs": 14004,
+          "text": "请把这段。"
+        },
+        {
+          "atMs": 15311,
+          "text": "话完整的记录下。"
+        },
+        {
+          "atMs": 16340,
+          "text": "来。"
+        },
+        {
+          "atMs": 17883,
+          "text": "我们希望字幕。"
+        },
+        {
+          "atMs": 19453,
+          "text": "能够尽快出现。"
+        },
+        {
+          "atMs": 21012,
+          "text": "同时保持准。"
+        },
+        {
+          "atMs": 21795,
+          "text": "确。"
+        }
+      ]
+    },
+    "zhSentence": {
+      "firstChunkMs": 3709,
+      "firstTextMs": 3809,
+      "listeningMs": 250,
+      "sampleRate": 16000,
+      "engine": [
+        "sensevoice"
+      ],
+      "decodeMs": [
+        100,
+        130,
+        89,
+        113,
+        153,
+        113,
+        91
+      ],
+      "samples": [
+        {
+          "atMs": 460,
+          "text": "将选区对准字幕或文字区域"
+        },
+        {
+          "atMs": 984,
+          "text": "正在聆听系统声音…"
+        },
+        {
+          "atMs": 4133,
+          "text": "人工智能正在改变我们的生活。"
+        },
+        {
+          "atMs": 8270,
+          "text": "今天我们来聊一聊语音识别技术。"
+        },
+        {
+          "atMs": 10585,
+          "text": "窗外的天气很好。"
+        },
+        {
+          "atMs": 12371,
+          "text": "适合出去散步。"
+        },
+        {
+          "atMs": 15997,
+          "text": "请把这段话完整的记录下来。"
+        },
+        {
+          "atMs": 19588,
+          "text": "我们希望字幕能够尽快出现。"
+        },
+        {
+          "atMs": 21388,
+          "text": "同时保持准确。"
+        }
+      ]
+    },
+    "frFastWhisper": {
+      "firstChunkMs": 1361,
+      "firstTextMs": 1687,
+      "listeningMs": 319,
+      "sampleRate": 16000,
+      "engine": [
+        "whisper"
+      ],
+      "decodeMs": [
+        325,
+        326,
+        330,
+        787,
+        316,
+        288,
+        314,
+        329,
+        307,
+        330,
+        301
+      ],
+      "samples": [
+        {
+          "atMs": 508,
+          "text": "将选区对准字幕或文字区域"
+        },
+        {
+          "atMs": 1023,
+          "text": "正在聆听系统声音…"
+        },
+        {
+          "atMs": 1795,
+          "text": "正在识别语音…"
+        },
+        {
+          "atMs": 2049,
+          "text": "翻译中…"
+        },
+        {
+          "atMs": 3092,
+          "text": "翻译中…"
+        },
+        {
+          "atMs": 4132,
+          "text": "翻译中…"
+        },
+        {
+          "atMs": 5168,
+          "text": "实时音频字幕。"
+        },
+        {
+          "atMs": 6965,
+          "text": "实时音频字幕。"
+        },
+        {
+          "atMs": 7735,
+          "text": "实时音频字幕。"
+        },
+        {
+          "atMs": 8778,
+          "text": "实时音频字幕。"
+        },
+        {
+          "atMs": 9561,
+          "text": "正在聆听系统声音…"
+        },
+        {
+          "atMs": 9817,
+          "text": "由 Whisper。"
+        },
+        {
+          "atMs": 10855,
+          "text": "你是最棒的吗？"
+        },
+        {
+          "atMs": 11889,
+          "text": "你是最棒的吗？"
+        },
+        {
+          "atMs": 12937,
+          "text": "你是最棒的吗？"
+        },
+        {
+          "atMs": 13969,
+          "text": "智慧。"
+        }
+      ]
+    },
+    "records": [
+      {
+        "file": "音频记录-20261029-083044.txt",
+        "text": "﻿ScreenLens 音频字幕记录\n开始时间：2026-10-29 08:30:44\n音频来源：系统声音\n识别语言：简体中文\n译文语言：简体中文\n识别模型：SenseVoice + Whisper（混合）\n识别模式：均衡\n记录条数：15\n----------------------------------------\n[00:02] 原文：人工智能正在改变。\n        译文：（同原文）\n[00:03] 原文：我们的生活。\n        译文：（同原文）\n[00:05] 原文：今天我们来。\n        译文：（同原文）\n[00:07] 原文：聊一聊语音识别。\n        译文：（同原文）\n[00:07] 原文：技术。\n        译文：（同原文）\n[00:09] 原文：窗外的天气。\n        译文：（同原文）\n[00:10] 原文：很好。\n        译文：（同原文）\n[00:11] 原文：适合出去散步。\n        译文：（同原文）\n[00:13] 原文：请把这段。\n        译文：（同原文）\n[00:14] 原文：话完整的记录下。\n        译文：（同原文）\n[00:15] 原文：来。\n        译文：（同原文）\n[00:17] 原文：我们希望字幕。\n        译文：（同原文）\n[00:18] 原文：能够尽快出现。\n        译文：（同原文）\n[00:20] 原文：同时保持准。\n        译文：（同原文）\n[00:21] 原文：确。\n        译文：（同原文）\n"
+      },
+      {
+        "file": "音频记录-20261029-083108.txt",
+        "text": "﻿ScreenLens 音频字幕记录\n开始时间：2026-10-29 08:31:08\n音频来源：系统声音\n识别语言：Français\n译文语言：简体中文\n识别模型：Whisper base (q5_1)\n识别模式：极速\n记录条数：10\n----------------------------------------\n[00:01] 原文：C'est un test !\n[00:02] 原文：de réel temps audio\n[00:03] 原文：réeltime audio subtitles.\n        译文：实时音频字幕。\n[00:06] 原文：est capturé au local\n[00:07] 原文：locally et transcribed\n[00:08] 原文：by Whisper.\n        译文：由 Whisper。\n[00:09] 原文：T'es la meilleure ?\n        译文：你是最棒的吗？\n[00:10] 原文：Aujourd'hui, le monde est très bon et nous sommes\n[00:11] 原文：en train de faire l'artificialité.\n[00:12] 原文：intelligence.\n        译文：智慧。\n"
+      },
+      {
+        "file": "音频记录-20261029-083125.txt",
+        "text": "﻿ScreenLens 音频字幕记录\n开始时间：2026-10-29 08:31:25\n音频来源：系统声音\n识别语言：简体中文\n译文语言：简体中文\n识别模型：SenseVoice + Whisper（混合）\n识别模式：逐句\n记录条数：7\n----------------------------------------\n[00:03] 原文：人工智能正在改变我们的生活。\n        译文：（同原文）\n[00:07] 原文：今天我们来聊一聊语音识别技术。\n        译文：（同原文）\n[00:10] 原文：窗外的天气很好。\n        译文：（同原文）\n[00:12] 原文：适合出去散步。\n        译文：（同原文）\n[00:15] 原文：请把这段话完整的记录下来。\n        译文：（同原文）\n[00:19] 原文：我们希望字幕能够尽快出现。\n        译文：（同原文）\n[00:20] 原文：同时保持准确。\n        译文：（同原文）\n"
+      }
+    ],
+    "errors": []
+  },
+  "package": {
+    "folderMb": 578.6,
+    "zipMb": 330.0,
+    "zipBytes": 346034805,
+    "sha256": "9C05A7C21B24BFB09F9F8E6F905B3CFAAC2BD8A7BD98E8D9422557EE3A7D7820"
+  },
+  "notes": [
+    "Synthetic Windows TTS fixtures (10s Chinese, ~7s English) played through system loopback; no paid AI used.",
+    "Balanced remains the default low-latency mode; 逐句 is opt-in for maximum sentence completeness.",
+    "Whisper fallback was validated with English audio labeled French, so its French text is not an accuracy reference.",
+    "Package includes Whisper base only; Whisper small and OpenBLAS were removed to cut size.",
+    "SenseVoice now runs in-process through sherpa-onnx-node; Python/PyInstaller are no longer packaged."
+  ]
+}

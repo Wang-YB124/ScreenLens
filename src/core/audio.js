@@ -916,6 +916,7 @@ class AudioController {
           overlapMs,
           firstChunkMs,
           speed: preset.key,
+          sentence: Boolean(preset.sentence),
           timingId,
         });
         markTiming(timingId, 'capture-init-sent', {
@@ -923,6 +924,7 @@ class AudioController {
           chunkMs,
           overlapMs,
           firstChunkMs,
+          sentence: Boolean(preset.sentence),
         });
       });
       this.capture.loadFile(path.join(__dirname, '..', 'renderer', 'audio-capture', 'index.html'));
@@ -1148,14 +1150,8 @@ class AudioController {
   }
 
   async recognizeSense(data, language) {
-    const file = path.join(this.tempDir, `asr-sense-${process.pid}-${Date.now()}-${++this.seq}.wav`);
-    try {
-      fs.writeFileSync(file, Buffer.isBuffer(data) ? data : Buffer.from(data));
-      const result = await this.sense.recognize(file, language, 15000);
-      return { text: String(result.text || '').trim(), language };
-    } finally {
-      try { fs.unlink(file, () => {}); } catch {}
-    }
+    const result = await this.sense.recognize(data, language, 15000);
+    return { text: String(result.text || '').trim(), language };
   }
 
   async recognize(data) {
@@ -1573,4 +1569,4 @@ class AudioController {
   }
 }
 
-module.exports = { AudioController, looksLikeHallucination };
+module.exports = { AudioController, looksLikeHallucination, trimOverlap, tidySpeech };

@@ -24,6 +24,7 @@ let startedAt = 0;
 let lastDeviceChange = 0;
 let restartAttempt = false;
 let newSamples = 0;
+let quietBlocks = 0;
 
 function sendStatus(payload) {
   try { api.send('audio:status', payload); } catch {}
@@ -141,12 +142,16 @@ function audioStats(samples) {
 }
 
 function setupGraph(audioTracks, info) {
-  ctx = new AudioContext();
+  try {
+    ctx = new AudioContext({ sampleRate: 16000, latencyHint: 'interactive' });
+  } catch {
+    ctx = new AudioContext();
+  }
   ctx.resume().catch(() => {});
   sampleRate = ctx.sampleRate || 48000;
-  const chunkMs = Math.max(1500, Math.min(8000, Number(config.chunkMs) || 6000));
+  const chunkMs = Math.max(1500, Math.min(12000, Number(config.chunkMs) || 6000));
   const firstMs = Math.max(800, Math.min(chunkMs, Number(config.firstChunkMs) || 2000));
-  const overlapMs = Math.max(300, Math.min(1500, Number(config.overlapMs) || 800));
+  const overlapMs = Math.max(300, Math.min(2500, Number(config.overlapMs) || 800));
   fullChunkSamples = Math.max(1, Math.round((sampleRate * chunkMs) / 1000));
   firstChunkSamples = Math.max(1, Math.round((sampleRate * firstMs) / 1000));
   chunkSamples = firstFlushDone ? fullChunkSamples : firstChunkSamples;
@@ -154,6 +159,7 @@ function setupGraph(audioTracks, info) {
   segments = [];
   total = 0;
   newSamples = 0;
+  quietBlocks = 0;
   sourceNode = ctx.createMediaStreamSource(new MediaStream(audioTracks));
   processor = ctx.createScriptProcessor(2048, 1, 1);
   sink = ctx.createGain();
@@ -169,7 +175,22 @@ function setupGraph(audioTracks, info) {
     segments.push(copy);
     total += copy.length;
     newSamples += copy.length;
-    if (total >= chunkSamples) flush();
+    let energy = 0;
+    let count = 0;
+    for (let i = 0; i < copy.length; i += 4) {
+      energy += copy[i] * copy[i];
+      count += 1;
+    }
+    const blockRms = Math.sqrt(energy / Math.max(1, count));
+    quietBlocks = blockRms < 0.0045 ? quietBlocks + 1 : 0;
+    const minFlush = config.sentence
+      ? Math.max(Math.round(sampleRate * 1.2), Math.round(chunkSamples * 0.15))
+      : Math.round(chunkSamples * 0.65);
+    const minNew = Math.round(Math.max(0, chunkSamples - overlapSamples) * (config.sentence ? 0.15 : 0.55));
+    const quietTarget = 2;
+    if (total >= chunkSamples || (total >= minFlush && newSamples >= minNew && quietBlocks >= quietTarget)) {
+      flush();
+    }
   };
   sendStatus({
     status: 'listening',
@@ -256,6 +277,7 @@ function flush() {
     firstFlushDone = true;
     chunkSamples = fullChunkSamples;
     newSamples = 0;
+    quietBlocks = 0;
     const keep = Math.min(overlapSamples, combined.length);
     const tail = keep ? combined.slice(combined.length - keep) : null;
     segments = tail ? [tail] : [];
@@ -338,6 +360,8 @@ function stopCapture() {
   ctx = null;
   segments = [];
   total = 0;
+  quietBlocks = 0;
+  newSamples = 0;
   flushing = false;
 }
 

@@ -5,6 +5,7 @@ const INVOKE_CHANNELS = new Set([
   'app:quit',
   'settings:update',
   'provider:test',
+  'provider:key',
   'action:select',
   'action:realtime',
   'action:stop-realtime',

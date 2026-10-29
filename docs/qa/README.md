@@ -283,3 +283,19 @@
 - 设置 → 音频字幕「音频记录」行显示当前目录，提供「更改… / 打开 / 默认」；更改使用系统文件夹选择器，路径持久化到 `settings.audio.recordDir`，默认仍是 `%APPDATA%\ScreenLens\audio-records`。
 - 实测：设置自定义中文路径后，状态中的 `audio.recordDir`/UI 同步显示；音频会话生成的 TXT 写入自定义目录；「默认」恢复后目录回到 userData/audio-records，自定义文件保留。长路径在设置行内省略，悬停显示完整路径。
 - 说明：当前音频会话使用开始时的目录；录音中更改目录对下一次会话生效。原生选择器本身未自动化点击，持久化/写入/重置链路已验证。
+
+### 设置修复、逐句音频与体积精简（2026-10-29）
+
+- 数据：[audio-settings-1.1.2.json](audio-settings-1.1.2.json)。
+- 设置修复（开发版 + 打包版）：
+  - API Key：保存后输入框为空；点小眼睛通过新增的 `provider:key` IPC 读取本机加密 Key，类型切为 text、值正确显示，再点恢复 password；清除按钮同步复位。
+  - 下拉框：主界面悬停聚焦不再对已聚焦窗口重复调用 `win.focus()`，且不对 `<select>` 发悬停聚焦；实测点击后 `activeElement=audio-speed`、`hasFocus=true`、`blurs=0`，鼠标移开仍保持，键盘选择「逐句」后 `settings.audio.speed` 同步为 `accurate`。
+- 音频精度：
+  - 采集改为 16 kHz（`AudioContext({sampleRate:16000})`），避免 48 kHz 线性降采样混叠；打包版 listening 事件均报告 16000。
+  - VAD 停顿切块：普通模式在 65% 窗口后遇停顿提前切块；新增「逐句」档（4 秒首块、最长 10 秒、1.2 秒重叠、停顿成句）。
+  - 打包版中文均衡：首块 2624 ms、首条 2696 ms，SenseVoice 68–87 ms/块；仍会按 1.5 秒窗口切出短句。
+  - 打包版中文逐句：首块 3709 ms、首条 3809 ms，10 秒测试语音输出 7 个完整句子（无「语音识 / 别技术」类切词）；SenseVoice 89–153 ms/块。
+  - 打包版法语（实际播放英文音频，仅验证回退链路）：Whisper base，首条 1687 ms，识别 288–330 ms/块；无 OpenBLAS 仍正常。
+- 体积：发布包改为 sherpa-onnx-node 原生运行时；移除 Whisper small、OpenBLAS、Python/PyInstaller 与多余 Electron 语言包。目录 578.6 MB、ZIP 330.0 MB（原 903.6 MB / 549.8 MB）。
+- 回归：证据中 `errors=[]`；三次音频记录头部模型/模式正确（混合·均衡、Whisper base·极速、混合·逐句）；API Key 使用临时隔离配置，测试后未保留。
+- 说明：逐句模式为可选档，默认仍是均衡；测试音频为 Windows TTS，真实音源质量仍受噪声/口音影响。全程未调用付费 AI。

@@ -27,6 +27,12 @@ if (Test-Path $srcRes) {
 }
 Rename-Item -LiteralPath $exe -NewName 'ScreenLens.exe'
 
+$localeDir = Join-Path $dist 'locales'
+if (Test-Path $localeDir) {
+    $keepLocales = @('zh-CN.pak', 'zh-TW.pak', 'en-US.pak', 'en-GB.pak')
+    Get-ChildItem -LiteralPath $localeDir -File | Where-Object { $_.Name -notin $keepLocales } | Remove-Item -Force
+}
+
 $appDir = Join-Path $dist 'resources\app'
 New-Item -ItemType Directory -Path $appDir | Out-Null
 Copy-Item -Path (Join-Path $root 'src') -Destination $appDir -Recurse -Force
@@ -46,11 +52,17 @@ if (Test-Path $whisper) {
     if (Test-Path $srcModels) {
         $modelTarget = Join-Path $target 'models'
         New-Item -ItemType Directory -Path $modelTarget -Force | Out-Null
-        foreach ($name in @('ggml-base-q5_1.bin', 'ggml-small-q5_1.bin')) {
+        foreach ($name in @('ggml-base-q5_1.bin')) {
             $file = Join-Path $srcModels $name
             if (Test-Path $file) {
                 Copy-Item -LiteralPath $file -Destination $modelTarget -Force
             }
+        }
+    }
+    foreach ($name in @('libopenblas.dll', 'ggml-blas.dll')) {
+        $file = Join-Path $target "runtime\$name"
+        if (Test-Path $file) {
+            Remove-Item -LiteralPath $file -Force
         }
     }
 }
@@ -59,7 +71,7 @@ $sensevoice = Join-Path $root 'vendor\sensevoice'
 if (Test-Path $sensevoice) {
     $target = Join-Path $appDir 'vendor\sensevoice'
     New-Item -ItemType Directory -Path $target -Force | Out-Null
-    foreach ($name in @('server', 'models')) {
+    foreach ($name in @('node', 'models')) {
         $source = Join-Path $sensevoice $name
         if (Test-Path $source) {
             Copy-Item -LiteralPath $source -Destination $target -Recurse -Force
@@ -71,7 +83,8 @@ $licenses = Join-Path $root 'licenses'
 if (Test-Path $licenses) {
     $target = Join-Path $dist 'licenses'
     New-Item -ItemType Directory -Path $target | Out-Null
-    Copy-Item -Path (Join-Path $licenses '*') -Destination $target -Force
+    $legacy = @('python-LICENSE.txt', 'pyinstaller-LICENSE.txt')
+    Get-ChildItem -LiteralPath $licenses -File | Where-Object { $_.Name -notin $legacy } | Copy-Item -Destination $target -Force
 }
 
 $releaseDocs = Join-Path $root 'release'
@@ -83,8 +96,8 @@ $rcedit = Join-Path $root 'vendor\rcedit.exe'
 if (Test-Path $rcedit) {
     & $rcedit (Join-Path $dist 'ScreenLens.exe') `
         --set-icon (Join-Path $root 'assets\icon.ico') `
-        --set-file-version '1.1.1.0' `
-        --set-product-version '1.1.1.0' `
+        --set-file-version '1.1.2.0' `
+        --set-product-version '1.1.2.0' `
         --set-version-string 'ProductName' 'ScreenLens' `
         --set-version-string 'FileDescription' 'ScreenLens - instant screen translation and explanation' `
         --set-version-string 'CompanyName' 'ScreenLens' `

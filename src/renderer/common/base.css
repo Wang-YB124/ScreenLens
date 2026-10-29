@@ -238,6 +238,11 @@ kbd {
   color: var(--text);
 }
 
+.icon-btn.on {
+  color: var(--mint);
+  background: rgba(110, 231, 183, 0.12);
+}
+
 .icon-btn.danger:hover {
   color: var(--danger);
   background: rgba(255, 120, 120, 0.1);

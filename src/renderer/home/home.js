@@ -384,6 +384,11 @@ function syncSettingsForm(force) {
     : (state.provider.hasProvider
       ? '本地模型无需 Key'
       : '粘贴 API Key，仅保存在本机');
+  if (!s.provider.hasApiKey && !keyInput.value) {
+    keyInput.type = 'password';
+    $('key-eye').classList.remove('on');
+    $('key-eye').title = '显示 API Key';
+  }
 
   const hint = $('engine-hint');
   if (!s.freeTranslation && !state.provider.hasProvider) {
@@ -437,7 +442,7 @@ function syncSettingsForm(force) {
   const audioDetail = $('audio-model-detail');
   if (audioDetail) {
     const modeHint = audioInfo.modeHint
-      || (s.audio.speed === 'accurate' ? '准确 · small 模型' : (s.audio.speed === 'balanced' ? '均衡 · 默认 · 约 1.3 秒更新' : '极速 · 约 1 秒更新'));
+      || (s.audio.speed === 'accurate' ? '逐句 · 按停顿成句' : (s.audio.speed === 'balanced' ? '均衡 · 默认 · 约 1.5 秒更新' : '极速 · 约 1 秒更新'));
     const sense = audioInfo.sensevoice || {};
     const whisper = audioInfo.whisper || {};
     const engineText = sense.ready && whisper.ready
@@ -826,17 +831,17 @@ function bindEvents() {
   });
 
   document.addEventListener('mousemove', (event) => {
+    if (document.hasFocus() || hoverFocusTimer) return;
     const interactive = event.target instanceof Element
-      && event.target.closest('button, a, input, select, textarea, [role="button"]');
+      && event.target.closest('button, a, input, textarea, [role="button"]');
     if (!interactive) {
       clearTimeout(hoverFocusTimer);
       hoverFocusTimer = null;
       return;
     }
-    if (hoverFocusTimer) return;
     hoverFocusTimer = setTimeout(() => {
       hoverFocusTimer = null;
-      api.send('window:focus');
+      if (!document.hasFocus()) api.send('window:focus');
     }, 120);
   });
   document.addEventListener('mouseleave', () => {
@@ -928,14 +933,45 @@ function bindEvents() {
     if (!value) return;
     saveSettings({ provider: { apiKey: value } }, 'API Key 已保存');
     $('provider-key').value = '';
+    $('provider-key').type = 'password';
+    $('key-eye').classList.remove('on');
+    $('key-eye').title = '显示 API Key';
     syncSettingsForm(true);
   });
-  $('key-eye').addEventListener('click', () => {
+  $('key-eye').addEventListener('mousedown', (event) => {
+    event.preventDefault();
+  });
+  $('key-eye').addEventListener('click', async () => {
     const input = $('provider-key');
-    input.type = input.type === 'password' ? 'text' : 'password';
+    const eye = $('key-eye');
+    if (input.type === 'text') {
+      input.type = 'password';
+      eye.classList.remove('on');
+      eye.title = '显示 API Key';
+      return;
+    }
+    if (!input.value) {
+      try {
+        const res = await api.invoke('provider:key');
+        if (res?.ok && res.apiKey) input.value = res.apiKey;
+      } catch {}
+    }
+    if (!input.value) {
+      showToast('暂无 API Key', '先粘贴并保存 Key，之后可用眼睛按钮查看。');
+      return;
+    }
+    input.type = 'text';
+    eye.classList.add('on');
+    eye.title = '隐藏 API Key';
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
   });
   $('key-clear').addEventListener('click', () => {
+    clearTimeout(keySaveTimer);
     $('provider-key').value = '';
+    $('provider-key').type = 'password';
+    $('key-eye').classList.remove('on');
+    $('key-eye').title = '显示 API Key';
     saveSettings({ provider: { clearApiKey: true } }, '已清除 API Key');
   });
   $('provider-test').addEventListener('click', async () => {

@@ -457,6 +457,7 @@ function registerIpc() {
     if (homeHiddenForSession()) return;
     if (win.isMinimized()) win.restore();
     if (!win.isVisible()) win.show();
+    if (win.isFocused()) return;
     win.focus();
   });
 
@@ -582,6 +583,15 @@ function registerIpc() {
   ipcMain.handle('settings:update', (event, patch) => {
     const next = applySettingsPatch(patch);
     return { ok: true, settings: settings.getPublic(), hotkeys: hotkeyStatus, state: state() };
+  });
+
+  ipcMain.handle('provider:key', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed() || win !== homeWin) {
+      return { ok: false, error: '仅主界面可查看 API Key' };
+    }
+    const provider = settings.get().provider || {};
+    return { ok: true, apiKey: provider.apiKey || '' };
   });
 
   ipcMain.handle('provider:test', async (event, draft) => {
