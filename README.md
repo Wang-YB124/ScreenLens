@@ -1,6 +1,6 @@
 # 屏译 ScreenLens
 
-框选 Windows 屏幕上的任意内容，立即翻译，或让 AI 解释代码、数学公式与科普文章；结果窗还会按内容类型给出相关关键词与外部搜索链接。内置本地 Windows OCR，支持实时字幕、字幕内 AI 解释与可选的视觉读图。
+框选 Windows 屏幕上的任意内容，立即翻译，或让 AI 解释代码、数学公式与科普文章；结果窗还会按内容类型给出相关关键词与外部搜索链接。内置本地 Windows OCR，支持实时字幕、字幕内 AI 解释与可选的视觉读图；在 VS Code / Cursor / Qoder 中写作时，还能把当前代码实时暂存到字幕条，达到阈值后自动给出解释与修正建议。
 
 ![首页](docs/screenshots/home.png)
 
@@ -11,6 +11,7 @@
 - 相关知识：按原文、译文与领域提取关键词，提供维基百科、必应/百度、Google Scholar、Stack Overflow、GitHub、PubMed 等真实搜索链接，点击用默认浏览器打开。
 - 代码 / 数学 / 科普：领域提示词、KaTeX 公式、highlight.js 代码高亮与复制。
 - 实时字幕：置顶、顶部整条区域可拖动、右下角可缩放字幕框、字幕内设置（字号 / 背景透明度 / 多语言互译）、可框选区域或单击指定窗口并跟随窗口、字幕不进入截图/录屏、点击穿透、领域识别、AI/免费引擎自动选择。字幕条内可点「解释」，按当前字幕按需生成 AI 解释并流式显示，可滚动查看或关闭。
+- 代码字幕：在设置中把字幕来源切到「VS Code 编辑器」，配合发布包内的 ScreenLens Code VSIX（兼容 VS Code / Cursor / Qoder）实时暂存当前文件。字幕条显示光标附近的代码和待审阅字数；新增达到设定行数/字符数后，自动把代码交给 AI 生成解释、风险与修正建议，并在字幕条内以代码块流式显示。可用开关关闭自动审阅，改点字幕条上的「审阅」手动触发；代码只在应用与编辑器之间经本机回环传递，停止字幕后桥接文件立即清除。
 - 音频字幕：系统声音回环或麦克风 → 本地识别（不上传音频）。中/英/日/韩使用 SenseVoice，俄/法/德/西/葡/意使用 Whisper；默认均衡（首条约 2 秒、约 1.5 秒一更），可切极速（约 1 秒一更）或逐句（按停顿成句，切词最少、延迟更高）。采集统一为 16 kHz，并在停顿处提前切块，减少切词与漏字。支持 10 种识别语言与自动检测；识别文字复用免费/AI 翻译并在同一字幕条显示，字幕条内可直接切换识别语言，也可点击「解释」对当前句调用 AI；每次停止自动保存原文/译文 TXT 记录，记录目录可在设置中更改。
 - 隐私：截图默认不出本机；API Key 使用 Windows DPAPI 加密保存。
 
@@ -33,9 +34,13 @@
 
 ![音频字幕](docs/screenshots/audio.png)
 
+代码字幕（VS Code / Cursor / Qoder 扩展实时暂存，达到阈值后自动解释与给出修正建议）：
+
+![代码字幕](docs/screenshots/editor.png)
+
 ## 直接使用
 
-从 GitHub Releases 下载 `ScreenLens-1.2.1-win64.zip`，解压后运行 `ScreenLens.exe`。源码仓库不包含 Electron 运行时和构建产物。
+从 GitHub Releases 下载 `ScreenLens-1.3.0-win64.zip`，解压后运行 `ScreenLens.exe`。源码仓库不包含 Electron 运行时和构建产物。代码字幕还需要安装发布包根目录的 `ScreenLens-Code-*.vsix`。
 
 - `Ctrl+Alt+Q`：框选翻译
 - `Ctrl+Alt+R`：实时字幕
@@ -57,6 +62,15 @@ start.cmd
 ```
 
 Electron 版本为 38.2.1；项目本身没有 npm 依赖。
+
+VS Code 扩展为独立子项目，构建 VSIX：
+
+```powershell
+cd vscode-extension
+python build-vsix.py
+```
+
+生成的 `ScreenLens-Code-<version>.vsix` 会随便携包复制到根目录，也可在 VS Code / Cursor / Qoder 中通过「扩展: 从 VSIX 安装」载入。
 
 ## 构建发布包
 
@@ -84,7 +98,7 @@ powershell -ExecutionPolicy Bypass -File scripts/fetch-sensevoice.ps1
 ## 发布到 GitHub
 
 - 源码：提交本仓库即可。默认 `.gitignore` 排除 `vendor/electron/`、`dist/`、测试截图与运行缓存。
-- 便携包：把 `dist/ScreenLens-1.2.1-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 330 MB，超过 GitHub 单文件限制）。
+- 便携包：把 `dist/ScreenLens-1.3.0-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 330 MB，超过 GitHub 单文件限制）；同时上传发布包根目录的 `ScreenLens-Code-*.vsix`，方便未使用便携包的用户单独安装扩展。
 - 首次克隆后运行 `scripts/fetch-electron.ps1`、`scripts/fetch-whisper.ps1`、`scripts/fetch-sensevoice.ps1`；无需把 Electron、模型或运行时提交进仓库。发布包只带 Whisper base 回退模型，源码构建时可自行保留 small 模型（逐句模式对中/英/日/韩使用 SenseVoice，不受影响）。
 
 ## 测试
@@ -109,7 +123,8 @@ QA 汇总与真实模型验证结果见 [`docs/qa/`](docs/qa/README.md)。
 - `src/core/prompts.js`：领域化翻译与解释提示词
 - `src/core/translate.js`、`src/core/llm.js`：免费翻译、OpenAI 兼容流式调用、代码版式修复
 - `src/core/session.js`：框选 → OCR → 翻译/解释/相关知识 → 历史
-- `src/core/realtime.js`：实时字幕循环
+- `src/core/realtime.js`：实时字幕循环；包含屏幕/音频/代码三种来源，代码模式在本机 127.0.0.1 随机端口启动带令牌的桥接服务，接收编辑器扩展快照并触发审阅
+- `vscode-extension/`：ScreenLens Code 扩展（解释/修正选中代码、API Key、代码字幕实时桥接）；`python build-vsix.py` 生成 VSIX
 - `src/renderer/`：主界面、结果浮窗、选区覆盖层、实时字幕
 - `src/renderer/vendor/`：KaTeX 0.19.1 与 highlight.js 11.11.1（离线）
 - `test/`：领域/关键词测试、Mock OpenAI 服务、CDP 自动化脚本
@@ -117,7 +132,7 @@ QA 汇总与真实模型验证结果见 [`docs/qa/`](docs/qa/README.md)。
 
 ## 隐私
 
-OCR 与截图默认在本机处理。使用免费翻译时选中的文字会发给微软 Bing 翻译（失败时回退 MyMemory）；使用 AI 时选中的文字（以及开启多模态时的选区截图）会发给所配置的模型服务；使用 AI 翻译时，原文与译文还会用于提取相关搜索关键词。详见 `release/隐私说明.txt`。
+OCR 与截图默认在本机处理。使用免费翻译时选中的文字会发给微软 Bing 翻译（失败时回退 MyMemory）；使用 AI 时选中的文字（以及开启多模态时的选区截图）会发给所配置的模型服务；使用 AI 翻译时，原文与译文还会用于提取相关搜索关键词。代码字幕的代码快照只通过本机回环桥接传给应用，只有触发 AI 审阅时才会把代码发送给所配置的模型服务。详见 `release/隐私说明.txt`。
 
 ## 许可
 

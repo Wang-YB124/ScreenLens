@@ -75,6 +75,7 @@ let resizeMoved = false;
 let resizeManualBefore = false;
 let currentDomain = 'general';
 let lastPreview = '';
+let editorMode = false;
 let panelOpen = false;
 let closing = false;
 let explainOpen = false;
@@ -215,7 +216,9 @@ function setLoading(text) {
 }
 
 function updatePreview() {
-  previewText.textContent = lastPreview || SAMPLE[rt.targetLang] || '字幕效果预览';
+  previewText.textContent = editorMode
+    ? 'const answer = 42; // 代码字幕预览'
+    : (lastPreview || SAMPLE[rt.targetLang] || '字幕效果预览');
 }
 
 function currentSubtitleText() {
@@ -238,7 +241,41 @@ function setExplainState(text, error = false) {
   explainPanel.classList.toggle('error', Boolean(error));
 }
 
+function renderCodeExplanation(text, streaming = false) {
+  const stick = streaming && (explainBody.scrollHeight - explainBody.scrollTop - explainBody.clientHeight < 40);
+  explainBody.replaceChildren();
+  const raw = String(text || '').replace(/\r\n/g, '\n');
+  const parts = raw.split('```');
+  for (let i = 0; i < parts.length; i += 1) {
+    const part = parts[i];
+    if (i % 2 === 1) {
+      const lines = part.split('\n');
+      const first = lines[0].trim();
+      const hasLang = first && /^[A-Za-z0-9+#._-]{1,24}$/.test(first);
+      const code = (hasLang ? lines.slice(1) : lines).join('\n').replace(/\n+$/, '');
+      const pre = document.createElement('pre');
+      const codeEl = document.createElement('code');
+      codeEl.textContent = code;
+      pre.append(codeEl);
+      explainBody.append(pre);
+      continue;
+    }
+    const plain = part
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/^\s*[-*]\s+/gm, '• ')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .trim();
+    if (plain) explainBody.append(document.createTextNode(`${plain}\n`));
+  }
+  if (stick) explainBody.scrollTop = explainBody.scrollHeight;
+}
+
 function renderExplanation(streaming = false) {
+  if (editorMode) {
+    renderCodeExplanation(explainText, streaming);
+    return;
+  }
   const cleaned = cleanExplanation(explainText);
   if (streaming || !cleaned) {
     explainBody.textContent = cleaned;
@@ -252,14 +289,16 @@ function setExplainPanel(open) {
   explainPanel.hidden = !open;
   sub.classList.toggle('explain-open', open);
   btnExplain.classList.toggle('active', open);
-  btnExplain.title = open ? '刷新 AI 解释' : 'AI 解释当前字幕';
+  btnExplain.title = open
+    ? (editorMode ? '刷新 AI 审阅' : '刷新 AI 解释')
+    : (editorMode ? 'AI 审阅当前代码' : 'AI 解释当前字幕');
   scheduleResize();
 }
 
 function startExplain() {
   const text = currentSubtitleText();
   if (!text) {
-    flashHint('还没有可解释的字幕');
+    flashHint(editorMode ? '还没有可审阅的代码' : '还没有可解释的字幕');
     return;
   }
   explainFor = text;
@@ -267,8 +306,8 @@ function startExplain() {
   explainStatus = 'loading';
   explainStale = false;
   explainPanel.classList.remove('error', 'stale');
-  explainBody.textContent = '正在生成解释…';
-  setExplainState('正在生成解释…');
+  explainBody.textContent = editorMode ? '正在审阅代码…' : '正在生成解释…';
+  setExplainState(editorMode ? '正在审阅代码…' : '正在生成解释…');
   setExplainPanel(true);
   api.invoke('realtime:explain', { action: 'start' }).then((res) => {
     if (res?.ok) return;
@@ -294,27 +333,36 @@ function closeExplain() {
   explainPanel.classList.remove('error', 'stale');
   sub.classList.remove('explain-open');
   btnExplain.classList.remove('active');
-  btnExplain.title = 'AI 解释当前字幕';
+  btnExplain.title = editorMode ? 'AI 审阅当前代码' : 'AI 解释当前字幕';
   api.invoke('realtime:explain', { action: 'stop' }).catch(() => {});
   scheduleResize();
 }
 
 api.on('realtime:explanation', (payload) => {
-  if (!explainOpen || !payload) return;
+  if (!payload) return;
+  if (payload.autoOpen && !explainOpen) {
+    explainFor = currentSubtitleText();
+    explainStale = false;
+    explainPanel.classList.remove('error', 'stale');
+    setExplainPanel(true);
+  }
+  if (!explainOpen) return;
   const status = String(payload.status || '');
   if (status === 'loading') {
     explainStatus = 'loading';
-    setExplainState(payload.provider ? `${payload.provider} 正在解释…` : '正在生成解释…');
-    explainBody.textContent = '正在生成解释…';
+    setExplainState(payload.provider ? `${payload.provider} 正在${editorMode ? '审阅' : '解释'}…` : (editorMode ? '正在审阅代码…' : '正在生成解释…'));
+    explainBody.textContent = editorMode ? '正在审阅代码…' : '正在生成解释…';
   } else if (status === 'streaming') {
     explainStatus = 'streaming';
     explainText = String(payload.text || '');
-    setExplainState('生成中…');
+    setExplainState(editorMode ? '审阅中…' : '生成中…');
     renderExplanation(true);
   } else if (status === 'done') {
     explainStatus = 'done';
     explainText = String(payload.text || '');
-    setExplainState(explainStale ? '字幕已更新，点「解释」刷新' : (payload.provider || 'AI'));
+    setExplainState(explainStale
+      ? (editorMode ? '代码已更新，点「审阅」刷新' : '字幕已更新，点「解释」刷新')
+      : (payload.provider || 'AI'));
     renderExplanation(false);
     explainPanel.classList.remove('error');
   } else if (status === 'error' || status === 'unavailable') {
@@ -429,6 +477,13 @@ api.on('realtime:init', (config) => {
   sub.classList.toggle('manual-size', manualHeight);
   syncManualUi();
   const scopeLabel = config.scope || (config.windowTitle ? '窗口' : '');
+  editorMode = scopeLabel === '代码';
+  sub.classList.toggle('editor-mode', editorMode);
+  const explainTag = document.querySelector('.explain-tag');
+  if (explainTag) explainTag.textContent = editorMode ? 'AI 审阅' : 'AI 解释';
+  const explainLabel = btnExplain.querySelector('span');
+  if (explainLabel) explainLabel.textContent = editorMode ? '审阅' : '解释';
+  btnExplain.title = editorMode ? 'AI 审阅当前代码' : 'AI 解释当前字幕';
   btnRecord.classList.toggle('hidden', scopeLabel !== '音频');
   if (scopeLabel) {
     scope.textContent = scopeLabel;
@@ -466,16 +521,18 @@ function markExplainStale() {
   if (!text || text === explainFor || explainStale) return;
   explainStale = true;
   explainPanel.classList.add('stale');
-  if (explainStatus === 'done') setExplainState('字幕已更新，点「解释」刷新');
+  if (explainStatus === 'done') {
+    setExplainState(editorMode ? '代码已更新，点「审阅」刷新' : '字幕已更新，点「解释」刷新');
+  }
 }
 
 function renderUpdate(payload) {
-  if (explainOpen) setTimeout(markExplainStale, 0);
+  if (explainOpen && !editorMode) setTimeout(markExplainStale, 0);
   if (payload.direction) dir.textContent = payload.direction;
-  if (payload.provider) {
+  if (editorMode && payload.file) dir.textContent = payload.file;  if (payload.provider) {
     provider.textContent = payload.provider === '免费翻译' || payload.provider === '微软翻译'
       ? 'FREE'
-      : (payload.provider === '原文' ? 'ORIG' : 'AI');
+      : (payload.provider === '原文' ? 'ORIG' : (payload.provider === 'EDITOR' ? 'LOCAL' : 'AI'));
   }
   if (payload.domain) currentDomain = payload.domain;
   if (payload.original !== undefined) {
@@ -524,7 +581,7 @@ function renderUpdate(payload) {
     translated.replaceChildren();
     const dot = document.createElement('span');
     dot.className = 'waiting-dot';
-    const message = payload.message || '将选区对准字幕或文字区域';
+    const message = payload.message || payload.translated || '将选区对准字幕或文字区域';
     translated.append(dot, document.createTextNode(message));
   }
 }

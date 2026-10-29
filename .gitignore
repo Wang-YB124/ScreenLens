@@ -8,6 +8,7 @@ vendor/whisper/
 dist/
 *.zip
 *.sha256.txt
+vscode-extension/*.vsix
 
 # Local QA runs and generated artifacts
 test/runtime/

@@ -234,6 +234,7 @@ const server = http.createServer((req, res) => {
     if (user.includes('领域：数学')) domain = 'math';
     else if (user.includes('领域：代码')) domain = 'code';
     else if (user.includes('领域：科普')) domain = 'science';
+    else if (/代码审阅器/.test(system)) domain = 'code';
     else if (/mathematical content|likely mathematics/i.test(system)) domain = 'math';
     else if (/source code|likely code/i.test(system)) domain = 'code';
     else if (/popular-science|likely popular science/i.test(system)) domain = 'science';

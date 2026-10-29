@@ -29,6 +29,14 @@ let pendingAudio = false;
 let hoverFocusTimer = null;
 let realtimeSawSelecting = false;
 let preHideTimer = null;
+
+function editorSourceSelected() {
+  return state?.settings?.realtime?.source === 'editor';
+}
+
+function idleRealtimeLabel() {
+  return editorSourceSelected() ? '代码字幕' : '实时字幕';
+}
 let keyClearTimer = null;
 let keyClearArmed = false;
 let keyClearAt = 0;
@@ -181,11 +189,11 @@ function renderStatus() {
     : (pendingSelect ? '准备中…' : '截屏翻译');
   $('btn-select').disabled = Boolean(state.selecting || pendingSelect);
   $('realtime-label').textContent = realtime.active
-    ? '停止字幕'
-    : (pendingRealtime ? '启动中…' : '实时字幕');
+    ? (editorSourceSelected() ? '停止代码' : '停止字幕')
+    : (pendingRealtime ? '启动中…' : idleRealtimeLabel());
   $('btn-realtime').disabled = !realtime.active && pendingRealtime;
   $('stat-realtime').textContent = realtime.active ? '运行中' : '未开启';
-  $('quick-realtime').textContent = realtime.active ? '停止 →' : '开启 →';
+  $('quick-realtime').textContent = realtime.active ? '停止 →' : (editorSourceSelected() ? '代码 →' : '开启 →');
 
   const audio = state.audio || {};
   if (audio.active) pendingAudio = false;
@@ -446,8 +454,24 @@ function syncSettingsForm(force) {
   const opacity = $('realtime-opacity');
   if (force || document.activeElement !== opacity) opacity.value = Math.round(s.realtime.opacity * 100);
   $('realtime-opacity-value').textContent = `${Math.round(s.realtime.opacity * 100)}%`;
+  setValue('realtime-source', s.realtime.source);
   setValue('realtime-engine', s.realtime.engine);
   setValue('realtime-lines', String(s.realtime.maxLines));
+  const sourceEditor = s.realtime.source === 'editor';
+  document.querySelectorAll('.editor-row').forEach((node) => node.classList.toggle('hidden', !sourceEditor));
+  document.querySelectorAll('.screen-row').forEach((node) => node.classList.toggle('hidden', sourceEditor));
+  const cardDesc = $('realtime-card-desc');
+  if (cardDesc) {
+    cardDesc.textContent = sourceEditor
+      ? '读取编辑器代码，达到阈值后自动解释与修正'
+      : '持续识别选区或指定窗口并显示译文';
+  }
+  const editorLines = $('editor-lines');
+  if (force || document.activeElement !== editorLines) editorLines.value = String(s.realtime.editorReviewLines);
+  const editorChars = $('editor-chars');
+  if (force || document.activeElement !== editorChars) editorChars.value = String(s.realtime.editorReviewChars);
+  const editorAuto = $('editor-auto');
+  if (force || document.activeElement !== editorAuto) editorAuto.checked = s.realtime.editorAutoReview !== false;
   setValue('audio-source', s.audio.source);
   setValue('audio-speed', s.audio.speed);
   setValue('audio-language', s.audio.language);
@@ -603,7 +627,9 @@ function toggleRealtime() {
       resetHomeUI();
       pendingRealtime = false;
       $('btn-realtime').disabled = false;
-      $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
+      $('realtime-label').textContent = state?.realtime.active
+        ? (editorSourceSelected() ? '停止代码' : '停止字幕')
+        : idleRealtimeLabel();
       showToast('无法启动实时字幕', res?.reason === 'busy' ? '已有框选或实时字幕正在进行' : '请稍后重试', 'error');
       return;
     }
@@ -611,13 +637,17 @@ function toggleRealtime() {
       if (!pendingRealtime) return;
       pendingRealtime = false;
       $('btn-realtime').disabled = false;
-      $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
+      $('realtime-label').textContent = state?.realtime.active
+        ? (editorSourceSelected() ? '停止代码' : '停止字幕')
+        : idleRealtimeLabel();
     }, 6000);
   }).catch((err) => {
     resetHomeUI();
     pendingRealtime = false;
     $('btn-realtime').disabled = false;
-    $('realtime-label').textContent = state?.realtime.active ? '停止字幕' : '实时字幕';
+    $('realtime-label').textContent = state?.realtime.active
+        ? (editorSourceSelected() ? '停止代码' : '停止字幕')
+        : idleRealtimeLabel();
     showToast('无法启动实时字幕', err.message || '请稍后重试', 'error');
   });
 }
@@ -1036,6 +1066,22 @@ function bindEvents() {
     }
   });
 
+  $('realtime-source').addEventListener('change', (event) => {
+    saveSettings({ realtime: { source: event.target.value } }, '字幕来源已更改');
+  });
+  $('editor-lines').addEventListener('change', (event) => {
+    const value = Math.max(5, Math.min(200, Number(event.target.value) || 20));
+    event.target.value = String(value);
+    saveSettings({ realtime: { editorReviewLines: value } });
+  });
+  $('editor-chars').addEventListener('change', (event) => {
+    const value = Math.max(200, Math.min(20000, Number(event.target.value) || 1200));
+    event.target.value = String(value);
+    saveSettings({ realtime: { editorReviewChars: value } });
+  });
+  $('editor-auto').addEventListener('change', (event) => {
+    saveSettings({ realtime: { editorAutoReview: event.target.checked } });
+  });
   $('hotkey-select').addEventListener('click', () => startRecording('select'));
   $('hotkey-realtime').addEventListener('click', () => startRecording('realtime'));
   window.addEventListener('keydown', (event) => {

@@ -58,6 +58,7 @@ const DEFAULTS = {
     realtime: 'Control+Alt+R',
   },
   realtime: {
+    source: 'screen',
     intervalMs: 900,
     fontSize: 20,
     opacity: 0.92,
@@ -65,6 +66,9 @@ const DEFAULTS = {
     maxLines: 3,
     sourceLang: 'auto',
     targetLang: 'auto',
+    editorReviewLines: 20,
+    editorReviewChars: 1200,
+    editorAutoReview: true,
     boxWidth: 0,
     boxHeight: 0,
   },
@@ -124,6 +128,10 @@ function sanitize(data) {
   out.provider.baseUrl = String(out.provider.baseUrl || '').trim().replace(/\/+$/, '');
   out.provider.model = String(out.provider.model || '').trim();
   out.provider.temperature = clamp(out.provider.temperature, 0, 1.5, 0.4);
+  out.realtime.source = out.realtime.source === 'editor' ? 'editor' : 'screen';
+  out.realtime.editorReviewLines = Math.round(clamp(out.realtime.editorReviewLines, 5, 200, 20));
+  out.realtime.editorReviewChars = Math.round(clamp(out.realtime.editorReviewChars, 200, 20000, 1200));
+  out.realtime.editorAutoReview = out.realtime.editorAutoReview !== false;
   out.realtime.intervalMs = Math.round(clamp(out.realtime.intervalMs, 500, 5000, 900));
   out.realtime.fontSize = Math.round(clamp(out.realtime.fontSize, 14, 40, 20));
   out.realtime.opacity = clamp(out.realtime.opacity, 0.35, 1, 0.92);

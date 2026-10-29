@@ -2,6 +2,7 @@ param([string]$Output = 'dist\ScreenLens')
 
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
+$appVersion = (Get-Content (Join-Path $root 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version
 $electron = Join-Path $root 'vendor\electron'
 $dist = if ([IO.Path]::IsPathRooted($Output)) { $Output } else { Join-Path $root $Output }
 $exe = Join-Path $dist 'electron.exe'
@@ -93,12 +94,19 @@ if (Test-Path $releaseDocs) {
     Copy-Item -Path (Join-Path $releaseDocs '*') -Destination $dist -Force
 }
 
+$vsix = Get-ChildItem -LiteralPath (Join-Path $root 'vscode-extension') -Filter 'ScreenLens-Code-*.vsix' -File -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+if ($vsix) {
+    Copy-Item -LiteralPath $vsix.FullName -Destination $dist -Force
+}
+
 $rcedit = Join-Path $root 'vendor\rcedit.exe'
 if (Test-Path $rcedit) {
     & $rcedit (Join-Path $dist 'ScreenLens.exe') `
         --set-icon (Join-Path $root 'assets\icon.ico') `
-        --set-file-version '1.2.1.0' `
-        --set-product-version '1.2.1.0' `
+        --set-file-version "$appVersion.0" `
+        --set-product-version "$appVersion.0" `
         --set-version-string 'ProductName' 'ScreenLens' `
         --set-version-string 'FileDescription' 'ScreenLens - instant screen translation and explanation' `
         --set-version-string 'CompanyName' 'ScreenLens' `

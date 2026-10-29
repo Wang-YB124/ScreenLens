@@ -691,3 +691,58 @@ body.resizing .resize-grip {
   background: rgba(139, 243, 208, 0.12);
   opacity: 1;
 }
+
+.sub.editor-mode .original {
+  display: block;
+  max-height: 150px;
+  overflow: auto;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #c9f1df;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  white-space: pre;
+  text-overflow: clip;
+  user-select: text;
+}
+
+.sub.editor-mode .translated {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9fb0c4;
+  line-height: 1.5;
+}
+
+.sub.editor-mode .explain-body {
+  max-height: 340px;
+  font-size: 11.5px;
+  white-space: pre-wrap;
+}
+
+.sub.editor-mode .explain-body pre {
+  margin: 4px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.32);
+  overflow-x: auto;
+}
+
+.sub.editor-mode .explain-body pre code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  white-space: pre;
+  color: #c9f1df;
+}
+
+.sub.editor-mode .lang-row {
+  display: none;
+}
+
+.sub.editor-mode .preview-text {
+  font-family: var(--mono);
+  font-size: 10px;
+}

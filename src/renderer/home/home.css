@@ -1687,3 +1687,9 @@ body.pre-hide {
   gap: 6px;
   flex: none;
 }
+
+.record-unit {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 32px;
+}

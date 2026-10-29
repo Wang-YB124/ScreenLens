@@ -1,0 +1,134 @@
+{
+  "name": "screenlens-code",
+  "displayName": "ScreenLens Code",
+  "description": "解释选中代码，并在 diff 预览后应用 AI 修正（VS Code / Cursor / Qoder）",
+  "version": "0.2.1",
+  "publisher": "screenlens",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "code explanation",
+    "code fix",
+    "deepseek",
+    "screenlens"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "选中的代码会发送到你配置的 AI 服务。"
+    }
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:screenlens.explainSelection",
+    "onCommand:screenlens.fixSelection",
+    "onCommand:screenlens.setApiKey",
+    "onCommand:screenlens.clearApiKey"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "screenlens.explainSelection",
+        "title": "ScreenLens: 解释选中代码",
+        "category": "ScreenLens"
+      },
+      {
+        "command": "screenlens.fixSelection",
+        "title": "ScreenLens: 修正选中代码",
+        "category": "ScreenLens"
+      },
+      {
+        "command": "screenlens.setApiKey",
+        "title": "ScreenLens: 设置 API Key",
+        "category": "ScreenLens"
+      },
+      {
+        "command": "screenlens.clearApiKey",
+        "title": "ScreenLens: 清除 API Key",
+        "category": "ScreenLens"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "screenlens.explainSelection",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "screenlens.fixSelection",
+        "key": "ctrl+alt+f",
+        "mac": "cmd+alt+f",
+        "when": "editorTextFocus && editorHasSelection"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "screenlens.explainSelection",
+          "when": "editorHasSelection",
+          "group": "navigation@20"
+        },
+        {
+          "command": "screenlens.fixSelection",
+          "when": "editorHasSelection",
+          "group": "navigation@21"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ScreenLens Code",
+      "properties": {
+        "screenlens.apiBaseUrl": {
+          "type": "string",
+          "default": "https://api.deepseek.com/v1",
+          "description": "OpenAI 兼容接口地址，例如 DeepSeek、通义千问、Ollama。"
+        },
+        "screenlens.model": {
+          "type": "string",
+          "default": "deepseek-chat",
+          "description": "模型名称。"
+        },
+        "screenlens.explanationLanguage": {
+          "type": "string",
+          "default": "简体中文",
+          "description": "解释使用的语言。"
+        },
+        "screenlens.temperature": {
+          "type": "number",
+          "default": 0.2,
+          "minimum": 0,
+          "maximum": 1.5,
+          "description": "修正代码建议使用较低温度；解释可适当调高。"
+        },
+        "screenlens.includeDiagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "把选区附近的语法/类型诊断一起发送给模型。"
+        },
+        "screenlens.maxInputChars": {
+          "type": "number",
+          "default": 14000,
+          "minimum": 2000,
+          "maximum": 30000,
+          "description": "发送给模型的代码上下文字符上限。"
+        },
+        "screenlens.bridgeFile": {
+          "type": "string",
+          "default": "",
+          "description": "ScreenLens 代码字幕桥接文件路径；留空使用 %APPDATA%\\ScreenLens\\editor-bridge.json。"
+        }
+      }
+    }
+  }
+}
