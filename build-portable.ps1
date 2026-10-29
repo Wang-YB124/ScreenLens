@@ -96,8 +96,8 @@ $rcedit = Join-Path $root 'vendor\rcedit.exe'
 if (Test-Path $rcedit) {
     & $rcedit (Join-Path $dist 'ScreenLens.exe') `
         --set-icon (Join-Path $root 'assets\icon.ico') `
-        --set-file-version '1.1.4.0' `
-        --set-product-version '1.1.4.0' `
+        --set-file-version '1.1.5.0' `
+        --set-product-version '1.1.5.0' `
         --set-version-string 'ProductName' 'ScreenLens' `
         --set-version-string 'FileDescription' 'ScreenLens - instant screen translation and explanation' `
         --set-version-string 'CompanyName' 'ScreenLens' `
