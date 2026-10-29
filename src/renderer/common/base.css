@@ -198,6 +198,16 @@ kbd {
   color: var(--danger);
 }
 
+.btn-small:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn-small:disabled:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-2);
+}
+
 .link-btn {
   color: var(--muted);
   font-size: 13px;

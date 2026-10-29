@@ -20,7 +20,6 @@ let state = null;
 let currentTab = 'home';
 let searchQuery = '';
 let recording = null;
-let keySaveTimer = null;
 let pendingSelect = false;
 let pendingRealtime = false;
 let suppressSelectClick = 0;
@@ -354,6 +353,13 @@ function detectPreset(baseUrl, model) {
   return exact ? exact[0] : (matches[0]?.[0] || 'custom');
 }
 
+function syncKeySaveState() {
+  const input = $('provider-key');
+  const button = $('key-save');
+  if (!input || !button) return;
+  button.disabled = !input.value.trim();
+}
+
 function resetKeyClear() {
   clearTimeout(keyClearTimer);
   keyClearTimer = null;
@@ -395,16 +401,17 @@ function syncSettingsForm(force) {
 
   const keyInput = $('provider-key');
   keyInput.placeholder = s.provider.hasApiKey
-    ? `已保存 Key ${s.provider.keyHint}，点右侧眼睛查看，或输入新 Key 替换`
+    ? `已保存 Key ${s.provider.keyHint}；点右侧眼睛查看，输入后点「保存」`
     : (state.provider.hasProvider
       ? '本地模型无需 Key'
-      : '粘贴 API Key，仅保存在本机');
+      : '粘贴 API Key，点「保存」生效');
   if (!s.provider.hasApiKey && !keyInput.value) {
     keyInput.type = 'password';
     $('key-eye').classList.remove('on');
     $('key-eye').title = '显示 API Key';
     resetKeyClear();
   }
+  syncKeySaveState();
 
   const hint = $('engine-hint');
   if (!s.freeTranslation && !state.provider.hasProvider) {
@@ -930,28 +937,17 @@ function bindEvents() {
     if (!model) return;
     saveSettings({ provider: { model } });
   });
-  $('provider-key').addEventListener('input', () => {
-    clearTimeout(keySaveTimer);
-    const value = $('provider-key').value.trim();
-    if (!value) return;
-    keySaveTimer = setTimeout(() => {
-      saveSettings({ provider: { apiKey: value } });
-    }, 900);
-  });
-  $('provider-key').addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      $('provider-key').blur();
-    }
-  });
-  $('provider-key').addEventListener('change', () => {
-    const value = $('provider-key').value.trim();
+  $('provider-key').addEventListener('input', syncKeySaveState);
+  $('key-save').addEventListener('click', () => {
+    const input = $('provider-key');
+    const value = input.value.trim();
     if (!value) return;
     saveSettings({ provider: { apiKey: value } }, 'API Key 已保存');
-    $('provider-key').value = '';
-    $('provider-key').type = 'password';
+    input.value = '';
+    input.type = 'password';
     $('key-eye').classList.remove('on');
     $('key-eye').title = '显示 API Key';
+    syncKeySaveState();
     syncSettingsForm(true);
   });
   $('key-eye').addEventListener('mousedown', (event) => {
@@ -971,6 +967,7 @@ function bindEvents() {
         const res = await api.invoke('provider:key');
         if (res?.ok && res.apiKey) input.value = res.apiKey;
       } catch {}
+      syncKeySaveState();
     }
     if (!input.value) {
       showToast('暂无 API Key', '先粘贴并保存 Key，之后可用眼睛按钮查看。');
@@ -997,11 +994,11 @@ function bindEvents() {
       return;
     }
     resetKeyClear();
-    clearTimeout(keySaveTimer);
     $('provider-key').value = '';
     $('provider-key').type = 'password';
     $('key-eye').classList.remove('on');
     $('key-eye').title = '显示 API Key';
+    syncKeySaveState();
     saveSettings({ provider: { clearApiKey: true } }, '已清除 API Key');
   });
   $('provider-test').addEventListener('click', async () => {

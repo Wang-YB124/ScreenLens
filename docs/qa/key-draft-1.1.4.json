@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-29",
+  "version": "1.1.4",
+  "draft_key": {
+    "initial": {
+      "hasKey": false,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    },
+    "afterTypeFirst": {
+      "hasKey": false,
+      "input": "sk-qa-first-1111111111",
+      "saveDisabled": false,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    },
+    "afterWaitFirst": {
+      "hasKey": false,
+      "input": "sk-qa-first-1111111111",
+      "saveDisabled": false,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    },
+    "savedAfterFirstClick": null,
+    "afterSaveFirst": {
+      "hasKey": true,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedFirst": "sk-qa-first-1111111111",
+    "afterTypeSecond": {
+      "hasKey": true,
+      "input": "sk-qa-second-2222222222",
+      "saveDisabled": false,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "afterWaitSecond": {
+      "hasKey": true,
+      "input": "sk-qa-second-2222222222",
+      "saveDisabled": false,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedAfterDraft": "sk-qa-first-1111111111",
+    "afterTabSwitch": {
+      "hasKey": true,
+      "input": "sk-qa-second-2222222222",
+      "saveDisabled": false,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedAfterTabSwitch": "sk-qa-first-1111111111",
+    "afterSaveSecond": {
+      "hasKey": true,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "已保存 Key ••••2222；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedSecond": "sk-qa-second-2222222222",
+    "clearArmed": {
+      "hasKey": true,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "已保存 Key ••••2222；点右侧眼睛查看，输入后点「保存」"
+    },
+    "afterClear": {
+      "hasKey": false,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    }
+  },
+  "notes": [
+    "Isolated profile and fake keys only; the real user key was not read or changed.",
+    "Typing does not save on input, blur or tab switch; only the explicit 保存 button writes.",
+    "Save is disabled while the input is empty; clear still requires two confirmations."
+  ],
+  "packaged": {
+    "initial": {
+      "hasKey": false,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    },
+    "afterTypeFirst": {
+      "hasKey": false,
+      "input": "sk-qa-first-1111111111",
+      "saveDisabled": false,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    },
+    "afterWaitFirst": {
+      "hasKey": false,
+      "input": "sk-qa-first-1111111111",
+      "saveDisabled": false,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    },
+    "savedAfterFirstClick": null,
+    "afterSaveFirst": {
+      "hasKey": true,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedFirst": "sk-qa-first-1111111111",
+    "afterTypeSecond": {
+      "hasKey": true,
+      "input": "sk-qa-second-2222222222",
+      "saveDisabled": false,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "afterWaitSecond": {
+      "hasKey": true,
+      "input": "sk-qa-second-2222222222",
+      "saveDisabled": false,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedAfterDraft": "sk-qa-first-1111111111",
+    "afterTabSwitch": {
+      "hasKey": true,
+      "input": "sk-qa-second-2222222222",
+      "saveDisabled": false,
+      "placeholder": "已保存 Key ••••1111；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedAfterTabSwitch": "sk-qa-first-1111111111",
+    "afterSaveSecond": {
+      "hasKey": true,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "已保存 Key ••••2222；点右侧眼睛查看，输入后点「保存」"
+    },
+    "storedSecond": "sk-qa-second-2222222222",
+    "clearArmed": {
+      "hasKey": true,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "已保存 Key ••••2222；点右侧眼睛查看，输入后点「保存」"
+    },
+    "afterClear": {
+      "hasKey": false,
+      "input": "",
+      "saveDisabled": true,
+      "placeholder": "粘贴 API Key，点「保存」生效"
+    }
+  }
+}

@@ -35,7 +35,7 @@
 
 ## 直接使用
 
-从 GitHub Releases 下载 `ScreenLens-1.1.3-win64.zip`，解压后运行 `ScreenLens.exe`。源码仓库不包含 Electron 运行时和构建产物。
+从 GitHub Releases 下载 `ScreenLens-1.1.4-win64.zip`，解压后运行 `ScreenLens.exe`。源码仓库不包含 Electron 运行时和构建产物。
 
 - `Ctrl+Alt+Q`：框选翻译
 - `Ctrl+Alt+R`：实时字幕
@@ -84,7 +84,7 @@ powershell -ExecutionPolicy Bypass -File scripts/fetch-sensevoice.ps1
 ## 发布到 GitHub
 
 - 源码：提交本仓库即可。默认 `.gitignore` 排除 `vendor/electron/`、`dist/`、测试截图与运行缓存。
-- 便携包：把 `dist/ScreenLens-1.1.3-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 330 MB，超过 GitHub 单文件限制）。
+- 便携包：把 `dist/ScreenLens-1.1.4-win64.zip` 和 `.sha256.txt` 上传到 GitHub Releases，不要提交到源码仓库（zip 约 330 MB，超过 GitHub 单文件限制）。
 - 首次克隆后运行 `scripts/fetch-electron.ps1`、`scripts/fetch-whisper.ps1`、`scripts/fetch-sensevoice.ps1`；无需把 Electron、模型或运行时提交进仓库。发布包只带 Whisper base 回退模型，源码构建时可自行保留 small 模型（逐句模式对中/英/日/韩使用 SenseVoice，不受影响）。
 
 ## 测试
