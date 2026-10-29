@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-29",
+  "version": "1.2.1",
+  "change": "balanced first chunk 1800ms -> 1200ms; window 3000/overlap 1500 unchanged",
+  "packagedFive": [
+    {
+      "round": 1,
+      "pass": true,
+      "firstTextMs": 2323,
+      "cer": 0.0143,
+      "contains": [
+        "人工智能",
+        "窗外",
+        "散步",
+        "字幕"
+      ],
+      "explain": true,
+      "recordCount": 15
+    },
+    {
+      "round": 2,
+      "pass": true,
+      "firstTextMs": 1778,
+      "cer": 0.0571,
+      "contains": [
+        "人工智能",
+        "语音识别",
+        "窗外",
+        "散步",
+        "字幕",
+        "准确"
+      ],
+      "explain": true,
+      "recordCount": 13
+    },
+    {
+      "round": 3,
+      "pass": true,
+      "firstTextMs": 1762,
+      "cer": 0.0571,
+      "contains": [
+        "人工智能",
+        "语音识别",
+        "窗外",
+        "散步",
+        "字幕",
+        "准确"
+      ],
+      "explain": true,
+      "recordCount": 13
+    },
+    {
+      "round": 4,
+      "pass": true,
+      "firstTextMs": 1771,
+      "cer": 0.0571,
+      "contains": [
+        "人工智能",
+        "语音识别",
+        "窗外",
+        "散步",
+        "字幕",
+        "准确"
+      ],
+      "explain": true,
+      "recordCount": 13
+    },
+    {
+      "round": 5,
+      "pass": true,
+      "firstTextMs": 1781,
+      "cer": 0.0571,
+      "contains": [
+        "人工智能",
+        "语音识别",
+        "窗外",
+        "散步",
+        "字幕",
+        "准确"
+      ],
+      "explain": true,
+      "recordCount": 13
+    }
+  ],
+  "benchmark": {
+    "zh": {
+      "current-balanced-cer": 0.0429,
+      "first-1200-window3000-cer": 0.0143,
+      "first-1500-window2500-cer": 0.0429
+    },
+    "en": {
+      "current-balanced-cer": 0.0469,
+      "first-1200-window3000-cer": 0.0417,
+      "first-1500-window2500-cer": 0.0
+    }
+  },
+  "notes": [
+    "10s Chinese TTS, full playback, no overlapping rounds; isolated profile and local mock AI.",
+    "Balanced remains fixed 3s/1.5s window; only the first chunk got shorter. 逐句 remains the most accurate option.",
+    "No real key or paid AI used."
+  ]
+}

@@ -18,11 +18,11 @@ const AUDIO_MODES = {
     key: 'balanced',
     label: '均衡',
     model: 'base',
-    firstChunkMs: 1800,
+    firstChunkMs: 1200,
     chunkMs: 3000,
     overlapMs: 1500,
     temperatureInc: 0,
-    hint: '默认档，首条约 2–3 秒，之后约每 1.5 秒更新',
+    hint: '默认档，首条约 2 秒，之后约每 1.5 秒更新',
   },
   accurate: {
     key: 'accurate',
