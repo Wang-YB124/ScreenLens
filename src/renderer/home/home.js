@@ -30,6 +30,9 @@ let pendingAudio = false;
 let hoverFocusTimer = null;
 let realtimeSawSelecting = false;
 let preHideTimer = null;
+let keyClearTimer = null;
+let keyClearArmed = false;
+let keyClearAt = 0;
 
 function preHideHome() {
   document.body.classList.add('pre-hide');
@@ -351,6 +354,18 @@ function detectPreset(baseUrl, model) {
   return exact ? exact[0] : (matches[0]?.[0] || 'custom');
 }
 
+function resetKeyClear() {
+  clearTimeout(keyClearTimer);
+  keyClearTimer = null;
+  keyClearArmed = false;
+  keyClearAt = 0;
+  const button = $('key-clear');
+  if (!button) return;
+  button.textContent = '清除';
+  button.classList.remove('danger');
+  button.title = '清除已保存的 API Key';
+}
+
 function syncSettingsForm(force) {
   if (!state) return;
   const s = state.settings;
@@ -380,7 +395,7 @@ function syncSettingsForm(force) {
 
   const keyInput = $('provider-key');
   keyInput.placeholder = s.provider.hasApiKey
-    ? `已保存 ${s.provider.keyHint}，输入新 Key 可替换`
+    ? `已保存 Key ${s.provider.keyHint}，点右侧眼睛查看，或输入新 Key 替换`
     : (state.provider.hasProvider
       ? '本地模型无需 Key'
       : '粘贴 API Key，仅保存在本机');
@@ -388,6 +403,7 @@ function syncSettingsForm(force) {
     keyInput.type = 'password';
     $('key-eye').classList.remove('on');
     $('key-eye').title = '显示 API Key';
+    resetKeyClear();
   }
 
   const hint = $('engine-hint');
@@ -967,6 +983,20 @@ function bindEvents() {
     input.setSelectionRange(input.value.length, input.value.length);
   });
   $('key-clear').addEventListener('click', () => {
+    const button = $('key-clear');
+    const now = Date.now();
+    if (!keyClearArmed || now - keyClearAt < 500) {
+      keyClearArmed = true;
+      keyClearAt = now;
+      button.textContent = '确认清除';
+      button.classList.add('danger');
+      button.title = '再次点击确认删除';
+      showToast('确认清除 API Key？', '再次点击“确认清除”才会删除；4 秒后自动取消。', 'warn');
+      clearTimeout(keyClearTimer);
+      keyClearTimer = setTimeout(resetKeyClear, 4000);
+      return;
+    }
+    resetKeyClear();
     clearTimeout(keySaveTimer);
     $('provider-key').value = '';
     $('provider-key').type = 'password';

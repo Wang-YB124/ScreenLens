@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-29",
+  "version": "1.1.3",
+  "packaged": {
+    "saved": {
+      "label": "DeepSeek",
+      "hasKey": true,
+      "hasProvider": true,
+      "model": "deepseek-chat"
+    },
+    "initial": {
+      "hasKey": true,
+      "button": "清除",
+      "danger": false,
+      "placeholder": "已保存 Key ••••7890，点右侧眼睛查看，或输入新 Key 替换"
+    },
+    "afterFirstClick": {
+      "hasKey": true,
+      "button": "确认清除",
+      "danger": true,
+      "placeholder": "已保存 Key ••••7890，点右侧眼睛查看，或输入新 Key 替换"
+    },
+    "afterTimeout": {
+      "hasKey": true,
+      "button": "清除",
+      "danger": false,
+      "placeholder": "已保存 Key ••••7890，点右侧眼睛查看，或输入新 Key 替换"
+    },
+    "afterArmAgain": {
+      "hasKey": true,
+      "button": "确认清除",
+      "danger": true,
+      "placeholder": "已保存 Key ••••7890，点右侧眼睛查看，或输入新 Key 替换"
+    },
+    "afterConfirm": {
+      "hasKey": false,
+      "button": "清除",
+      "danger": false,
+      "placeholder": "粘贴 API Key，仅保存在本机"
+    },
+    "version": "1.1.3"
+  },
+  "notes": [
+    "Isolated profile and a test key were used; the real user key was not read or changed.",
+    "First click arms confirmation only; 4s timeout cancels; second click after >500ms deletes.",
+    "Placeholder now explicitly says the key is saved and can be revealed with the eye button."
+  ]
+}
